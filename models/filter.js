@@ -1,7 +1,5 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Filter extends Model {
     /**
@@ -14,12 +12,18 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Filter.init({
-    id: DataTypes.INTEGER,
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true, // Đánh dấu là khóa chính
+      autoIncrement: true, // Tùy chọn nếu cần tự động tăng
+    },
     name: DataTypes.STRING,
     category: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Filter',
+    tableName: 'Filters', // Đảm bảo tên bảng đúng
+    timestamps: false, // Nếu không cần timestamps
   });
   return Filter;
 };

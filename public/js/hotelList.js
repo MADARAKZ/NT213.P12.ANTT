@@ -283,287 +283,6 @@ $(document).ready(() => {
   };
 
   // Xử lý sự kiện khi thay đổi các filter
-  $(
-    '.col-10 input[type="range"], .col-10 input[type="checkbox"], .col-10 input[type="radio"], .dropdown-item'
-  ).change(function () {
-    sendFilterRequest();
-  });
-  let sortType = "";
-  $(".dropdown-menu a.dropdown-item").click(function (event) {
-    event.preventDefault(); // Ngăn chặn hành động mặc định của thẻ a khi được click
-
-    // Lấy giá trị của thuộc tính data-value từ dropdown-item được click
-    sortType = $(this).data("value");
-    console.log(sortType);
-    sendFilterRequest();
-  });
-  // Hàm gửi yêu cầu lọc tới máy chủ
-  function sendFilterRequest() {
-    console.log("Hello");
-
-    selectedFilters = {};
-    // Thu thập giá trị của input range có class là 'price-range'
-    $('.col-10 input[type="range"]').each(function (index) {
-      let value = $(this).val();
-      let inputId = $(this).attr("id");
-      console.log("value", value);
-
-      // Kiểm tra ID của input để xác định key tương ứng trong selectedFilters
-      if (inputId === "price_range1") {
-        if (value != 0) selectedFilters["price"] = value; // Đặt key là 'price1'
-      } else if (inputId === "price_range2") {
-        if (value != 0) selectedFilters["price"] = value; // Đặt key là 'price2'
-      }
-    });
-    // Thu thập các giá trị từ các checkbox được chọn trong cùng một cột
-    $('.col-10 input[type="checkbox"]:checked').each(function () {
-      const parentClass = $(this).closest(".col-10").attr("class"); // Lấy class của cột cha
-      const filterValue = $(this).val();
-      const classArray = parentClass.split(" ");
-
-      // Loại bỏ lớp '.col-10' khỏi mảng các lớp
-      const filteredClasses = classArray.filter(
-        (className) => className !== "col-10"
-      );
-
-      // Gộp các lớp lại thành chuỗi mới (không chứa 'col-10')
-      const updatedParentClass = filteredClasses.join(" ");
-
-      // Kiểm tra nếu chưa có mảng bộ lọc cho lớp cha này, khởi tạo mảng mới
-      if (!selectedFilters[updatedParentClass]) {
-        selectedFilters[updatedParentClass] = [];
-      }
-
-      // Thêm filterValue vào mảng bộ lọc của lớp cha
-      selectedFilters[updatedParentClass].push(filterValue);
-    });
-    $('.col-10 input[type="radio"]:checked').each(function () {
-      const filterType = $(this).attr("name");
-      const filterValue = $(this).val();
-      selectedFilters[filterType] = filterValue;
-    });
-    const nameToIdMap = {
-      "bath sun": 1,
-      spa: 2,
-      "free parking": 3,
-      "airport check": 4,
-      internet: 5,
-      "pool overview": 6,
-      "Khu vực ăn uống": 7,
-      Bar: 8,
-      Cafes: 9,
-      "Giữ hành lý": 10,
-      "Báo thức": 11,
-      "Phòng họp": 12,
-      "view city": 13,
-      "smoking area": 14,
-      "Phòng tắm riêng tư": 15,
-      "Máy lạnh": 16,
-      "Lễ tân 24/7": 17,
-    };
-    const nameServiceRoomToIdMap = {
-      "air conditioning": 18,
-      "washing machine": 19,
-      TV: 20,
-      bathtub: 21,
-      fridge: 22,
-      balcony: 23,
-    };
-
-    // Hàm ánh xạ tên dịch vụ sang các ID tương ứng
-    function mapServiceNamesToIds(serviceNames) {
-      const mappedIds = [];
-
-      // Lặp qua các tên dịch vụ trong mảng serviceNames
-      serviceNames.forEach((serviceName) => {
-        // Kiểm tra xem tên dịch vụ có trong nameToIdMap không
-        if (nameToIdMap.hasOwnProperty(serviceName)) {
-          // Nếu có, lấy id tương ứng và thêm vào mảng mappedIds
-          mappedIds.push(nameToIdMap[serviceName]);
-        }
-      });
-
-      return mappedIds;
-    }
-    function mapServiceRoomNamesToIds(serviceNames) {
-      const mappedIds = [];
-
-      // Lặp qua các tên dịch vụ trong mảng serviceNames
-      serviceNames.forEach((serviceName) => {
-        // Kiểm tra xem tên dịch vụ có trong nameToIdMap không
-        if (nameServiceRoomToIdMap.hasOwnProperty(serviceName)) {
-          // Nếu có, lấy id tương ứng và thêm vào mảng mappedIds
-          mappedIds.push(nameServiceRoomToIdMap[serviceName]);
-        }
-      });
-
-      return mappedIds;
-    }
-
-    // Xử lý và ánh xạ selectedFilters["services_hotel"] từ tên sang id
-    if (
-      selectedFilters.hasOwnProperty("services_hotel") &&
-      Array.isArray(selectedFilters["services_hotel"])
-    ) {
-      // Lấy mảng các tên dịch vụ từ selectedFilters
-      const serviceNames = selectedFilters["services_hotel"];
-      console.log(serviceNames);
-      // Ánh xạ các tên dịch vụ sang các id tương ứng
-      const mappedServiceIds = mapServiceNamesToIds(serviceNames);
-      console.log("mappedServiceIds", mappedServiceIds);
-
-      // Gán lại mảng id đã ánh xạ vào selectedFilters["services_hotel"]
-      selectedFilters["services_hotel"] = mappedServiceIds;
-    }
-    if (
-      selectedFilters.hasOwnProperty("services_room") &&
-      Array.isArray(selectedFilters["services_room"])
-    ) {
-      // Lấy mảng các tên dịch vụ từ selectedFilters
-      const serviceNames = selectedFilters["services_room"];
-      console.log(serviceNames);
-      // Ánh xạ các tên dịch vụ sang các id tương ứng
-      const mappedServiceIds = mapServiceRoomNamesToIds(serviceNames);
-      console.log("mappedServiceIds", mappedServiceIds);
-
-      // Gán lại mảng id đã ánh xạ vào selectedFilters["services_hotel"]
-      selectedFilters["services_room"] = mappedServiceIds;
-    }
-
-    // Thu thập giá trị từ các radio button được chọn trong cùng một cột
-    function updateUrlParam(paramKey, paramValue) {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.set(paramKey, paramValue);
-
-      const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-      window.history.pushState({ path: newUrl }, "", newUrl);
-    }
-    console.log(selectedFilters);
-    const searchData = JSON.parse(localStorage.getItem("searchData") || "{}");
-    const filter = {
-      map: searchData.location,
-      checkInDate: searchData.checkInDate,
-      checkOutDate: searchData.checkOutDate,
-      numberOfRooms: searchData.numberOfRooms,
-      numberOfAdults: searchData.numberOfAdults,
-      numberOfChildren: searchData.numberOfChildren,
-    };
-    const combinedData = Object.assign({}, filter, selectedFilters, {
-      sortType: sortType,
-    });
-    console.log(combinedData);
-
-    $.ajax({
-      type: "GET",
-      url: `http://localhost:3030/api/v1/hotels`,
-      data: combinedData,
-      success: function (response) {
-        console.log(response);
-        // Xử lý kết quả trả về từ máy chủ
-        loaddata(response);
-        localStorage.removeItem("location");
-
-        // Cập nhật các tham số trên URL
-        updateUrlParams(
-          searchData.location,
-          searchData.checkInDate,
-          searchData.checkOutDate,
-          searchData.numberOfRooms,
-          searchData.numberOfAdults,
-          searchData.numberOfChildren
-        );
-      },
-      error: function (error) {
-        console.error("Error:", error);
-      },
-    });
-
-    // Hàm để cập nhật các tham số trên URL
-    function updateUrlParams(
-      location,
-      checkInDate,
-      checkOutDate,
-      numberOfRooms,
-      numberOfAdults,
-      numberOfChildren
-    ) {
-      const url = new URL(window.location.href);
-
-      // Cập nhật tham số 'map'
-      url.searchParams.set("map", location);
-
-      // Cập nhật tham số 'checkInDate'
-      url.searchParams.set("checkInDate", checkInDate);
-
-      // Cập nhật tham số 'checkOutDate'
-      url.searchParams.set("checkOutDate", checkOutDate);
-
-      // Cập nhật tham số 'numberOfRooms'
-      url.searchParams.set("numberOfRooms", numberOfRooms);
-
-      // Cập nhật tham số 'numberOfAdults'
-      url.searchParams.set("numberOfAdults", numberOfAdults);
-
-      // Cập nhật tham số 'numberOfChildren'
-      url.searchParams.set("numberOfChildren", numberOfChildren);
-
-      // Thay đổi URL trên thanh địa chỉ
-      window.history.replaceState({}, "", url);
-    }
-  }
-
-  // Event listener for search button click
-  $("#search-hotel").on("click", function (e) {
-    // e.preventDefault(); // Prevent default form submission
-
-    // Call sendFilterRequest() to perform search
-    sendFilterRequest();
-  });
-  $("#hotel-list").on("click", function () {
-    sendFilterRequest();
-  });
-  sendFilterRequest();
-  function getSelectedFacilities() {
-    var selectedFacilities = [];
-
-    // Lặp qua tất cả các checkbox
-    $("input[type='checkbox']").each(function () {
-      // Kiểm tra xem checkbox đã được chọn hay chưa
-      if (this.checked) {
-        // Lấy giá trị ID của checkbox đã chọn và thêm vào mảng selectedFacilities
-        selectedFacilities.push(this.id);
-      }
-    });
-
-    return selectedFacilities;
-  }
-
-  // Sử dụng hàm getSelectedFacilities để lấy các giá trị checkbox đã chọn
-  function sendSelectedFacilities() {
-    var selectedValues = getSelectedFacilities();
-
-    // Tạo một đối tượng dữ liệu để gửi qua Ajax
-    var data = {
-      selectedFacilities: selectedValues,
-    };
-    console.log(data);
-
-    // Gửi yêu cầu Ajax
-    $.ajax({
-      url: "http://localhost:3030/api/v1/hotelAmenities/hotel/amenities",
-      type: "POST", // Hoặc "GET" tùy thuộc vào API của bạn
-      data: data,
-      success: function (response) {
-        // Xử lý kết quả thành công từ API ở đây
-        console.log(response);
-        loaddata(response);
-      },
-      error: function (xhr, status, error) {
-        // Xử lý lỗi từ API ở đây
-        console.log(error);
-      },
-    });
-  }
   // Hàm hiển thị kết quả lọc
 });
 // Nút show more
@@ -603,3 +322,58 @@ function changeSort(sortType) {
   const bsDropdown = new bootstrap.Dropdown(dropdownButton); // Sử dụng Bootstrap để tạo dropdown
   bsDropdown.hide(); // Đóng dropdown
 }
+$(document).ready(function () {
+  // Gửi dữ liệu filter qua AJAX khi có sự thay đổi
+  $(".form-check-input, #price_range1").on("change input", function () {
+    let filters = {
+      price: $("#price_range1").val(),
+      propertyTypes: [],
+      bedType: $("input[name='bed_type']:checked").val(),
+      payment: $("input[name='payment']:checked").val(),
+      roomType: $("input[name='room_type']:checked").val(),
+      services: [],
+      roomFacilities: [],
+    };
+
+    // Thu thập dữ liệu từ checkbox
+    $(".type_hotel input[type='checkbox']:checked").each(function () {
+      filters.propertyTypes.push($(this).val());
+    });
+    $(".services_hotel input[type='checkbox']:checked").each(function () {
+      filters.services.push($(this).val());
+    });
+    $(".services_room input[type='checkbox']:checked").each(function () {
+      filters.roomFacilities.push($(this).val());
+    });
+
+    console.log("Filters đã chọn:", filters);
+
+    // Gửi yêu cầu AJAX đến API
+    $.ajax({
+      url: "http://localhost:3030/api/v1/hotelAmenities/hotel/amenities", // API lọc khách sạn
+      type: "POST", // Hoặc "GET" tùy vào API
+      data: JSON.stringify(filters), // Gửi dữ liệu bộ lọc
+      contentType: "application/json", // Đảm bảo gửi dữ liệu ở định dạng JSON
+      success: function (response) {
+        console.log("Kết quả lọc:", response);
+
+        // Hiển thị dữ liệu lọc
+        $(".results-container").html(""); // Xóa kết quả cũ
+        response.data.forEach((hotel) => {
+          $(".results-container").append(`
+            <div class="hotel">
+              <h3>${hotel.name}</h3>
+              <p>Giá: ${hotel.price} VND</p>
+              <p>Loại hình: ${hotel.type}</p>
+              <p>Tiện nghi: ${hotel.services.join(", ")}</p>
+              <p>Phòng: ${hotel.roomType}</p>
+            </div>
+          `);
+        });
+      },
+      error: function (xhr, status, error) {
+        console.error("Lỗi khi lọc dữ liệu:", error, xhr.responseText);
+      },
+    });
+  });
+});
