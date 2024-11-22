@@ -1,8 +1,39 @@
-$(document).ready(function () {
+$(document).ready(async function () {
   // Hàm ánh xạ ID của mục menu tới tên partial tương ứng
-  const type = localStorage.getItem("type");
-  console.log(type);
-  if (type != "admin") {
+
+  async function getCurrentUser() {
+    try {
+      if (!token) {
+        throw new Error("No token found in localStorage");
+      }
+
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
+  }
+
+  const currentUser = await getCurrentUser();
+
+  if (currentUser.type != "admin") {
     $(".template").hide();
     window.location.href = "/";
   }

@@ -20,6 +20,7 @@ const {
   loginGG,
   // checkEmailExist,
   updatePassword,
+  getCurrentUser,
 } = require("../controllers/user.controllers");
 const { checkExist } = require("../middlewares/validations/checkExist");
 const { authenticate } = require("../middlewares/authen/authenticate");
@@ -43,6 +44,7 @@ userRouter.put("/editUser/:id", editUser);
 userRouter.put("/updatePassword", updatePassword);
 
 userRouter.delete("/deleteUser/:id", deleteUser);
+userRouter.get("/getCurrentUser", getCurrentUser);
 require("dotenv").config();
 userRouter.use(
   session({

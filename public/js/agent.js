@@ -1,4 +1,51 @@
+// import { getCurrentUser } from "../../utils/getCurrentUser.js";
 $(document).ready(function () {
+  async function getCurrentUser() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found in localStorage");
+      }
+
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      // console.log("Current User:", currentUser); // Debugging statement
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
+  }
+
+  async function getGuestId() {
+    try {
+      const currentUser = await getCurrentUser(); // Giả sử getCurrentUser() trả về đối tượng người dùng
+      if (currentUser && currentUser.id) {
+        return currentUser.id;
+      } else {
+        throw new Error("Failed to get guest ID");
+      }
+    } catch (error) {
+      console.error("Error fetching guest ID:", error.message);
+      throw error; // Ném lỗi ra ngoài để handle khi gọi hàm này
+    }
+  }
+
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
@@ -158,13 +205,13 @@ $(document).ready(function () {
     window.location.href = `/ManageRoom/${id}`;
   });
 
-  $(".dkbutton").on("click", function () {
+  $(".dkbutton").on("click", async function () {
     var name = $("#name").val();
     var star = $("#star").val();
     var map = $("#map").val();
     var TypeHotel = $("#TypeHotel").val();
     // var cost = $("#cost").val();
-    var ownerId = localStorage.getItem("id");
+    const ownerId = await getGuestId();
     var payment = $("#payment").val();
 
     var fileInput = document.querySelector("input[type='file']");

@@ -2,8 +2,7 @@ const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
 const register = async (req, res) => {
   const { name, email, password, numberPhone, type } = req.body;
 
@@ -89,6 +88,39 @@ const login = async (req, res) => {
     res.status(404).send({ message: "khong co nguoi dung nay" });
   }
 };
+
+const getCurrentUser = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Lấy token từ header
+
+  if (!token) {
+    return res.status(400).send("Token is required");
+  }
+
+  try {
+    // Giải mã token và lấy email
+    const decode = jwt.verify(token, "firewallbase64");
+    const email = decode.email;
+
+    // Tìm người dùng dựa trên email
+    const currentUser = await User.findOne({ where: { email } });
+
+    if (currentUser) {
+      // Loại bỏ mật khẩu trước khi trả về
+      const { password, ...userWithoutPassword } = currentUser.toJSON();
+      res.status(200).send(userWithoutPassword); // Trả về người dùng mà không có mật khẩu
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (error) {
+    // Kiểm tra lỗi cụ thể từ jwt
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).send("Invalid token");
+    }
+    // Xử lý lỗi khác
+    res.status(500).send("Internal server error");
+  }
+};
+
 const getAllUser = async (req, res) => {
   const { name } = req.query;
   // console.log(data);
@@ -127,7 +159,17 @@ const editUser = async (req, res) => {
   console.log("10");
   try {
     const userId = req.params.id;
-    const { name, email, password, numberPhone, birthDate, gender, type, cccd, address } = req.body;
+    const {
+      name,
+      email,
+      password,
+      numberPhone,
+      birthDate,
+      gender,
+      type,
+      cccd,
+      address,
+    } = req.body;
     const detailUser = await User.findOne({
       where: {
         id: userId,
@@ -167,13 +209,13 @@ const updatePassword = async (req, res) => {
   try {
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // So sánh mật khẩu hiện tại với mật khẩu đã được băm trong cơ sở dữ liệu
     const isPasswordValid = bcrypt.compareSync(currentPassword, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid current password' });
+      return res.status(401).json({ error: "Invalid current password" });
     }
 
     // Băm mật khẩu mới
@@ -182,10 +224,10 @@ const updatePassword = async (req, res) => {
     // Cập nhật mật khẩu mới
     await user.update({ password: hashedNewPassword });
 
-    return res.status(200).json({ message: 'Password updated successfully' });
+    return res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
-    console.error('Error updating password:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating password:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -260,5 +302,6 @@ module.exports = {
   getDetailUser,
   // checkEmailExist,
   updatePassword,
-  loginGG
+  loginGG,
+  getCurrentUser,
 };

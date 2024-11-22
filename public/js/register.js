@@ -6,7 +6,13 @@ const registerUser = (event) => {
   const password = $("#password").val();
   const confirmPassword = $("#re-password").val();
   const numberPhone = $("#numberPhone").val();
-  const type = localStorage.getItem("type") || "client";
+
+  // Lấy `type` từ query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  var type = urlParams.get("type"); // Mặc định là "client" nếu không có `type`
+  if (type != "owner") {
+    type = "client";
+  }
   console.log(type);
 
   const confirmPasswordInput = $("#re-password");
@@ -44,7 +50,6 @@ const registerUser = (event) => {
       return response.json();
     })
     .then((result) => {
-      localStorage.removeItem("type");
       console.log("Đăng ký:", result);
       // Chuyển hướng trang sau khi đăng ký thành công
       window.location.href = "http://localhost:3030/signin";

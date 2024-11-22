@@ -4,11 +4,6 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessageModal = document.getElementById("errorMessageModal");
 
-var typpp = localStorage.getItem("type");
-if (typpp == "owner") {
-  $(".google-login-btn").hide();
-}
-
 let timeoutId = setTimeout(() => {
   localStorage.removeItem("type");
   console.log("Type removed from localStorage due to inactivity.");
@@ -38,12 +33,7 @@ form.addEventListener("submit", (e) => {
       if (result.message === "successful") {
         const token = result.token; // Giả sử token được trả về là thuộc tính 'token' của đối tượng result
         localStorage.setItem("token", token);
-        const name = result.name; //trả về undefined???
-        localStorage.setItem("userName", name);
-        const id = result.id; // Giả sử id được trả về là thuộc tính 'id' của đối tượng result
-        localStorage.setItem("id", id);
-        const type = result.type;
-        localStorage.setItem("type", type);
+
         if (result.type === "admin") {
           window.location.href = "/dashboard";
         } else if (result.type === "owner") {
