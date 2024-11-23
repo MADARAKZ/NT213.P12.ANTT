@@ -123,20 +123,21 @@ const getCurrentUser = async (req, res) => {
 
 const getAllUser = async (req, res) => {
   const { name } = req.query;
-  // console.log(data);
   try {
     if (name) {
       const UserList = await User.findAll({
         where: {
           name: {
-            numberPhone,
-            email,
+            [Op.like]: `%${name}%`, // Sử dụng Op.like để tìm kiếm tên
           },
         },
+        attributes: { exclude: ["password"] }, // Loại bỏ trường password
       });
       res.status(200).send(UserList);
     } else {
-      const UserList = await User.findAll();
+      const UserList = await User.findAll({
+        attributes: { exclude: ["password"] }, // Loại bỏ trường password
+      });
       res.status(200).send(UserList);
     }
   } catch (error) {
@@ -145,16 +146,18 @@ const getAllUser = async (req, res) => {
 };
 
 const displayUser = async (req, res) => {
-  {
-    try {
-      const users = await User.findAll({ raw: true });
-      res.render("user", { datatable: users });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-    }
+  try {
+    const users = await User.findAll({
+      raw: true,
+      attributes: { exclude: ["password"] }, // Loại bỏ trường password
+    });
+    res.render("user", { datatable: users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 };
+
 const editUser = async (req, res) => {
   console.log("10");
   try {
@@ -281,16 +284,18 @@ const updateImage = async (req, res) => {
 const getDetailUser = async (req, res) => {
   console.log("3");
   try {
-    const detailHotel = await User.findOne({
+    const detailUser = await User.findOne({
       where: {
         id: req.params.id,
       },
+      attributes: { exclude: ["password"] }, // Loại bỏ trường password
     });
-    res.status(200).send(detailHotel);
+    res.status(200).send(detailUser);
   } catch (error) {
     res.status(500).send(error);
   }
 };
+
 module.exports = {
   register,
   login,

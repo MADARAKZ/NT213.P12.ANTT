@@ -1,9 +1,11 @@
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const { Reviews, Hotels, User } = require("../models");
-const { Op } = require("sequelize");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
 const createReview = async (req, res) => {
   try {
+    // Chỉ sanitize trường description
+    sanitizeObject(req.body, ["description"]);
+
     const { rating, description, hotelId, guestId } = req.body;
 
     if (!guestId || !hotelId || rating === undefined || !description) {
@@ -18,15 +20,12 @@ const createReview = async (req, res) => {
     };
 
     const { file } = req;
-    console.log(file);
     if (file) {
       const imagePath = file.path;
       newReviewData.file = imagePath;
     }
 
     const newReview = await Reviews.create(newReviewData);
-    console.log(newReviewData);
-
     res.status(201).send(newReview);
   } catch (error) {
     res.status(500).send(error);
