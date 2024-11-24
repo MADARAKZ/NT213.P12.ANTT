@@ -4,21 +4,65 @@ const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 
 const register = async (req, res) => {
-  const { name, email, password, numberPhone, type } = req.body;
-
+  const { name, email, password, confirmpassword, numberPhone, type } = req.body;
   try {
+    // kiểm tra đã nhập đủ các trường thông tin hay chưa
+    if(!name || !email || !password || !confirmpassword || !numberPhone) {
+      return res
+          .status(400)
+          .json({message: "Vui lòng nhập đầy đủ các trường thông tin"});
+    }
+
+    // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp nhau không
+    if (password !== confirmpassword) {
+      return res
+          .status(400)
+          .json({message: "Mật khẩu và xác nhận mật khẩu không khớp"});
+    }
+
+    // Kiểm tra độ dài mật khẩu
+    if (password.length < 8) {
+      return res
+          .status(400)
+          .json({message: "Mật khẩu phải có ít nhất 8 ký tự"});
+    }
+
+    // Kiểm tra các yêu cầu về độ mạnh của mật khẩu
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    if (!passwordRegex.test(password)) {
+      return res
+          .status(400)
+          .json({
+            message: "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"
+          });
+    }
+
+    // Kiểm tra email hợp lệ
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res
+          .status(400)
+          .json({message: "Email không hợp lệ"});
+    }
+
+    // Kiểm tra số điện thoại hợp lệ (số điện thoại Việt Nam)
+    const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+    if (!phoneRegex.test(numberPhone)) {
+      return res
+          .status(400)
+          .json({message: "Số điện thoại không hợp lệ"});
+    }
+
     // Kiểm tra xem email hoặc số điện thoại đã tồn tại hay chưa
     const existingUser = await User.findOne({
       where: {
         [Op.or]: [{ email }, { numberPhone }],
       },
     });
-
     if (existingUser) {
-      // Nếu email hoặc số điện thoại đã tồn tại
       return res
         .status(400)
-        .json({ error: "Email or phone number already exists" });
+        .json({ error: "Email hoặc số điện thoại đã tồn tại" });
     }
 
     // Nếu không tồn tại, tiến hành tạo người dùng mới
@@ -31,22 +75,20 @@ const register = async (req, res) => {
       numberPhone,
       type,
     });
-
     return res.status(201).send(newUser);
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const loginGG = async (req, res) => {
   const user = req.body;
-
   const token = jwt.sign(
     { id: user.id, email: user.email, type: user.type },
     "firewallbase64",
     { expiresIn: 60 * 60 }
   );
-
   res.status(200).send({
     message: "successful",
     token,
@@ -55,23 +97,20 @@ const loginGG = async (req, res) => {
     name: user.name,
   });
 };
+
 const login = async (req, res) => {
   const { email, password } = req.body;
-
   // B1: Tìm user dựa trên email
   const user = await User.findOne({ where: { email } });
-
   if (user) {
     // B2: Kiểm tra mật khẩu có đúng hay không
     const isAuthen = bcrypt.compareSync(password, user.password);
-
     if (isAuthen) {
       const token = jwt.sign(
         { email: user.email, type: user.type },
         "firewallbase64",
         { expiresIn: 60 * 60 }
       );
-
       res.status(200).send({
         message: "successful",
         token,
@@ -88,6 +127,7 @@ const login = async (req, res) => {
     res.status(404).send({ message: "khong co nguoi dung nay" });
   }
 };
+
 
 const getCurrentUser = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Lấy token từ header

@@ -5,7 +5,7 @@ const passport = require("passport");
 const session = require("express-session");
 const exphbs = require("express-handlebars");
 const { sequelize } = require("./models");
-// var GoogleStrategy = require("passport-google-oauth20").Strategy;
+var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 
