@@ -75,6 +75,12 @@ function getOrderCriteria(sortType) {
 const searchHotelsByAmenities = async (req, res) => {
   try {
     const {
+      destination,
+      checkIn,
+      checkOut,
+      roomCount,
+      adultsCount ,
+      childrenCount,
       price,
       propertyTypes,
       type,
@@ -189,8 +195,6 @@ else if (hotelIdsWithServicesRoom.length !== 0 && hotelIdsWithServicesHotel.leng
 console.log("Common Hotel IDs:", commonHotelIds);
 
 
-
-
     const whereRoomClause = {};
     if (roomType && roomType !== "") {
       whereRoomClause.name = roomType;
@@ -201,7 +205,13 @@ console.log("Common Hotel IDs:", commonHotelIds);
     const rooms = await Room.findAll({
       where: whereRoomClause,
     });
-
+    if (roomCount && roomCount > 0) {
+      whereRoomClause.quantity = { [Op.gte]: roomCount };
+    }
+    if ((adultsCount || childrenCount) && (adultsCount > 0 || childrenCount > 0)) {
+      const totalPeople = (adultsCount || 0) + (childrenCount || 0); // Tổng số người
+      whereRoomClause.quantity_people = { [Op.gte]: totalPeople }; // Sức chứa phòng >= tổng số người
+    }
     if (rooms.length === 0) {
       return res.status(404).json({ message: "No rooms found matching the criteria." });
     }
@@ -230,7 +240,10 @@ console.log("Common Hotel IDs:", commonHotelIds);
     if (propertyTypes && propertyTypes.length > 0 && propertyTypes[0] !== null)
       whereHotelClause.TypeHotel = { [Op.in]: propertyTypes };
     if (type && type.length > 0) whereHotelClause.TypeHotel = { [Op.in]: type };
-
+    if (destination && destination !== "") {
+      whereHotelClause.map = {[Op.like]: `%${destination}%`,
+    };
+  };
     // Query Hotels with or without amenities filtering
     const hotels = await Hotels.findAll({
       where: whereHotelClause,
