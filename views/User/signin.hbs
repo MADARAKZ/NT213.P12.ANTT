@@ -47,19 +47,14 @@
   <body>
     <div class="container-login">
       <div class="wrapper">
-        <form action="">
+        <form action="/api/v1/users/login" method="POST"> <!-- Ensure method and action are set -->
           <h1>Login</h1>
-          <div class="input-box">
-            <input id="email" type="text" placeholder="Email" required />
+           <div class="input-box">
+            <input id="email" name="email" type="text" placeholder="Email" required /> <!-- Add name attribute -->
             <i class="bx bxs-user"></i>
           </div>
           <div class="input-box">
-            <input
-              id="password"
-              type="password"
-              placeholder="Password"
-              required
-            />
+            <input id="password" name="password" type="password" placeholder="Password" required /> <!-- Add name attribute -->
             <i class="bx bxs-lock-alt"></i>
           </div>
           <div

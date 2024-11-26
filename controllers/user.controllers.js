@@ -89,6 +89,7 @@ const loginGG = async (req, res) => {
     "firewallbase64",
     { expiresIn: 60 * 60 }
   );
+  
   res.status(200).send({
     message: "successful",
     token,
@@ -104,6 +105,7 @@ const login = async (req, res) => {
   const user = await User.findOne({ where: { email } });
   if (user) {
     // B2: Kiểm tra mật khẩu có đúng hay không
+    
     const isAuthen = bcrypt.compareSync(password, user.password);
     if (isAuthen) {
       const token = jwt.sign(
@@ -111,12 +113,31 @@ const login = async (req, res) => {
         "firewallbase64",
         { expiresIn: 60 * 60 }
       );
+      const accessToken = jwt.sign(
+        { userId: user.id, role: user.type },
+        "trancongtien",
+        { expiresIn: "15m" }
+      );
+      const refreshToken = jwt.sign(
+        { userId: user.id, role: user.type },
+        "trancongtien",
+        { expiresIn: "7d" }
+      );
+      res.cookie("accessToken", accessToken, { httpOnly: true });
+      console.log("refreshToken", refreshToken);
+      await user.update(
+        { token: refreshToken },
+        { where: { id: user.id } }
+      );
+  
       res.status(200).send({
         message: "successful",
         token,
         name: user.name,
         type: user.type,
         id: user.id,
+        refreshToken: refreshToken,
+        accessToken: accessToken,
       });
     } else {
       res

@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       cccd: DataTypes.STRING,
       address: DataTypes.TEXT,
       url: DataTypes.STRING,
+      token: DataTypes.STRING,
       authGgId: {
         type: DataTypes.STRING,
         allowNull: true,

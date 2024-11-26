@@ -31,9 +31,8 @@ form.addEventListener("submit", (e) => {
     data: JSON.stringify(data),
     success: function (result) {
       if (result.message === "successful") {
-        const token = result.token; // Giả sử token được trả về là thuộc tính 'token' của đối tượng result
-        localStorage.setItem("token", token);
-
+        console.log(result);
+        document.cookie = `accessToken=${result.accessToken}; HttpOnly`;
         if (result.type === "admin") {
           window.location.href = "/dashboard";
         } else if (result.type === "owner") {

@@ -24,6 +24,7 @@ const register = async (req, res) => {
 };
 const login = async (req, res) => {
   const { email, password } = req.body;
+  console.log("email", email);
   // b1 tìm user dựa trên email
   // b2 kiểm tra mật khẩu có đúng hay không
   const user = await User.findOne({
@@ -37,11 +38,34 @@ const login = async (req, res) => {
       "firewallbase64",
       { expiresIn: 60 * 60 }
     );
+    const accessToken = jwt.sign(
+      { userId: user.id, role: user.type },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, role: user.type },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
+
     const isAuthen = bcrypt.compareSync(password, user.password);
+ 
     if (isAuthen) {
-      res
-        .status(200)
-        .send({ message: "successful", token, type: user.type, id: user.id });
+      res.cookie("accessToken", accessToken, { httpOnly: true });
+      console.log("refreshToken", refreshToken);
+      res.status(200).send({
+        message: "successful",
+        type: user.type,
+        id: user.id,
+        token:refreshToken,
+        refreshToken : refreshToken,
+      });
     } else {
       res
         .status(500)
