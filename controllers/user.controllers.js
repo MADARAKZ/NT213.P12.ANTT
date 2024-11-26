@@ -86,9 +86,9 @@ const register = async (req, res) => {
 const loginGG = async (req, res) => {
   const body = req.body;
   const email = body.email;
-  console.log("<<check body>>>>",body);
+  //console.log("<<check body>>>>",body);
   const user = await User.findOne({ where: { email} });
-  console.log("<<<user sau khi nhan>>>>",user)
+  //console.log("<<<user sau khi nhan>>>>",user)
   const token = jwt.sign(
     { id: user.id, email: user.email, type: user.type },
     "firewallbase64",
@@ -96,7 +96,7 @@ const loginGG = async (req, res) => {
   );
    
   const accessToken = jwt.sign(
-    {email: user.email, id: user.id, type: user.type},
+    {email: user.email, id: user.id, type: user.type, name: user.name},
     process.env.ACCESS_TOKEN,
     {expiresIn: "15m"}
   );
@@ -107,7 +107,7 @@ const loginGG = async (req, res) => {
     {expiresIn: "7d"}
   );
   res.cookie("accessToken", accessToken, {httpOnly: true});
-  console.log("<<<<<<<token cuar gooogle", accessToken);
+  //console.log("<<<<<<<token cuar gooogle", accessToken);
   await user.update(
     { token: refreshToken },
     { where: { id: user.id } }
@@ -133,7 +133,7 @@ const login = async (req, res) => {
         { expiresIn: 60 * 60 }
       );
       const accessToken = jwt.sign(
-        { userId: user.id, type: user.type },
+        { userId: user.id, type: user.type, name: user.name, emai: user.email },
         process.env.ACCESS_TOKEN,
         { expiresIn: "15m" }
       );
@@ -143,8 +143,8 @@ const login = async (req, res) => {
         { expiresIn: "7d" }
       );
       res.cookie("accessToken", accessToken, { httpOnly: true });
-      console.log("refreshToken", refreshToken);
-      console.log("<<<<<check USER>>>>>>",user)
+      //console.log("refreshToken", refreshToken);
+      //console.log("<<<<<check USER>>>>>>",user)
       await user.update(
         { token: refreshToken },
         { where: { id: user.id } }
@@ -171,15 +171,15 @@ const login = async (req, res) => {
 
 
 const getCurrentUser = async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Lấy token từ header
-
-  if (!token) {
+  const accessToken = req.headers.authorization?.split(" ")[1]; // Lấy token từ header
+  console.log("<<<<<Access token cuar get user>>>>", accessToken)
+  if (!accessToken) {
     return res.status(400).send("Token is required");
   }
 
   try {
     // Giải mã token và lấy email
-    const decode = jwt.verify(token, "firewallbase64");
+    const decode = jwt.verify(accessToken, process.env.ACCESS_TOKEN);
     const email = decode.email;
 
     // Tìm người dùng dựa trên email

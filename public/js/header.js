@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Lấy giá trị token từ localStorage
-  const token = localStorage.getItem("token");
-
+  console.log("da zo duoc header frontend");
+  const token = getCookie("token");
+  console.log("<<<<Check token op front end>>>>",token)
   // Hàm lấy thông tin người dùng hiện tại
   async function getCurrentUser() {
     try {

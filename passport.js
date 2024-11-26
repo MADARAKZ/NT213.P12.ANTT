@@ -15,7 +15,7 @@ passport.use(
     },
     async (req, accessToken, refreshToken, profile, done) => {
       try {
-        console.log(">>>>check abc<<<<<<",profile)
+        //console.log(">>>>check abc<<<<<<",profile)
         // Find or create user based on Google profile
         let [user, created] = await User.findOrCreate({
           where: { 
@@ -31,7 +31,7 @@ passport.use(
         });
 
         // Log user creation or login
-        console.log(created ? 'New user created' : 'User logged in', user);
+       // console.log(created ? 'New user created' : 'User logged in', user);
 
         return done(null, user);
       } catch (error) {

@@ -223,10 +223,10 @@ app.get("/userInfor", (req, res) => {
 // app.get("/admin/hotel", (req, res) => {
 //   res.render("Admin/partials/agent");
 // });
-app.get("/admin/addHotel", (req, res) => {
+app.get("/admin/addHotel", authenticateToken,requireAdmin, (req, res) => {
   res.render("Admin/partials/agentForm");
 });
-app.get("/agent/addHotel", (req, res) => {
+app.get("/agent/addHotel", authenticateToken,requireAdmin, (req, res) => {
   res.render("Admin/partials/agentForm");
 });
 // app.get("/admin/Hotel/Service", (req, res) => {
