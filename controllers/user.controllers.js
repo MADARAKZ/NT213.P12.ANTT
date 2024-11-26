@@ -1,8 +1,9 @@
+const { prototype } = require("@sashido/teachablemachine-node");
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
-
+const { Op, where } = require("sequelize");
+require('dotenv').config();
 const register = async (req, res) => {
   const { name, email, password, confirmpassword, numberPhone, type } = req.body;
   try {
@@ -83,19 +84,37 @@ const register = async (req, res) => {
 };
 
 const loginGG = async (req, res) => {
-  const user = req.body;
+  const body = req.body;
+  const email = body.email;
+  console.log("<<check body>>>>",body);
+  const user = await User.findOne({ where: { email} });
+  console.log("<<<user sau khi nhan>>>>",user)
   const token = jwt.sign(
     { id: user.id, email: user.email, type: user.type },
     "firewallbase64",
     { expiresIn: 60 * 60 }
   );
-  
+   
+  const accessToken = jwt.sign(
+    {email: user.email, id: user.id, type: user.type},
+    process.env.ACCESS_TOKEN,
+    {expiresIn: "15m"}
+  );
+
+  const refreshToken = jwt.sign(
+    {id: user.id, type: user.type},
+    process.env.REFRESH_TOKEN,
+    {expiresIn: "7d"}
+  );
+  res.cookie("accessToken", accessToken, {httpOnly: true});
+  console.log("<<<<<<<token cuar gooogle", accessToken);
+  await user.update(
+    { token: refreshToken },
+    { where: { id: user.id } }
+  );
+
   res.status(200).send({
     message: "successful",
-    token,
-    type: user.type,
-    id: user.id,
-    name: user.name,
   });
 };
 
@@ -114,17 +133,18 @@ const login = async (req, res) => {
         { expiresIn: 60 * 60 }
       );
       const accessToken = jwt.sign(
-        { userId: user.id, role: user.type },
-        "trancongtien",
+        { userId: user.id, type: user.type },
+        process.env.ACCESS_TOKEN,
         { expiresIn: "15m" }
       );
       const refreshToken = jwt.sign(
-        { userId: user.id, role: user.type },
-        "trancongtien",
+        { userId: user.id, type: user.type },
+        process.env.REFRESH_TOKEN,
         { expiresIn: "7d" }
       );
       res.cookie("accessToken", accessToken, { httpOnly: true });
       console.log("refreshToken", refreshToken);
+      console.log("<<<<<check USER>>>>>>",user)
       await user.update(
         { token: refreshToken },
         { where: { id: user.id } }
@@ -132,10 +152,10 @@ const login = async (req, res) => {
   
       res.status(200).send({
         message: "successful",
-        token,
-        name: user.name,
-        type: user.type,
-        id: user.id,
+        // token,
+        // name: user.name,
+        // type: user.type,
+        // id: user.id,
         refreshToken: refreshToken,
         accessToken: accessToken,
       });

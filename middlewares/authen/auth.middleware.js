@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = "trancongtien"; // Use environment variable for secret
-
+const JWT_SECRET = process.env.ACCESS_TOKEN; // Use environment variable for secret
+require('dotenv').config();
 // Middleware để xác thực người dùng
 function authenticateToken(req, res, next) {
   const token = req.cookies.accessToken; // Ensure this line correctly reads the cookie
@@ -15,7 +15,7 @@ function authenticateToken(req, res, next) {
 
 // Middleware để kiểm tra vai trò admin
 function requireAdmin(req, res, next) {
-  if (req.user.role !== 'admin') {
+  if (req.user.type !== 'admin') {
     return res.status(403).json({ message: 'Vui lòng đăng nhập tài khoản quản lý để thực hiện.' });
   }
   next();
@@ -23,7 +23,7 @@ function requireAdmin(req, res, next) {
 
 // Middleware để kiểm tra vai trò admin
 function requireCustomer(req, res, next) {
-  if (req.user.role !== 'client') {
+  if (req.user.type !== 'client') {
     return res.status(403).json({ message: 'Vui lòng đăng nhập tài khoản "Khách hàng" để thực hiện.' });
   }
   next();

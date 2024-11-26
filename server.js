@@ -266,7 +266,7 @@ app.post("/token", async (req, res) => {
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
     const accessToken = jwt.sign(
-      { userId: user.userId, role: user.role },
+      { userId: user.userId, type: user.type },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" }
     );
