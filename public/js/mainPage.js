@@ -126,33 +126,29 @@ $(document).ready(function () {
   // Xử lý sự kiện khi người dùng nhấp vào một liên kết khách sạn
 });
 
+const findhotel = () => {
+  // Lấy giá trị của ô input có id là "hotel-destination"
+  var location = $("#hotel-destination").val();
 
+  // Gửi yêu cầu Axios tới API để tìm khách sạn với địa điểm đã nhập
+  $.ajax({
+    url: `http://localhost:3030/api/v1/hotels?map=${encodeURIComponent(
+      location
+    )}`,
+    method: "GET",
+    success: function (data) {
+      // Cập nhật nội dung trang khách sạn
+      localStorage.setItem("hotelData", JSON.stringify(data));
+      window.location.href = `http://localhost:3030/hotelList?map=${encodeURIComponent(
+        location
+      )}`;
+    },
+  });
+};
 // Gắn sự kiện click cho nút có id là "search-btn"
-document.querySelector(".search-button").addEventListener("click", function () {
-  // Thu thập dữ liệu từ form
-  let destination = document.getElementById("hotel-destination").value.trim();
-  let checkIn = document.getElementById("checkIn").value;
-  let checkOut = document.getElementById("checkOut").value;
-  let roomCount = document.getElementById("room-count").textContent;
-  let adultsCount = document.getElementById("adults-count").textContent;
-  let childrenCount = document.getElementById("children-count").textContent;
-
-  // Kiểm tra dữ liệu nhập
-  if (!destination || !checkIn || !checkOut) {
-    alert("Vui lòng điền đầy đủ thông tin tìm kiếm!");
-    return;
-  }
-
-  // Tạo URL với query parameters
-  let queryParams = new URLSearchParams({
-    destination: destination,
-    checkIn: checkIn,
-    checkOut: checkOut,
-    rooms: roomCount,
-    adults: adultsCount,
-    children: childrenCount,
-  }).toString();
-
-  // Chuyển hướng sang trang hotelList với các tham số tìm kiếm
-  window.location.href = `http://localhost:3030/hotelList?${queryParams}`;
+$("#search-hotel").on("click", function () {
+  console.log("successfull");
+  // Gọi hàm findhotel() khi nút được nhấp
+  findhotel();
 });
+localStorage.removeItem("searchData");

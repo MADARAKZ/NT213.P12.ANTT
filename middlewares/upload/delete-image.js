@@ -5,13 +5,11 @@ const middlewareDirectory = __dirname;
 // Đường dẫn của thư mục chứa public (nằm ở cùng cấp với thư mục middleware)
 const publicDirectory = path.resolve(middlewareDirectory, "../..", "public"); // Đường dẫn tới thư mục chứa hình ảnh
 console.log(publicDirectory);
-
 // Middleware để xóa file hình ảnh
 const deleteImageMiddleware = (req, res, next) => {
   try {
     const imageUrl = req.body.url; // Lấy URL của file hình ảnh từ body của yêu cầu
     console.log(imageUrl);
-
     // Kiểm tra và xử lý URL hợp lệ
     if (!imageUrl) {
       return res.status(400).send("Thiếu thông tin URL của file hình ảnh");
@@ -20,20 +18,12 @@ const deleteImageMiddleware = (req, res, next) => {
     // Sử dụng module URL để phân tích URL và lấy đường dẫn tệp
     const urlObject = new URL(imageUrl);
     console.log(urlObject);
-
+    const imagePath = imageUrl.split("http://localhost:3030/")[1];
     // Lấy đường dẫn tệp sau domain
-    const imagePath = urlObject.pathname;
     console.log(imagePath);
-
     // Xác định đường dẫn tuyệt đối của file hình ảnh
     const absoluteImagePath = path.join(publicDirectory, imagePath);
     console.log(absoluteImagePath);
-
-    // Kiểm tra xem đường dẫn tuyệt đối có nằm trong thư mục public hay không
-    if (!absoluteImagePath.startsWith(publicDirectory)) {
-      return res.status(400).send("URL không hợp lệ");
-    }
-
     // Kiểm tra xem file có tồn tại hay không
     if (fs.existsSync(absoluteImagePath)) {
       // Nếu file tồn tại, thực hiện xóa file

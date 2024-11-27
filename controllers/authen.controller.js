@@ -3,99 +3,93 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-const { sanitizeObject } = require("../middlewares/validations/sanitize");
 
 const register = async (req, res) => {
   const { name, email, password, numberPhone } = req.body;
-
   try {
-    // Sanitize dữ liệu đầu vào
-    const userData = { name, email, password, numberPhone };
-    sanitizeObject(userData, ["name", "email", "password", "numberPhone"]);
-
-    // Tạo chuỗi salt và mã hóa mật khẩu
+    // tao ra mot chuoi ngau nhien
     const salt = bcrypt.genSaltSync(10);
-    const hashPassword = bcrypt.hashSync(userData.password, salt);
-
-    // Tạo người dùng mới
+    // ma hoa chuoi salt + password
+    const hashPassword = bcrypt.hashSync(password, salt);
     const newUser = await User.create({
-      name: userData.name,
-      email: userData.email,
+      name,
+      email,
       password: hashPassword,
-      numberPhone: userData.numberPhone,
+      numberPhone,
     });
-
     res.status(201).send(newUser);
   } catch (error) {
-    res.status(500).send({ error: "Lỗi khi tạo người dùng", details: error });
+    res.status(500).send(error);
   }
 };
-
 const login = async (req, res) => {
   const { email, password } = req.body;
+  console.log("email", email);
+  // b1 tìm user dựa trên email
+  // b2 kiểm tra mật khẩu có đúng hay không
+  const user = await User.findOne({
+    where: {
+      email,
+    },
+  });
+  if (user) {
+    const token = jwt.sign(
+      { email: user.email, type: user.type },
+      "firewallbase64",
+      { expiresIn: 60 * 60 }
+    );
+    const accessToken = jwt.sign(
+      { userId: user.id, type: user.type },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, type: user.type },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
 
-  try {
-    // Sanitize dữ liệu đầu vào
-    const loginData = { email, password };
-    sanitizeObject(loginData, ["email", "password"]);
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
 
-    // Tìm người dùng theo email
-    const user = await User.findOne({
-      where: {
-        email: loginData.email,
-      },
-    });
-
-    if (user) {
-      // Xác thực mật khẩu
-      const isAuthen = bcrypt.compareSync(loginData.password, user.password);
-
-      if (isAuthen) {
-        // Tạo JWT
-        const token = jwt.sign(
-          { email: user.email, type: user.type },
-          process.env.JWT_SECRET,
-          { expiresIn: "1h" } // Token hết hạn sau 1 giờ
-        );
-
-        res.status(200).send({
-          message: "Đăng nhập thành công",
-          token,
-          type: user.type,
-          id: user.id,
-        });
-      } else {
-        res
-          .status(401)
-          .send({ message: "Đăng nhập thất bại, kiểm tra lại mật khẩu" });
-      }
+    const isAuthen = bcrypt.compareSync(password, user.password);
+ 
+    if (isAuthen) {
+      res.cookie("accessToken", accessToken, { httpOnly: true });
+      console.log("refreshToken", refreshToken);
+      res.status(200).send({
+        message: "successful",
+        type: user.type,
+        id: user.id,
+        token:refreshToken,
+        refreshToken : refreshToken,
+      });
     } else {
-      res.status(404).send({ message: "Không tìm thấy người dùng" });
+      res
+        .status(500)
+        .send({ message: "dang nhap that bai, kiem tra lai mat khau" });
     }
-  } catch (error) {
-    res.status(500).send({ error: "Lỗi khi đăng nhập", details: error });
+  } else {
+    res.status(404).send({ message: "khong co nguoi dung nay" });
   }
 };
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
-    // Sanitize email đầu vào
-    const inputData = { email };
-    sanitizeObject(inputData, ["email"]);
-
-    const user = await User.findOne({ where: { email: inputData.email } });
+    const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Tạo JWT token
+    // Generate JWT token
     const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    // Gửi email chứa link reset mật khẩu
+    // Send email with reset password link
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -106,7 +100,7 @@ const forgotPassword = async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USERNAME,
-      to: inputData.email,
+      to: email,
       subject: "Password Reset Request",
       text: `Your password reset token is: ${token}`,
     };
@@ -121,27 +115,24 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   const { token, newpassword } = req.body;
+  console.log("new passs", newpassword);
+
+  if (!newpassword) {
+    return res.status(400).json({ message: "New password is required" });
+  }
 
   try {
-    // Kiểm tra và sanitize mật khẩu mới
-    const inputData = { token, newpassword };
-    sanitizeObject(inputData, ["token", "newpassword"]);
-
-    if (!inputData.newpassword) {
-      return res.status(400).json({ message: "New password is required" });
-    }
-
-    // Xác minh JWT token
-    const decoded = jwt.verify(inputData.token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({ where: { email: decoded.email } });
+    console.log(user);
 
     if (!user) {
       return res.status(404).json({ message: "Invalid or expired token" });
     }
 
-    // Reset mật khẩu
+    // Reset password
     const salt = bcrypt.genSaltSync(10);
-    const hashPassword = bcrypt.hashSync(inputData.newpassword, salt);
+    const hashPassword = bcrypt.hashSync(newpassword, salt);
     user.password = hashPassword;
     await user.save();
 

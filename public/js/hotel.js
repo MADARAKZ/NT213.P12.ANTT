@@ -441,15 +441,12 @@ $(document).ready(async function () {
 
   // Tải danh sách đánh giá khi trang được tải
   loadReviews();
-  const token = localStorage.getItem("token");
-  console.log("Token: " + token);
 
-  if (token) {
-    $(".send-review").show();
-  }
+  $(".send-review").show();
 
   async function getCurrentUser() {
     try {
+      const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("No token found in localStorage");
       }
@@ -509,7 +506,7 @@ $(document).ready(async function () {
       console.log("GuestId: ", guestId);
       guestId = parseInt(guestId, 10);
 
-      if (!guestId || !hotelId || isNaN(rating) || !content) {
+      if (!guestId || !hotelId || rating === undefined || !content) {
         console.log("Invalid input data");
         return;
       }

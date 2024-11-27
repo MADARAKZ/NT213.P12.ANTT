@@ -1,19 +1,14 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Lấy giá trị token từ localStorage
-  const token = localStorage.getItem("token");
 
   // Hàm lấy thông tin người dùng hiện tại
   async function getCurrentUser() {
     try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
+      
 
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -36,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const currennUser = await getCurrentUser();
 
   // Kiểm tra token và cập nhật giao diện
-  if (token) {
+  if (currennUser) {
     const userName = currennUser.name;
     const userType = currennUser.type;
     if (userName) {
@@ -83,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Thêm sự kiện cho nút "Đăng xuất"
       document.getElementById("logout").addEventListener("click", () => {
         // Xóa token và thông tin liên quan khỏi localStorage
-        localStorage.removeItem("token");
+        
 
         // Điều hướng về trang đăng nhập
         window.location.href = "http://localhost:3030/signin";

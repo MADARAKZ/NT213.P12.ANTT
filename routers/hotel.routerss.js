@@ -19,6 +19,7 @@ HotelRouter.post("/", uploadCloud.array("hotel", 10), createHotel);
 HotelRouter.get("/getAllMap", getAllMaps);
 HotelRouter.get("/", getAllHotel);
 HotelRouter.get("/:id", getDetailHotel);
+
 HotelRouter.put("/updateHotel/:id", checkExist(Hotels), updateHotel);
 HotelRouter.delete("/deleteHotel/:id", checkExist(Hotels), deleteHotel);
 HotelRouter.post("/getIdByHotelName", searchIdHotelByName);

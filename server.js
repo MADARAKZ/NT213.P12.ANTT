@@ -5,24 +5,33 @@ const passport = require("passport");
 const session = require("express-session");
 const exphbs = require("express-handlebars");
 const { sequelize } = require("./models");
-// var GoogleStrategy = require("passport-google-oauth20").Strategy;
+var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
-
+const cookieParser = require("cookie-parser");
+ 
 // require("./passport");
 const { rootRouter } = require("./routers");
 const { User } = require("./models/User");
 const { access } = require("fs");
 var ls = require("local-storage");
+const {
+  authenticateToken,
+  requireAdmin,
+  requireCustomer,
+} = require("./middlewares/authen/auth.middleware");
 
 require("dotenv").config();
 const app = express();
 
-app.use(
-  cors({
-    origin: "*",
-  })
-);
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true })); // Ensure this line is present
+app.use(express.json());
+ 
+app.use(cors({
+  origin: 'http://localhost:3030', // Domain của frontend
+  credentials: true               // Đảm bảo gửi và nhận cookies
+}));
 
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded());
@@ -115,7 +124,7 @@ app.get("/coupons", (req, res) => {
   // Rendecouponsidebar template dir
   res.render("coupons");
 });
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", authenticateToken, requireAdmin, (req, res) => {
   res.render("Admin/dashboard");
 });
 
@@ -244,6 +253,29 @@ app.get("/login-success", (req, res) => {
 });
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Middleware to refresh access token
+app.post("/token", async (req, res) => {
+  const refreshToken = req.body.token;
+  if (!refreshToken) return res.sendStatus(401);
+
+  const storedToken = await User.findOne({ where: { token: refreshToken } });
+  if (!storedToken) return res.sendStatus(403);
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    const accessToken = jwt.sign(
+      { userId: user.userId, type: user.type },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+    res.cookie("accessToken", accessToken, { httpOnly: true });
+    res.json({ accessToken });
+  });
+});
+
+ 
+
 // Configure Handlebars
 const hbs = exphbs.create({
   extname: "hbs",

@@ -71,16 +71,16 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(user.dataValues),
+      body: JSON.stringify(user),
     })
       .then((response) => response.json())
       .then((data) => {
         let userData = {};
         console.log("API response:", data);
         userData = data;
-        req.session.data = userData;
+        //req.session.data = userData;
         res.redirect(
-          `http://localhost:3030/login-success?token=${data.token}&id=${data.id}&name=${data.name}&type=${data.type}`
+          `http://localhost:3030/`
         );
       })
       .catch((err) => {
