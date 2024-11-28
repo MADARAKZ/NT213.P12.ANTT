@@ -82,40 +82,36 @@ const register = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 const loginGG = async (req, res) => {
-  const body = req.body;
-  const email = body.email;
-  console.log("<<check body>>>>",body);
-  const user = await User.findOne({ where: { email} });
-  console.log("<<<user sau khi nhan>>>>",user)
-  const token = jwt.sign(
-    { id: user.id, email: user.email, type: user.type },
-    "firewallbase64",
-    { expiresIn: 60 * 60 }
-  );
-   
-  const accessToken = jwt.sign(
-    {email: user.email, id: user.id, type: user.type, name: user},
-    process.env.ACCESS_TOKEN,
-    {expiresIn: "15m"}
-  );
+  try {
+    const { email, name, authGgId, refreshToken } = req.body;
+    console.log("<<check body>>>>", req.body);
+    
+    // Tìm hoặc tạo user
+    const user = await User.findOne({ where: { email } });
+    
+    console.log("check userrrrrrrrrrrrr",user)
+    // Nếu user đã tồn tại, update thông tin
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
+    console.log(created ? 'New user created' : 'User updated', user);
 
-  const refreshToken = jwt.sign(
-    {id: user.id, type: user.type},
-    process.env.REFRESH_TOKEN,
-    {expiresIn: "7d"}
-  );
-  res.cookie("accessToken", accessToken, {httpOnly: true});
-  console.log("<<<<<<<token cuar gooogle", accessToken);
-  await user.update(
-    { token: refreshToken },
-    { where: { id: user.id } }
-  );
+    res.status(200).send({
+      message: "Login successful",
+      userId: user.id,
+      email: user.email,
+      name: user.name
+    });
 
-  res.status(200).send({
-    message: "successful",
-  });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).send({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
 };
 
 const login = async (req, res) => {
@@ -127,11 +123,6 @@ const login = async (req, res) => {
     
     const isAuthen = bcrypt.compareSync(password, user.password);
     if (isAuthen) {
-      const token = jwt.sign(
-        { email: user.email, type: user.type },
-        "firewallbase64",
-        { expiresIn: 60 * 60 }
-      );
       const accessToken = jwt.sign(
         { userId: user.id, type: user.type },
         process.env.ACCESS_TOKEN,
@@ -142,7 +133,12 @@ const login = async (req, res) => {
         process.env.REFRESH_TOKEN,
         { expiresIn: "7d" }
       );
-      res.cookie("accessToken", accessToken, { httpOnly: true });
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 phút
+      });
       console.log("refreshToken", refreshToken);
       console.log("<<<<<check USER>>>>>>",user)
       await user.update(
@@ -156,8 +152,8 @@ const login = async (req, res) => {
         // name: user.name,
         // type: user.type,
         // id: user.id,
-        refreshToken: refreshToken,
-        accessToken: accessToken,
+        // refreshToken: refreshToken,
+        // accessToken: accessToken,
       });
     } else {
       res
@@ -176,7 +172,7 @@ const getCurrentUser = async (req, res) => {
   console.log("Cookies:", req.cookies); // In ra cookies, nếu có
 
   const token = req.cookies.accessToken; // Lấy token từ cookie
-  console.log("accessToken", token);
+  //console.log("accessToken", token);
 
   if (!token) {
     console.log("fail");
@@ -386,8 +382,51 @@ const getDetailUser = async (req, res) => {
     res.status(500).send(error);
   }
 };
+
+// Xử lí logout
+const Logout = async (req, res) => {
+  try {
+    // Lấy thông tin người dùng từ token
+    const token = req.cookies.accessToken;
+    
+    if (!token) {
+      return res.status(401).json({ message: "Không tìm thấy token" });
+    }
+
+    // Giải mã token để lấy userId
+    const decode = jwt.verify(token, process.env.ACCESS_TOKEN);
+    const userId = decode.userId;
+
+    // Tìm người dùng
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    // Xóa refresh token trong database
+    await user.update({ token: null });
+
+    // Xóa access token trong cookie
+    res.clearCookie('accessToken');
+
+    // Trả về phản hồi thành công
+    res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (error) {
+    console.error("Lỗi đăng xuất:", error);
+    
+    // Nếu là lỗi token hết hạn hoặc không hợp lệ
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token không hợp lệ" });
+    }
+
+    // Trả về lỗi server nếu có lỗi khác
+    res.status(500).json({ message: "Đã có lỗi xảy ra" });
+  }
+};
 module.exports = {
   register,
+  Logout,
   login,
   getAllUser,
   displayUser,

@@ -31,7 +31,7 @@ $(document).ready(function () {
     method: "GET",
     success: function (data) {
       const numberOfHotels = data.length;
-      console.log(numberOfHotels);
+      //console.log(numberOfHotels);
       // Hiển thị số lượng khách sạn trong một phần tử HTML có id là "numberHotelCount"
       $("#numberHotelCount").text(numberOfHotels);
 
@@ -56,8 +56,8 @@ $(document).ready(function () {
       // Hiển thị giá thấp nhất và cao nhất
       $("#lowestPrice").text(numberWithCommas(minPrice));
       $("#highestPrice").text(numberWithCommas(maxPrice));
-      console.log("Lowest Price: " + minPrice);
-      console.log("Highest Price: " + maxPrice);
+      //console.log("Lowest Price: " + minPrice);
+      //console.log("Highest Price: " + maxPrice);
     },
   });
 

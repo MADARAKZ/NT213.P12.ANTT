@@ -9,6 +9,7 @@ var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const cookieParser = require("cookie-parser");
+const ratelimit = require("express-rate-limit")
  
 // require("./passport");
 const { rootRouter } = require("./routers");
@@ -32,6 +33,14 @@ app.use(cors({
   origin: 'http://localhost:3030', // Domain của frontend
   credentials: true               // Đảm bảo gửi và nhận cookies
 }));
+
+
+const limiter = ratelimit({
+  windowMs: 15*60*1000,
+  max: 10,
+  message: "Too many API request from this IP"
+}
+)
 
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded());
@@ -97,10 +106,10 @@ app.get("/aboutUs", (req, res) => {
   res.render("User/aboutUs");
 });
 
-app.get("/userInfo", (req, res) => {
+app.get("/userInfo",authenticateToken, requireCustomer, (req, res) => {
   res.render("User/userInfo");
 });
-app.get("/signin", (req, res) => {
+app.get("/signin", limiter, (req, res) => {
   res.render("User/signin");
 });
 
@@ -131,11 +140,11 @@ app.get("/dashboard", authenticateToken, requireAdmin, (req, res) => {
 app.get("/agentInfo", (req, res) => {
   res.render("User/agentInfo");
 });
-app.get("/ManageRoom/:id", (req, res) => {
+app.get("/ManageRoom/:id", authenticateToken, requireAdmin, (req, res) => {
   var hotelId = req.params.id;
   res.render("Admin/partials/room", { roomId: hotelId });
 });
-app.get("/ManageHotelService/:id", (req, res) => {
+app.get("/ManageHotelService/:id",authenticateToken, requireAdmin, (req, res) => {
   var hotelId = req.params.id;
   res.render("Admin/partials/HotelService", { id: hotelId });
 });

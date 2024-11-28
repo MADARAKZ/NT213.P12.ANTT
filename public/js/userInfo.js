@@ -1,19 +1,11 @@
 $(document).ready(async function () {
-  function getToken() {
-    return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
-  }
+
 
   async function getCurrentUser() {
     try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -33,13 +25,14 @@ $(document).ready(async function () {
     }
   }
 
-  const token = getToken();
+  //const token = getToken();
   const currentUser = await getCurrentUser();
+  console.log("<<<<DA NHAN DUOC FRONT END", currentUser);
 
-  if (!token) {
+  /*if (!token) {
     alert("Vui lòng đăng nhập để xem thông tin người dùng!");
     window.location.href = "/signin";
-  }
+  }*/
   if (currentUser.type == "owner") {
     alert("Bạn không có quyền xem trang này!");
     window.location.href = "/agentInfo";

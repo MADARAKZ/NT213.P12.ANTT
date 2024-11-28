@@ -29,4 +29,11 @@ function requireCustomer(req, res, next) {
   next();
 }
 
-module.exports = { authenticateToken, requireAdmin, requireCustomer };
+function requireOwner(req, res, next) {
+  if (req.user.type !== 'owner') {
+    return res.status(403).json({ message: 'Vui lòng đăng nhập tài khoản Owner để thực hiện.' });
+  }
+  next();
+}
+
+module.exports = { authenticateToken, requireAdmin, requireCustomer, requireOwner };

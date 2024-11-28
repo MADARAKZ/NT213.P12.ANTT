@@ -1,41 +1,60 @@
 $(document).ready(async function () {
   // Hàm ánh xạ ID của mục menu tới tên partial tương ứng
 
-  async function getCurrentUser() {
+  // async function getCurrentUser() {
+  //   try {
+      
+
+  //     const response = await fetch("/api/v1/users/getCurrentUser", {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorText = await response.text();
+  //       throw new Error(`Failed to fetch current user: ${errorText}`);
+  //     }
+
+  //     const currentUser = await response.json();
+  //     if (!currentUser) {
+  //       throw new Error("Current user data is not available");
+  //     }
+
+  //     return currentUser;
+  //   } catch (error) {
+  //     console.error("Error fetching current user:", error.message);
+  //     return null; // Return null to indicate an error occurred
+  //   }
+  // }
+
+  // const currentUser = await getCurrentUser();
+
+  // if (currentUser.type != "admin") {
+  //   $(".template").hide();
+  //   window.location.href = "/";
+  // }
+  async function getLogout() {
     try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
-      const response = await fetch("/api/v1/users/getCurrentUser", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      // Gửi yêu cầu đăng xuất tới backend
+      const response = await fetch("/api/v1/users/logout", {
+        method: "POST",
+        credentials: "include" // Quan trọng để gửi kèm cookie
       });
-
-      if (!response.ok) {
+  
+      if (response.ok) {
+        // Nếu đăng xuất thành công ở backend
+        // Điều hướng về trang đăng nhập
+        window.location.href = "http://localhost:3030/signin";
+      } else {
+        // Xử lý lỗi nếu đăng xuất không thành công
         const errorText = await response.text();
-        throw new Error(`Failed to fetch current user: ${errorText}`);
+        console.error("Logout failed:", errorText);
+        alert("Đăng xuất không thành công. Vui lòng thử lại.");
       }
-
-      const currentUser = await response.json();
-      if (!currentUser) {
-        throw new Error("Current user data is not available");
-      }
-
-      return currentUser;
     } catch (error) {
-      console.error("Error fetching current user:", error.message);
-      return null; // Return null to indicate an error occurred
+      console.error("Error during logout:", error);
+      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
     }
-  }
-
-  const currentUser = await getCurrentUser();
-
-  if (currentUser.type != "admin") {
-    $(".template").hide();
-    window.location.href = "/";
   }
   /* script.js */
   // Lắng nghe sự kiện nhấp vào nút tương ứng
@@ -89,9 +108,8 @@ $(document).ready(async function () {
     document.getElementById("manageCoupon").style.display = "block";
   });
 
-  document.getElementById("button6").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "/signin";
+  document.getElementById("button6").addEventListener("click", async () => {
+    await getLogout();
   });
 
   var header = document.getElementById("menu-content");

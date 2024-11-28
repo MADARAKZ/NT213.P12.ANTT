@@ -28,6 +28,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Hàm gửi yêu cầu Logout
+  async function getLogout() {
+    try {
+      // Gửi yêu cầu đăng xuất tới backend
+      const response = await fetch("/api/v1/users/logout", {
+        method: "POST",
+        credentials: "include" // Quan trọng để gửi kèm cookie
+      });
+  
+      if (response.ok) {
+        // Nếu đăng xuất thành công ở backend
+        // Điều hướng về trang đăng nhập
+        window.location.href = "http://localhost:3030/signin";
+      } else {
+        // Xử lý lỗi nếu đăng xuất không thành công
+        const errorText = await response.text();
+        console.error("Logout failed:", errorText);
+        alert("Đăng xuất không thành công. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
+    }
+  }
+
+
   const currennUser = await getCurrentUser();
 
   // Kiểm tra token và cập nhật giao diện
@@ -76,12 +102,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
 
       // Thêm sự kiện cho nút "Đăng xuất"
-      document.getElementById("logout").addEventListener("click", () => {
+      document.getElementById("logout").addEventListener("click", async (event) => {
+        event.preventDefault();
         // Xóa token và thông tin liên quan khỏi localStorage
-        
-
-        // Điều hướng về trang đăng nhập
-        window.location.href = "http://localhost:3030/signin";
+        await getLogout();
       });
     } else {
       console.error("Failed to fetch userName or userName is null");
@@ -89,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Hàm để lấy giá trị token, bạn cần thay đổi hàm này để phù hợp với cách lấy token của bạn
+// Hàm để lấy giá trị token, cần thay đổi hàm này để phù hợp với cách lấy token của bạn
 
 function toggleCollapse(btnNumber) {
   const buttons = document.querySelectorAll(".btn-outline-info");

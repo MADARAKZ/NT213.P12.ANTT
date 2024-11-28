@@ -31,7 +31,7 @@ form.addEventListener("submit", (e) => {
     data: JSON.stringify(data),
     success: function (result) {
       if (result.message === "successful") {
-        console.log(result);
+        //console.log(result);
         document.cookie = `accessToken=${result.accessToken}; HttpOnly`;
         if (result.type === "admin") {
           window.location.href = "/dashboard";
@@ -55,7 +55,7 @@ form.addEventListener("submit", (e) => {
         $("#errorModal").modal("show"); // Hiển thị modal khi đăng nhập thất bại
       }
       // Xử lý kết quả trả về từ máy chủ
-      console.log(result);
+     //console.log(result);
     },
     error: function (xhr, status, error) {
       // Xử lý lỗi nếu có
