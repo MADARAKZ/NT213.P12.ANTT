@@ -640,11 +640,18 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-cloudinary@^1.21.0, cloudinary@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.npmjs.org/cloudinary/-/cloudinary-2.2.0.tgz"
-  integrity sha512-akbLTZcNegGSkl07Frnt9fyiK9KZ2zPS+a+j7uLrjNYxVhDpDdIBz9G6snPCYqgk+WLVMRPfXTObalLr5L6g0Q==
+cloudinary-core@^2.13.0:
+  version "2.13.1"
+  resolved "https://registry.npmjs.org/cloudinary-core/-/cloudinary-core-2.13.1.tgz"
+  integrity sha512-z53GPNWnvU0Zi+ns8CIVbZBfj7ps/++zDvwIyiFuq5p1MoK+KUCg0k5mBceDDHTnx1gHmHUd9aohS+gDxPNt6w==
+
+cloudinary@^1.21.0, cloudinary@^1.41.3:
+  version "1.41.3"
+  resolved "https://registry.npmjs.org/cloudinary/-/cloudinary-1.41.3.tgz"
+  integrity sha512-4o84y+E7dbif3lMns+p3UW6w6hLHEifbX/7zBJvaih1E9QNMZITENQ14GPYJC4JmhygYXsuuBb9bRA3xWEoOfg==
   dependencies:
+    cloudinary-core "^2.13.0"
+    core-js "^3.30.1"
     lodash "^4.17.21"
     q "^1.5.1"
 
@@ -773,7 +780,7 @@ cookie@0.7.2:
   resolved "https://registry.npmjs.org/cookie/-/cookie-0.7.2.tgz"
   integrity sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==
 
-core-js@3:
+core-js@^3.30.1, core-js@3:
   version "3.37.0"
   resolved "https://registry.npmjs.org/core-js/-/core-js-3.37.0.tgz"
   integrity sha512-fu5vHevQ8ZG4og+LXug8ulUtVxjOcEYvifJr7L5Bfq9GOztVqsKd9/59hUk2ZSbCrS3BqUr3EpaYGIYzq7g3Ug==
@@ -1086,6 +1093,11 @@ express-handlebars@^7.1.2:
     graceful-fs "^4.2.11"
     handlebars "^4.7.8"
 
+express-rate-limit@^7.4.1:
+  version "7.4.1"
+  resolved "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-7.4.1.tgz"
+  integrity sha512-KS3efpnpIDVIXopMc65EMbWbUht7qvTCdtCR2dD/IZmi9MIkopYESwyRqLgv8Pfu589+KqDqOdzJWW7AHoACeg==
+
 express-session@^1.18.0:
   version "1.18.0"
   resolved "https://registry.npmjs.org/express-session/-/express-session-1.18.0.tgz"
@@ -1100,7 +1112,7 @@ express-session@^1.18.0:
     safe-buffer "5.2.1"
     uid-safe "~2.1.5"
 
-express@^4.19.2:
+express@^4.19.2, "express@4 || 5 || ^5.0.0-beta.1":
   version "4.19.2"
   resolved "https://registry.npmjs.org/express/-/express-4.19.2.tgz"
   integrity sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==
@@ -1704,7 +1716,7 @@ lodash.once@^4.0.0:
   resolved "https://registry.npmjs.org/lodash.once/-/lodash.once-4.1.1.tgz"
   integrity sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==
 
-lodash@^4.17.21:
+lodash@^4.17.21, lodash@>=4.0:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
