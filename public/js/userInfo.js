@@ -9,6 +9,7 @@ $(document).ready(function () {
   const token = getToken();
   const userId = getUserId(); // Lấy ownerId từ hàm getUserId() của bạn
   if (token) {
+    console.log("Dang nhap thanh cong");
   } else {
     alert("Vui lòng đăng nhập để xem thông tin người dùng!");
     window.location.href = "/signin";

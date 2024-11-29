@@ -1,5 +1,3 @@
-const { Model } = require("sequelize");
-
 const checkExist = (Model) => {
   return async (req, res, next) => {
     const { id } = req.params;
