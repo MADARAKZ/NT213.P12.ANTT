@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
+     <meta name="csrf-token" content="{{csrfToken}}">
     <link rel="stylesheet" href="/css/sign_in.css" />
     <!-- icon  -->
     <link
@@ -49,6 +50,7 @@
       <div class="wrapper">
         <form action="/api/v1/users/login" method="POST"> <!-- Ensure method and action are set -->
           <h1>Login</h1>
+          <input type="hidden" name="_csrf" value="{{csrfToken}}">
            <div class="input-box">
             <input id="email" name="email" type="text" placeholder="Email" required /> <!-- Add name attribute -->
             <i class="bx bxs-user"></i>

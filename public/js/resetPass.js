@@ -1,6 +1,6 @@
 $(document).ready(function () {
   console.log("Document ready");
-
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   // Sự kiện 'click' cho nút xác nhận
   $(".btn").on("click", function () {
     const token = $("#token").val();
@@ -15,6 +15,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/authen/resetpassword", // Thay đổi URL này theo endpoint của bạn
       type: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       contentType: "application/json",
       data: JSON.stringify({ token, newpassword }),
       success: function (response) {

@@ -6,6 +6,7 @@ $(document).ready(function () {
   function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   // Bắt sự kiện click trên các thẻ <a>
   document.querySelectorAll(".HotelLocate a").forEach(function (link) {
@@ -97,6 +98,11 @@ $(document).ready(function () {
       $.ajax({
         url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
         method: "POST",
+        
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
         data: { hotelName: hotelName },
         success: function (response) {
           // Xử lý dữ liệu phản hồi (response) từ máy chủ

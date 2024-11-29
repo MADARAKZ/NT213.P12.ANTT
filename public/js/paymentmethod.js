@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -52,6 +53,10 @@ $(document).ready(function () {
   $.ajax({
     url: "https://sandbox.vnpayment.vn/qrpayauth/api/merchant/get_bank_list",
     type: "POST",
+    credentials: "include",
+    headers: {
+    'CSRF-Token': token // <-- is the csrf token as a header
+  },
     contentType: "application/x-www-form-urlencoded",
     data: formData,
     success: (response) => {
@@ -93,6 +98,10 @@ $(document).ready(function () {
     $.ajax({
         url: "http://localhost:3030/api/v1/vnpay/create-vnpay-url",
         method: "POST",
+        credentials: "include",
+  headers: {
+    'CSRF-Token': token // <-- is the csrf token as a header
+  },
         data: JSON.stringify(data), // Send data as JSON string
         contentType: "application/json",
         success: function (response) {

@@ -1,4 +1,6 @@
 $(document).ready(function () {
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
@@ -58,6 +60,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/coupon/create",
       type: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: {
         code: code,
         percent: percent,

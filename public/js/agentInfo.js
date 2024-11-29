@@ -2,6 +2,7 @@ $(document).ready(async function () {
   function getToken() {
     return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
   }
+  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const token = getToken();
   async function getCurrentUser() {
     try {
@@ -190,6 +191,10 @@ $(document).ready(async function () {
           $.ajax({
             url: "http://localhost:3030/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
             type: "POST",
+            credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
             data: formData,
             processData: false,
             contentType: false,
@@ -385,6 +390,10 @@ $(document).ready(async function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/hotels/deleteHotel/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();
@@ -436,6 +445,10 @@ $(document).ready(async function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/hotels`,
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       processData: false, // Prevent jQuery from processing data
       contentType: false, // Prevent jQuery from setting content type
       data: formData,
@@ -537,6 +550,10 @@ $(document).ready(async function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/hotels/updateHotel/${id}`,
             method: "PUT",
+            credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
             data: {
               name: name,
               star: star,
@@ -632,6 +649,10 @@ $(document).ready(async function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/users/editUser/${id}`,
             method: "PUT",
+            credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
             data: {
               name: name,
               numberPhone: numberPhone,
@@ -789,6 +810,10 @@ $(document).ready(async function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageHotel/?id=" + id,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
       success: function (response) {
@@ -892,6 +917,10 @@ $(document).ready(async function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageHotel",
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       data: formData,
       processData: false, // Không xử lý dữ liệu
       contentType: false,
@@ -947,6 +976,10 @@ $(document).ready(async function () {
         $.ajax({
           url: `http://localhost:3030/api/v1/users/updatePassword`,
           method: "PUT",
+          credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
           data: {
             userId: id,
             currentPassword: oldPass,

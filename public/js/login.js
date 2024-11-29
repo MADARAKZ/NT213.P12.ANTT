@@ -32,11 +32,16 @@ form.addEventListener("submit", (e) => {
     password: password,
     'g-recaptcha-response': recaptchaResponse   // gửi dữ liệu của mã capchat
   };
-
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  console.log('CSRF Token:', token);
   // Gửi yêu cầu POST đến URL xử lý dữ liệu đăng nhập
   $.ajax({
     url: "http://localhost:3030/api/v1/users/login",
     type: "POST",
+    credentials: 'same-origin', // <-- includes cookies in the request
+    headers: {
+    'CSRF-Token': token // <-- is the csrf token as a header
+  },
     contentType: "application/json",
     data: JSON.stringify(data),
     success: function (result) {

@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
@@ -79,6 +80,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:${port}/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();
@@ -109,6 +114,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:${port}/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-confirm").hide();
@@ -154,6 +163,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:${port}/api/v1/users/register`,
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       headers: {
         "Content-Type": "application/json",
       },

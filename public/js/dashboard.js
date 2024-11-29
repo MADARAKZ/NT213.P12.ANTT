@@ -33,11 +33,17 @@ $(document).ready(async function () {
   //   $(".template").hide();
   //   window.location.href = "/";
   // }
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      
   async function getLogout() {
     try {
       // Gửi yêu cầu đăng xuất tới backend
       const response = await fetch("/api/v1/users/logout", {
         method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
         credentials: "include" // Quan trọng để gửi kèm cookie
       });
   

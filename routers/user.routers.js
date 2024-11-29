@@ -28,7 +28,7 @@ const {
 const { checkExist } = require("../middlewares/validations/checkExist");
 const { authenticate } = require("../middlewares/authen/authenticate");
 const { authorize } = require("../middlewares/authen/authorize");
-
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 const userRouter = express.Router();
 const limiter = ratelimit({
   windowMs: 15*60*1000,
@@ -37,23 +37,23 @@ const limiter = ratelimit({
 }
 )
 
-userRouter.post("/register", limiter, register);
+userRouter.post("/register", limiter,parseForm, csrfProtection, register);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
-userRouter.post("/login", limiter, login);
-userRouter.post("/loginGG", limiter, loginGG);
-userRouter.post("/logout", limiter,Logout);
+userRouter.post("/login", limiter,parseForm, csrfProtection, login);
+userRouter.post("/loginGG", limiter,parseForm, csrfProtection, loginGG);
+userRouter.post("/logout", limiter,parseForm, csrfProtection,Logout);
 userRouter.get("/getAllUser", getAllUser);
 userRouter.get("/getDetailUser/:id", getDetailUser);
 userRouter.get("/manageUsers", displayUser);
 userRouter.post("/updateImage/:id", limiter, uploadCloud.single("user"), updateImage);
 
-userRouter.put("/editUser/:id", limiter, editUser);
-userRouter.put("/updatePassword", limiter, updatePassword);
+userRouter.put("/editUser/:id", limiter,parseForm, csrfProtection, editUser);
+userRouter.put("/updatePassword", limiter,parseForm, csrfProtection, updatePassword);
 
-userRouter.delete("/deleteUser/:id", limiter, deleteUser);
+userRouter.delete("/deleteUser/:id", limiter,parseForm, csrfProtection, deleteUser);
 userRouter.get("/getCurrentUser", limiter, getCurrentUser);
 require("dotenv").config();
 userRouter.use(

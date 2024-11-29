@@ -6,12 +6,12 @@ const { authenticate } = require("../middlewares/authen/authenticate");
 const model = new TeachableMachine({
   modelUrl: "https://teachablemachine.withgoogle.com/models/v6LbHtKtR/",
 });
-
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 // Sử dụng Express static middleware để phục vụ tệp tĩnh từ thư mục "public"
 chatbotAl.use(express.static("public"));
 
 chatbotAl.post(
-  "/findlocation",
+  "/findlocation",parseForm, csrfProtection,
   authenticate,
   uploadImage("ModelAlImage"),
   async (req, res) => {

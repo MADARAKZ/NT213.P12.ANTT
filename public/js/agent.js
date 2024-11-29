@@ -1,5 +1,7 @@
 // import { getCurrentUser } from "../../utils/getCurrentUser.js";
 $(document).ready(function () {
+  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  
   async function getCurrentUser() {
     try {
       const token = localStorage.getItem("token");
@@ -175,6 +177,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/hotels/deleteHotel/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();
@@ -236,6 +242,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/hotels/`,
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       processData: false, // Ngăn jQuery xử lý dữ liệu
       contentType: false, // Ngăn jQuery đặt loại nội dung
       data: formData,
@@ -340,6 +350,10 @@ $(document).ready(function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/hotels/updateHotel/${id}`,
             method: "PUT",
+            credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
             data: {
               name: name,
               star: star,
@@ -423,6 +437,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageHotel/?id=" + id,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
       success: function (response) {
@@ -525,6 +543,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageHotel",
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       data: formData,
       processData: false, // Không xử lý dữ liệu
       contentType: false,

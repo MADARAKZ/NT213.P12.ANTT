@@ -1,5 +1,7 @@
 $(document).ready(function () {
   var hotelId1 = localStorage.getItem("hotelId");
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  
   console.log(hotelId1);
   function renderPage() {
     $.ajax({
@@ -90,6 +92,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/rooms/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
       success: function (data) {
         renderPage();
         $(".popup-overlay-delete").hide();
@@ -142,6 +148,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/rooms/",
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: formData,
       contentType: false, // Important for FormData
       processData: false, // Important for FormData
@@ -273,6 +283,10 @@ $(document).ready(function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/rooms/${id}`,
             method: "PUT",
+            credentials: "include",
+            headers: {
+              'CSRF-Token': token // <-- is the csrf token as a header
+            },
             contentType: "application/json",
             data: JSON.stringify({
               name: name,
@@ -354,6 +368,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageRoom/" + id,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
       success: function (response) {
@@ -447,6 +465,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageRoom",
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: formData,
       processData: false, // Không xử lý dữ liệu
       contentType: false,

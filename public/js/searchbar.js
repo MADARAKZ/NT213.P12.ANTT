@@ -321,40 +321,33 @@ updateButtonStyles();
 const input = document.getElementById("hotel-destination");
 const autocomplete = document.getElementById("autocomplete");
 
-input.addEventListener("input", async function () {
-  const inputValue = this.value.toLowerCase();
-  autocomplete.innerHTML = "";
 
-  if (inputValue.length > 0) {
-    try {
-      const response = await fetch(
-        "http://localhost:3030/api/v1/hotels/getAllMap"
-      ); // URL của endpoint trên server
-      if (!response.ok) throw new Error("Network response was not ok");
-      const cities = await response.json();
+// Gắn sự kiện click cho nút có id là "search-btn"
+document.querySelector(".search-button").addEventListener("click", function () {
+  // Thu thập dữ liệu từ form
+  let destination = document.getElementById("hotel-destination").value.trim();
+  let checkIn = document.getElementById("checkIn").value;
+  let checkOut = document.getElementById("checkOut").value;
+  let roomCount = document.getElementById("room-count").textContent;
+  let adultsCount = document.getElementById("adults-count").textContent;
+  let childrenCount = document.getElementById("children-count").textContent;
 
-      const matches = cities.filter((city) =>
-        city.toLowerCase().includes(inputValue)
-      );
-
-      matches.forEach((match) => {
-        const suggestion = document.createElement("div");
-        suggestion.innerText = match;
-        suggestion.addEventListener("click", function () {
-          input.value = match;
-          autocomplete.innerHTML = "";
-        });
-        autocomplete.appendChild(suggestion);
-      });
-    } catch (error) {
-      console.error("Error fetching districts:", error);
-    }
+  // Kiểm tra dữ liệu nhập
+  if (!destination || !checkIn || !checkOut) {
+    alert("Vui lòng điền đầy đủ thông tin tìm kiếm!");
+    return;
   }
-});
 
-// Xử lý sự kiện khi ô nhập mất focus (blur)
-document.addEventListener("click", function (event) {
-  if (event.target !== input) {
-    autocomplete.innerHTML = "";
-  }
+  // Tạo URL với query parameters
+  let queryParams = new URLSearchParams({
+    destination: destination,
+    checkIn: checkIn,
+    checkOut: checkOut,
+    rooms: roomCount,
+    adults: adultsCount,
+    children: childrenCount,
+  }).toString();
+
+  // Chuyển hướng sang trang hotelList với các tham số tìm kiếm
+  window.location.href = `http://localhost:3030/hotelList?${queryParams}`;
 });

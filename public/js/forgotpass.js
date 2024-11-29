@@ -1,7 +1,7 @@
 $(document).ready(function () {
   $("#reset-password").click(function () {
     var email = $("#email").val();
-
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     if (!email) {
       alert("Please enter your email address");
       return;
@@ -10,6 +10,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/authen/forgotpassword", // Replace with your server endpoint
       method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: JSON.stringify({ email: email }),
       contentType: "application/json",
       success: function (response) {

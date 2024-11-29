@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   $(document).on("click", ".fa-image", function () {
     var imageUrl = $(this).data("image-url");
     $("#imagePreview").attr("src", imageUrl);
@@ -100,6 +101,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();
@@ -130,6 +135,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-confirm").hide();
@@ -175,6 +184,10 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/users/register`,
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       headers: {
         "Content-Type": "application/json",
       },
@@ -247,6 +260,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/urlImageHotel/?id=" + id,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
       success: function (response) {
@@ -284,6 +301,10 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/images/delete",
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': tokencsrf,
+      },
       data: { imageUrl: imageUrl }, // Gửi đường dẫn ảnh cần xóa
       success: function (data) {
         console.log("Image deleted successfully:", imageUrl);
@@ -364,7 +385,9 @@ $(document).ready(function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/users/editUser/${id}`,
             method: "PUT",
+            credentials: "include",
             headers: {
+              'CSRF-Token': tokencsrf,
               "Content-Type": "application/json",
             },
             data: JSON.stringify(dataT),

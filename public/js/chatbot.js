@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.querySelector(' .chat-input input[type="file"]');
   const sendBtn = document.getElementById("send-btn");
   const token = localStorage.getItem("token");
+  const tokencsrf= document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   $("#send-btn").click(function () {
     const fileInput = document.querySelector('.chat-input input[type="file"]');
 
@@ -19,8 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
       $.ajax({
         url: "http://localhost:3030/api/v1/chatbotAl/findlocation",
         method: "POST",
+        credentials: "include",
+        headers: {
+        'CSRF-Token': tokencsrf,
+        token: token // <-- is the csrf token as a header
+        },
         data: formData,
-        headers: { token: token },
+  
         processData: false, // Không xử lý dữ liệu trước khi gửi
         contentType: false, // Không đặt header 'Content-Type' tự động
         success: function (response) {

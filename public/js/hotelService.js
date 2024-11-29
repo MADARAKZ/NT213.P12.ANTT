@@ -2,7 +2,7 @@ $(document).ready(function () {
   // var hotelId1 = localStorage.getItem("hotelId");
   var url = window.location.pathname;
   var hotelId1 = url.substring(url.lastIndexOf("/") + 1);
-
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   function renderPage() {
     $.ajax({
       url: "http://localhost:3030/api/v1/hotelAmenities/" + hotelId1,
@@ -141,6 +141,10 @@ $(document).ready(function () {
       $.ajax({
         url: "http://localhost:3030/api/v1/hotelAmenities", // Adjust the URL endpoint
         method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
         data: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
@@ -207,6 +211,11 @@ $(document).ready(function () {
     $.ajax({
       url: `http://localhost:3030/api/v1/hotelAmenities/${id}`,
       method: "DELETE",
+      
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       success: function (data) {
         $(".popup-overlay-delete").hide();
         $(".popup-delete").hide();
@@ -310,6 +319,10 @@ $(document).ready(function () {
           $.ajax({
             url: `http://localhost:3030/api/v1/hotelAmenities/` + id,
             method: "PUT",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
             contentType: "application/json",
             data: JSON.stringify({
               hotelId: hotelId,
