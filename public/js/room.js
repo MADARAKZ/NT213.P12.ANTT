@@ -3,7 +3,7 @@ $(document).ready(function () {
   console.log(hotelId1);
   function renderPage() {
     $.ajax({
-      url: `http://localhost:3030/api/v1/rooms?hotelId=${hotelId1}`,
+      url: `/api/v1/rooms?hotelId=${hotelId1}`,
       method: "GET",
       data: { hotelId: hotelId1 },
       success: function (data) {
@@ -88,7 +88,7 @@ $(document).ready(function () {
     console.log(id);
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/rooms/${id}`,
+      url: `/api/v1/rooms/${id}`,
       method: "DELETE",
       success: function (data) {
         renderPage();
@@ -140,7 +140,7 @@ $(document).ready(function () {
 
     // Make AJAX request
     $.ajax({
-      url: "http://localhost:3030/api/v1/rooms/",
+      url: "/api/v1/rooms/",
       method: "POST",
       data: formData,
       contentType: false, // Important for FormData
@@ -164,7 +164,7 @@ $(document).ready(function () {
     $(".popup-overlay-addRoom").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/rooms/${id}`,
+      url: `/api/v1/rooms/${id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -271,7 +271,7 @@ $(document).ready(function () {
           const hotelId = localStorage.getItem("hotelId");
 
           $.ajax({
-            url: `http://localhost:3030/api/v1/rooms/${id}`,
+            url: `/api/v1/rooms/${id}`,
             method: "PUT",
             contentType: "application/json",
             data: JSON.stringify({
@@ -312,7 +312,7 @@ $(document).ready(function () {
     localStorage.setItem("IdRoom", IdRoom);
     $("#imagePopupOverlay").css("display", "block");
     $.ajax({
-      url: "http://localhost:3030/api/v1/urlImageRoom/?IdRoom=" + IdRoom,
+      url: "/api/v1/urlImageRoom/?IdRoom=" + IdRoom,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -352,7 +352,7 @@ $(document).ready(function () {
     // Lấy imageId từ data của nút delete
     var url = $(this).data("image-url");
     $.ajax({
-      url: "http://localhost:3030/api/v1/urlImageRoom/" + id,
+      url: "/api/v1/urlImageRoom/" + id,
       method: "DELETE",
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -445,7 +445,7 @@ $(document).ready(function () {
     console.log(formData);
     // Gửi yêu cầu AJAX POST lên server
     $.ajax({
-      url: "http://localhost:3030/api/v1/urlImageRoom",
+      url: "/api/v1/urlImageRoom",
       method: "POST",
       data: formData,
       processData: false, // Không xử lý dữ liệu

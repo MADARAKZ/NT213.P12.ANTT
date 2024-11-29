@@ -1,11 +1,12 @@
 const { Reviews, Hotels, User } = require("../models");
-const { Op } = require("sequelize");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const createReview = async (req, res) => {
   try {
+    // Sanitize input data
+    sanitizeObject(req.body, ["description"]);
     const { rating, description, hotelId, guestId } = req.body;
 
+    // Validate required fields
     if (!guestId || !hotelId || rating === undefined || !description) {
       return res.status(400).json({ error: "Invalid input data" });
     }
@@ -18,18 +19,31 @@ const createReview = async (req, res) => {
     };
 
     const { file } = req;
-    console.log(file);
+
     if (file) {
+      // Kiểm tra loại file MIME để đảm bảo chỉ nhận ảnh
+      const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return res
+          .status(400)
+          .json({ error: "Invalid file type. Only images are allowed." });
+      }
+
+      // Lưu đường dẫn file ảnh
       const imagePath = file.path;
       newReviewData.file = imagePath;
     }
 
+    // Tạo review mới
     const newReview = await Reviews.create(newReviewData);
     console.log(newReviewData);
 
     res.status(201).send(newReview);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error creating review:", error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while creating the review." });
   }
 };
 

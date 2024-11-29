@@ -138,3 +138,9 @@ body {
   text-decoration: none;
   font-weight    : 600;
 }
+
+.error-message {/* Màu chữ đỏ để dễ nhận biết */
+  font-size: 12px; /* Kích thước chữ nhỏ hơn */
+  margin-top: 5px; /* Tạo khoảng cách nhỏ giữa input và cảnh báo */
+ /* Điều chỉnh độ cao dòng để trông gọn gàng */
+}

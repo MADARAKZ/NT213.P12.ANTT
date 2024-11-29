@@ -2,7 +2,7 @@ $(document).ready(function () {
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/coupon/getAllCoupon",
+      url: "/api/v1/coupon/getAllCoupon",
       method: "GET",
       success: function (data) {
         var tableHtml = "";
@@ -56,7 +56,7 @@ $(document).ready(function () {
     console.log(code, percent, begin, end);
 
     $.ajax({
-      url: "http://localhost:3030/api/v1/coupon/create",
+      url: "/api/v1/coupon/create",
       type: "POST",
       data: {
         code: code,
@@ -97,7 +97,7 @@ $(document).ready(function () {
   $(".confirm-delete-coupon").click(function () {
     let id = localStorage.getItem("couponId");
     $.ajax({
-      url: `http://localhost:3030/api/v1/coupon/deleteCoupon/${id}`,
+      url: `/api/v1/coupon/deleteCoupon/${id}`,
       method: "DELETE",
       success: function (data) {
         // Xử lý thành công

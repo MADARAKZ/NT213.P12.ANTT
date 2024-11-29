@@ -327,9 +327,7 @@ input.addEventListener("input", async function () {
 
   if (inputValue.length > 0) {
     try {
-      const response = await fetch(
-        "http://localhost:3030/api/v1/hotels/getAllMap"
-      ); // URL của endpoint trên server
+      const response = await fetch("/api/v1/hotels/getAllMap"); // URL của endpoint trên server
       if (!response.ok) throw new Error("Network response was not ok");
       const cities = await response.json();
 
@@ -357,4 +355,33 @@ document.addEventListener("click", function (event) {
   if (event.target !== input) {
     autocomplete.innerHTML = "";
   }
+});
+
+document.querySelector(".search-button").addEventListener("click", function () {
+  // Thu thập dữ liệu từ form
+  let destination = document.getElementById("hotel-destination").value.trim();
+  let checkIn = document.getElementById("checkIn").value;
+  let checkOut = document.getElementById("checkOut").value;
+  let roomCount = document.getElementById("room-count").textContent;
+  let adultsCount = document.getElementById("adults-count").textContent;
+  let childrenCount = document.getElementById("children-count").textContent;
+
+  // Kiểm tra dữ liệu nhập
+  if (!destination || !checkIn || !checkOut) {
+    alert("Vui lòng điền đầy đủ thông tin tìm kiếm!");
+    return;
+  }
+
+  // Tạo URL với query parameters
+  let queryParams = new URLSearchParams({
+    destination: destination,
+    checkIn: checkIn,
+    checkOut: checkOut,
+    rooms: roomCount,
+    adults: adultsCount,
+    children: childrenCount,
+  }).toString();
+
+  // Chuyển hướng sang trang hotelList với các tham số tìm kiếm
+  window.location.href = `/hotelList?${queryParams}`;
 });

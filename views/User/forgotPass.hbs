@@ -30,15 +30,29 @@
       <p class="lock-icon"><i class="fas fa-lock"></i></p>
       <h2>Forgot Password?</h2>
       <p>You can reset your Password here</p>
+
+      <!-- Input Email -->
       <input
         type="text"
         class="passInput"
         placeholder="Email address"
         id="email"
       />
+      <!-- Error message below email input -->
+      <span id="email-error" class="error-message"></span>
+
+      <!-- Button to Reset Password -->
       <button id="reset-password">Send My Password</button>
+
+      <!-- Response message -->
       <p id="responseMessage" class="response-message"></p>
-      <!-- Element to display response message -->
+
+      <!-- Thêm phần tử spinner để hiển thị khi đang tải -->
+      <div id="loading" style="display: none;">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
     </div>
 
     <!-- Popup Thông báo -->

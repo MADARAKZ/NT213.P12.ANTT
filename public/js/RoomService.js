@@ -4,11 +4,11 @@ $(document).ready(function () {
   var room = url.substring(url.lastIndexOf("/") + 1);
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/roomAmenities/" + room,
+      url: "/api/v1/roomAmenities/" + room,
       method: "GET",
       success: function (data) {
         console.log(data);
-        fetch("http://localhost:3030/api/v1/amenities?type=1")
+        fetch("/api/v1/amenities?type=1")
           .then((response) => response.json())
           .then((data1) => {
             const amenities1 = data1;
@@ -65,7 +65,7 @@ $(document).ready(function () {
     try {
       // Make AJAX request to fetch data
       const response = await $.ajax({
-        url: "http://localhost:3030/api/v1/amenities?type=1",
+        url: "/api/v1/amenities?type=1",
         method: "GET",
       });
 
@@ -140,7 +140,7 @@ $(document).ready(function () {
 
       // Perform AJAX request to create the service
       $.ajax({
-        url: "http://localhost:3030/api/v1/roomAmenities", // Adjust the URL endpoint
+        url: "/api/v1/roomAmenities", // Adjust the URL endpoint
         method: "POST",
         data: JSON.stringify(data),
         headers: {
@@ -204,7 +204,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/roomAmenities/${id}`,
+      url: `/api/v1/roomAmenities/${id}`,
       method: "DELETE",
       success: function (data) {},
       error: function (error) {
@@ -231,7 +231,7 @@ $(document).ready(function () {
 
     // Send request to fetch service details
     $.ajax({
-      url: `http://localhost:3030/api/v1/roomAmenities/service/${id}`,
+      url: `/api/v1/roomAmenities/service/${id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -309,7 +309,7 @@ $(document).ready(function () {
 
           // Gửi yêu cầu AJAX khi dữ liệu đầu vào hợp lệ
           $.ajax({
-            url: `http://localhost:3030/api/v1/roomAmenities/` + id,
+            url: `/api/v1/roomAmenities/` + id,
             method: "PUT",
             contentType: "application/json",
             data: JSON.stringify({

@@ -1,5 +1,5 @@
 const { Booking, Room, User, Hotels } = require("../models");
-const { Op, sequelize } = require("sequelize");
+const { Op } = require("sequelize");
 
 const createBooking = async (req, res) => {
   const {

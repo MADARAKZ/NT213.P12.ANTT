@@ -23,7 +23,7 @@ $(document).ready(function () {
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/users/getAllUser",
+      url: "/api/v1/users/getAllUser",
       method: "GET",
       success: function (data) {
         var tableHtml = "";
@@ -98,7 +98,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/deleteUser/${id}`,
+      url: `/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
       success: function (data) {
         // Xử lý thành công
@@ -128,7 +128,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/deleteUser/${id}`,
+      url: `/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
       success: function (data) {
         // Xử lý thành công
@@ -173,7 +173,7 @@ $(document).ready(function () {
     };
     // Gửi yêu cầu thêm người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/register`,
+      url: `/api/v1/users/register`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -197,7 +197,7 @@ $(document).ready(function () {
     $(".popup-content-user-img").show();
 
     $.ajax({
-      url: "http://localhost:3030/api/v1/urlImageHotel/?HotelId=48",
+      url: "/api/v1/urlImageHotel/?HotelId=48",
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -245,7 +245,7 @@ $(document).ready(function () {
     var id = $(this).data("image-id"); // Lấy imageId từ data của nút delete
     var url = $(this).data("image-url");
     $.ajax({
-      url: "http://localhost:3030/api/v1/urlImageHotel/?id=" + id,
+      url: "/api/v1/urlImageHotel/?id=" + id,
       method: "DELETE",
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -282,7 +282,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa ảnh đến server
     $.ajax({
-      url: "http://localhost:3030/api/images/delete",
+      url: "/api/images/delete",
       method: "POST",
       data: { imageUrl: imageUrl }, // Gửi đường dẫn ảnh cần xóa
       success: function (data) {
@@ -311,7 +311,7 @@ $(document).ready(function () {
     $(".popup-overlay-update").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/getDetailUser/${id}`,
+      url: `/api/v1/users/getDetailUser/${id}`,
       method: "GET",
       success: function (data) {
         console.log("2");
@@ -362,7 +362,7 @@ $(document).ready(function () {
           };
 
           $.ajax({
-            url: `http://localhost:3030/api/v1/users/editUser/${id}`,
+            url: `/api/v1/users/editUser/${id}`,
             method: "PUT",
             headers: {
               "Content-Type": "application/json",

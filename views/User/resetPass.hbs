@@ -60,6 +60,8 @@
               required
             />
             <i class="bx bxs-lock-alt"></i>
+            <!-- Lỗi dưới password -->
+            <span id="password-error" class="error-message"></span>
           </div>
           <div class="input-box">
             <input
@@ -69,55 +71,26 @@
               required
             />
             <i class="bx bxs-lock-alt"></i>
+            <!-- Lỗi dưới confirm password -->
+            <span id="password1-error" class="error-message"></span>
           </div>
           <button type="button" class="btn">Confirm</button>
         </form>
-
-        <div
-          class="modal fade"
-          id="errorModal"
-          tabindex="-1"
-          aria-labelledby="exampleModalLabel"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Error</h5>
-                <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div class="modal-body" id="errorMessageModal">
-                <!-- Thông báo lỗi sẽ được hiển thị ở đây -->
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-    <!-- Modal -->
+
+    <!-- Modal Error -->
     <div
       class="modal fade"
       id="errorModal"
       tabindex="-1"
-      aria-labelledby="exampleModalLabel"
+      aria-labelledby="errorModalLabel"
       aria-hidden="true"
     >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Error</h5>
+            <h5 class="modal-title" id="errorModalLabel">Error</h5>
             <button
               type="button"
               class="btn-close"
@@ -133,7 +106,9 @@
               type="button"
               class="btn btn-secondary"
               data-bs-dismiss="modal"
-            >Close</button>
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

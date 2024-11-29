@@ -58,10 +58,6 @@ function numberWithCommas(x) {
 }
 
 $(document).ready(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    $("#broadcast").show();
-  }
   function ChangeToSlug(title) {
     var slug;
     slug = title.toLowerCase();
@@ -281,11 +277,10 @@ $(document).ready(() => {
 
     loadItem();
   };
-  
-  
+
   const urlParams = new URLSearchParams(window.location.search);
 
-// Lấy giá trị từng tham số
+  // Lấy giá trị từng tham số
   const destination = urlParams.get("destination");
   const checkIn = urlParams.get("checkIn");
   const checkOut = urlParams.get("checkOut");
@@ -293,7 +288,7 @@ $(document).ready(() => {
   const adults = urlParams.get("adults");
   const children = urlParams.get("children");
   let sortType = "";
-  $(document).ready(function() {
+  $(document).ready(function () {
     filters = {
       destination: destination || "",
       checkIn: checkIn || "",
@@ -310,10 +305,10 @@ $(document).ready(() => {
       paymentMethods: "",
       TypeBed: "",
       roomType: "",
-      ratings: []
+      ratings: [],
     };
     $.ajax({
-      url: "http://localhost:3030/api/v1/hotelAmenities/hotel/amenities",
+      url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
       data: JSON.stringify(filters),
       contentType: "application/json",
@@ -325,18 +320,20 @@ $(document).ready(() => {
         if (xhr.status === 404) {
           console.warn(xhr.responseJSON.message); // Log lỗi từ server
           // Hiển thị thông báo cho người dùng
-          $("#hotel-container").html("<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>");
+          $("#hotel-container").html(
+            "<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>"
+          );
         } else {
           console.error("Lỗi không xác định:", error);
         }
-      }
+      },
     });
   });
 
   $(".dropdown-menu a.dropdown-item").on("click", function (event) {
     event.preventDefault(); // Ngăn chặn hành động mặc định của thẻ <a>
-     // Reset các giá trị trong filters
-     filters = {
+    // Reset các giá trị trong filters
+    filters = {
       destination: destination || "",
       checkIn: checkIn || "",
       checkOut: checkOut || "",
@@ -351,71 +348,71 @@ $(document).ready(() => {
       paymentMethods: "",
       TypeBed: "",
       roomType: "",
-      ratings: []
+      ratings: [],
     };
-  
+
     // Lấy giá trị từ các input dạng range
     $('.col-10 input[type="range"]').each(function () {
       let value = $(this).val();
       let inputId = $(this).attr("id");
       console.log("Input ID:", inputId, "Value:", value);
-  
+
       // Kiểm tra ID của input để xác định key tương ứng trong filters
       if (inputId === "price_range1" || inputId === "price_range2") {
         if (value != 0) filters.price = value;
       }
     });
-  
+
     // Lấy giá trị từ các checkbox (loại hình khách sạn)
     $(".type_hotel input[type='checkbox']:checked").each(function () {
       filters.type.push($(this).val());
     });
-  
+
     // Lấy giá trị từ các checkbox (dịch vụ khách sạn)
     $(".services_hotel input[type='checkbox']:checked").each(function () {
       filters.servicesHotel.push($(this).val());
     });
-  
+
     // Lấy giá trị từ các checkbox (dịch vụ phòng)
     $(".services_room input[type='checkbox']:checked").each(function () {
       filters.servicesRoom.push($(this).val());
     });
-  
+
     // Lấy giá trị từ radio (phương thức thanh toán)
     $("input[name='payment']:checked").each(function () {
       filters.paymentMethods = $(this).val();
     });
-  
+
     // Lấy giá trị từ radio (loại giường)
     $("input[name='bed_type']:checked").each(function () {
       filters.TypeBed = $(this).val();
     });
-  
+
     // Lấy giá trị từ select (loại hình bất động sản)
     filters.propertyTypes.push($("#property_type_select").val());
-  
+
     // Lấy giá trị từ radio (đánh giá sao)
     $("input[name='rating']:checked").each(function () {
       filters.ratings.push($(this).val());
     });
-  
+
     // Lấy giá trị từ radio (loại phòng)
     $("input[name='room_type']:checked").each(function () {
       filters.roomType = $(this).val();
     });
-  
+
     console.log("Filters đã chọn:", filters);
-  
+
     sortType = "";
     // Lấy giá trị sortType từ thuộc tính data-value
     sortType = $(this).data("value");
     filters.sortType = sortType;
-    
+
     // Gửi request AJAX sau khi chọn giá trị sort
     console.log("Sort Type Selected:", filters.sortType);
-  
+
     $.ajax({
-      url: "http://localhost:3030/api/v1/hotelAmenities/hotel/amenities",
+      url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
       data: JSON.stringify(filters),
       contentType: "application/json",
@@ -427,14 +424,18 @@ $(document).ready(() => {
         if (xhr.status === 404) {
           console.warn(xhr.responseJSON.message); // Log lỗi từ server
           // Hiển thị thông báo cho người dùng
-          $("#hotel-container").html("<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>");
+          $("#hotel-container").html(
+            "<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>"
+          );
         } else {
           console.error("Lỗi không xác định:", error);
         }
-      }
+      },
     });
   });
-  $(".form-check-input, .col-10 input[type='range'], select, input[type='radio'], .dropdown-menu a.dropdown-item").on("change", function () {
+  $(
+    ".form-check-input, .col-10 input[type='range'], select, input[type='radio'], .dropdown-menu a.dropdown-item"
+  ).on("change", function () {
     // Reset các giá trị trong filters
     filters = {
       destination: destination || "",
@@ -452,65 +453,65 @@ $(document).ready(() => {
       paymentMethods: "",
       TypeBed: "",
       roomType: "",
-      ratings: []
+      ratings: [],
     };
-  
+
     // Lấy giá trị từ các input dạng range
     $('.col-10 input[type="range"]').each(function () {
       let value = $(this).val();
       let inputId = $(this).attr("id");
       console.log("Input ID:", inputId, "Value:", value);
-  
+
       // Kiểm tra ID của input để xác định key tương ứng trong filters
       if (inputId === "price_range1" || inputId === "price_range2") {
         if (value != 0) filters.price = value;
       }
     });
-  
+
     // Lấy giá trị từ các checkbox (loại hình khách sạn)
     $(".type_hotel input[type='checkbox']:checked").each(function () {
       filters.type.push($(this).val());
     });
-  
+
     // Lấy giá trị từ các checkbox (dịch vụ khách sạn)
     $(".services_hotel input[type='checkbox']:checked").each(function () {
       filters.servicesHotel.push($(this).val());
     });
-  
+
     // Lấy giá trị từ các checkbox (dịch vụ phòng)
     $(".services_room input[type='checkbox']:checked").each(function () {
       filters.servicesRoom.push($(this).val());
     });
-  
+
     // Lấy giá trị từ radio (phương thức thanh toán)
     $("input[name='payment']:checked").each(function () {
       filters.paymentMethods = $(this).val();
     });
     filters.sortType = sortType;
-  
+
     // Lấy giá trị từ radio (loại giường)
     $("input[name='bed_type']:checked").each(function () {
       filters.TypeBed = $(this).val();
     });
-  
+
     // Lấy giá trị từ select (loại hình bất động sản)
     filters.propertyTypes.push($("#property_type_select").val());
-  
+
     // Lấy giá trị từ radio (đánh giá sao)
     $("input[name='rating']:checked").each(function () {
       filters.ratings.push($(this).val());
     });
-  
+
     // Lấy giá trị từ radio (loại phòng)
     $("input[name='room_type']:checked").each(function () {
       filters.roomType = $(this).val();
     });
-  
+
     console.log("Filters đã chọn:", filters);
-  
+
     // Gửi yêu cầu AJAX với dữ liệu lọc
     $.ajax({
-      url: "http://localhost:3030/api/v1/hotelAmenities/hotel/amenities",
+      url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
       data: JSON.stringify(filters),
       contentType: "application/json",
@@ -522,14 +523,15 @@ $(document).ready(() => {
         if (xhr.status === 404) {
           console.warn(xhr.responseJSON.message); // Log lỗi từ server
           // Hiển thị thông báo cho người dùng
-          $("#hotel-container").html("<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>");
+          $("#hotel-container").html(
+            "<p>Không tìm thấy khách sạn phù hợp với tiêu chí tìm kiếm.</p>"
+          );
         } else {
           console.error("Lỗi không xác định:", error);
         }
-      }
+      },
     });
   });
-  
 
   // Xử lý sự kiện khi thay đổi các filter
   // Hàm hiển thị kết quả lọc
@@ -565,4 +567,3 @@ function changeSort(sortType) {
   const bsDropdown = new bootstrap.Dropdown(dropdownButton); // Sử dụng Bootstrap để tạo dropdown
   bsDropdown.hide(); // Đóng dropdown
 }
-

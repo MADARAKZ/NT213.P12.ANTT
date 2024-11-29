@@ -27,7 +27,7 @@ $(document).ready(function () {
     });
   });
   $.ajax({
-    url: `http://localhost:3030/api/v1/hotels`,
+    url: `/api/v1/hotels`,
     method: "GET",
     success: function (data) {
       const numberOfHotels = data.length;
@@ -95,7 +95,7 @@ $(document).ready(function () {
       var slug = ChangeToSlug(hotelName);
       // Gửi yêu cầu AJAX để tìm hotelId tương ứng
       $.ajax({
-        url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
+        url: "/api/v1/hotels/getIdByHotelName",
         method: "POST",
         data: { hotelName: hotelName },
         success: function (response) {
@@ -103,8 +103,7 @@ $(document).ready(function () {
           var hotelId = response.hotelId;
 
           console.log("Hotel ID:", hotelId);
-          window.location.href =
-            "http://localhost:3030/hotel/" + slug + "/" + hotelId;
+          window.location.href = "/hotel/" + slug + "/" + hotelId;
         },
         error: function (xhr, status, error) {
           console.error("Error:", error);
@@ -114,7 +113,7 @@ $(document).ready(function () {
   });
 
   $.ajax({
-    url: `http://localhost:3030/api/v1/reviews/getFullReview`,
+    url: `/api/v1/reviews/getFullReview`,
     method: "GET",
     success: function (data) {
       const numberOfHotels = data.length;
@@ -125,7 +124,6 @@ $(document).ready(function () {
   });
   // Xử lý sự kiện khi người dùng nhấp vào một liên kết khách sạn
 });
-
 
 // Gắn sự kiện click cho nút có id là "search-btn"
 document.querySelector(".search-button").addEventListener("click", function () {
@@ -154,5 +152,5 @@ document.querySelector(".search-button").addEventListener("click", function () {
   }).toString();
 
   // Chuyển hướng sang trang hotelList với các tham số tìm kiếm
-  window.location.href = `http://localhost:3030/hotelList?${queryParams}`;
+  window.location.href = `/hotelList?${queryParams}`;
 });

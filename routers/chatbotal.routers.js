@@ -2,7 +2,7 @@ const express = require("express");
 const chatbotAl = express.Router();
 const { uploadImage } = require("../middlewares/upload/upload-image");
 const TeachableMachine = require("@sashido/teachablemachine-node");
-const { authenticate } = require("../middlewares/authen/authenticate");
+const { authenticateToken } = require("../middlewares/authen/auth.middleware");
 const model = new TeachableMachine({
   modelUrl: "https://teachablemachine.withgoogle.com/models/v6LbHtKtR/",
 });
@@ -12,7 +12,7 @@ chatbotAl.use(express.static("public"));
 
 chatbotAl.post(
   "/findlocation",
-  authenticate,
+  authenticateToken,
   uploadImage("ModelAlImage"),
   async (req, res) => {
     try {

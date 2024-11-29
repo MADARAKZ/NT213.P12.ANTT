@@ -3,10 +3,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-const axios = require('axios');
+const axios = require("axios");
 
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const register = async (req, res) => {
   const { name, email, password, numberPhone } = req.body;
+  sanitizeObject(userData, ["name", "email", "password", "numberPhone"]);
   try {
     // tao ra mot chuoi ngau nhien
     const salt = bcrypt.genSaltSync(10);
@@ -24,24 +26,28 @@ const register = async (req, res) => {
   }
 };
 const login = async (req, res) => {
-  const { email, password, 'g-recaptcha-response': recaptchaResponse } = req.body;
+  const {
+    email,
+    password,
+    "g-recaptcha-response": recaptchaResponse,
+  } = req.body;
   console.log("email", email);
   // b1 tìm user dựa trên email
   // b2 kiểm tra mật khẩu có đúng hay không
   // xác minh capchat
-  const recaptchaVerifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+  const recaptchaVerifyUrl = "https://www.google.com/recaptcha/api/siteverify";
   const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY; // Add this to your .env file
 
   const verifyResponse = await axios.post(recaptchaVerifyUrl, null, {
     params: {
       secret: recaptchaSecretKey,
-      response: recaptchaResponse
-    }
+      response: recaptchaResponse,
+    },
   });
 
   // If reCAPTCHA verification fails
   if (!verifyResponse.data.success) {
-    return res.status(400).send({ message: 'reCAPTCHA verification failed' });
+    return res.status(400).send({ message: "reCAPTCHA verification failed" });
   }
 
   const user = await User.findOne({
@@ -61,13 +67,10 @@ const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    await user.update(
-      { token: refreshToken },
-      { where: { id: user.id } }
-    );
+    await user.update({ token: refreshToken }, { where: { id: user.id } });
 
     const isAuthen = bcrypt.compareSync(password, user.password);
- 
+
     if (isAuthen) {
       res.cookie("accessToken", accessToken, { httpOnly: true });
       console.log("refreshToken", refreshToken);
@@ -75,8 +78,8 @@ const login = async (req, res) => {
         message: "successful",
         type: user.type,
         id: user.id,
-        token:refreshToken,
-        refreshToken : refreshToken,
+        token: refreshToken,
+        refreshToken: refreshToken,
       });
     } else {
       res

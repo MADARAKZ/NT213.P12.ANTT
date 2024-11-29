@@ -1,5 +1,4 @@
 const { Coupons } = require("../models");
-const user = require("../models/coupons");
 const create = async (req, res) => {
   const { code, percent, begin, end } = req.body;
   try {

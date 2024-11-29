@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Hàm lấy thông tin người dùng hiện tại
   async function getCurrentUser() {
     try {
-      
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
         credentials: "include",
@@ -34,13 +32,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Gửi yêu cầu đăng xuất tới backend
       const response = await fetch("/api/v1/users/logout", {
         method: "POST",
-        credentials: "include" // Quan trọng để gửi kèm cookie
+        credentials: "include", // Quan trọng để gửi kèm cookie
       });
-  
+
       if (response.ok) {
         // Nếu đăng xuất thành công ở backend
         // Điều hướng về trang đăng nhập
-        window.location.href = "http://localhost:3030/signin";
+        window.location.href = "/signin";
       } else {
         // Xử lý lỗi nếu đăng xuất không thành công
         const errorText = await response.text();
@@ -52,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
     }
   }
-
 
   const currennUser = await getCurrentUser();
 
@@ -102,11 +99,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
 
       // Thêm sự kiện cho nút "Đăng xuất"
-      document.getElementById("logout").addEventListener("click", async (event) => {
-        event.preventDefault();
-        // Xóa token và thông tin liên quan khỏi localStorage
-        await getLogout();
-      });
+      document
+        .getElementById("logout")
+        .addEventListener("click", async (event) => {
+          event.preventDefault();
+          // Xóa token và thông tin liên quan khỏi localStorage
+          await getLogout();
+        });
     } else {
       console.error("Failed to fetch userName or userName is null");
     }

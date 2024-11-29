@@ -77,7 +77,7 @@ $(document).ready(async function () {
   var roomId = getParameterByName("roomId");
 
   $.ajax({
-    url: "http://localhost:3030/api/v1/hotels/" + hotelId,
+    url: "/api/v1/hotels/" + hotelId,
     method: "GET",
     success: (data) => {
       $("#hotelName").text(data.name);
@@ -86,7 +86,7 @@ $(document).ready(async function () {
 
   // AJAX call to fetch hotel and room data
   $.ajax({
-    url: "http://localhost:3030/api/v1/rooms/" + roomId,
+    url: "/api/v1/rooms/" + roomId,
     method: "GET",
     success: (data) => {
       const discountRate = 0.1 * numberOfChildren;
@@ -109,7 +109,7 @@ $(document).ready(async function () {
     const couponCode = $("#Coupon").val();
     if (couponCode) {
       $.ajax({
-        url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
+        url: "/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
         success: function (coupon) {
           if (coupon && coupon.percent) {
@@ -129,7 +129,7 @@ $(document).ready(async function () {
 
   const userID = currentUser.id;
   $.ajax({
-    url: "http://localhost:3030/api/v1/users/getDetailUser/" + userID, // Endpoint to fetch user data
+    url: "/api/v1/users/getDetailUser/" + userID, // Endpoint to fetch user data
     method: "GET",
     success: (data) => {
       if (data) {
@@ -176,7 +176,7 @@ $(document).ready(async function () {
     console.log(data);
 
     $.ajax({
-      url: "http://localhost:3030/api/v1/booking/",
+      url: "/api/v1/booking/",
       method: "POST",
       data: JSON.stringify(data),
       contentType: "application/json",
@@ -186,9 +186,9 @@ $(document).ready(async function () {
         console.log(response);
 
         if (paymentMethod === "dbt") {
-          window.location.href = `http://localhost:3030/paymentmethod?bookingId=${bookingId}`;
+          window.location.href = `/paymentmethod?bookingId=${bookingId}`;
         } else if (paymentMethod === "cd") {
-          window.location.href = `http://localhost:3030/resultTT?bookingId=${bookingId}`;
+          window.location.href = `/resultTT?bookingId=${bookingId}`;
         } else {
           alert("Vui lòng chọn phương thức thanh toán!");
         }
@@ -203,7 +203,7 @@ $(document).ready(async function () {
   $("#Order").click(validateAndSendBookingRequest);
 
   $(".return").click(function () {
-    window.location.href = "http://localhost:3030/";
+    window.location.href = "/";
   });
   $(".confirm").click(function () {
     console.log(200);

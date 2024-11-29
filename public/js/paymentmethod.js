@@ -22,7 +22,7 @@ $(document).ready(function () {
   let hotelName;
   // Helper function to extract a query parameter
   $.ajax({
-    url: "http://localhost:3030/api/v1/booking/getDetail/" + bookingID,
+    url: "/api/v1/booking/getDetail/" + bookingID,
     method: "GET",
     success: (data) => {
       $("#RoomName").html("Loại phòng" + "<br>" + data.Room.name);
@@ -57,7 +57,9 @@ $(document).ready(function () {
     success: (response) => {
       // Xử lý phản hồi thành công từ API và hiển thị dữ liệu lên trang web
       for (let i = 0; i < Math.min(response.length, 16); i++) {
-        if(i==13) {i++};
+        if (i == 13) {
+          i++;
+        }
         const bank = response[i];
         var bankElement = `<div class="bankItem">`;
         var logoLink = bank.logo_link.replace(
@@ -91,18 +93,18 @@ $(document).ready(function () {
     console.log(data);
 
     $.ajax({
-        url: "http://localhost:3030/api/v1/vnpay/create-vnpay-url",
-        method: "POST",
-        data: JSON.stringify(data), // Send data as JSON string
-        contentType: "application/json",
-        success: function (response) {
-          // Chuyển hướng trang web tới URL nhận được từ API
-           window.location.href = response.data.url;
-          console.log(response.data.url);
-        },
-        error: function (xhr, status, error) {
-          // Xử lý lỗi khi gọi API
-          console.error("API call failed:", error);
+      url: "/api/v1/vnpay/create-vnpay-url",
+      method: "POST",
+      data: JSON.stringify(data), // Send data as JSON string
+      contentType: "application/json",
+      success: function (response) {
+        // Chuyển hướng trang web tới URL nhận được từ API
+        window.location.href = response.data.url;
+        console.log(response.data.url);
+      },
+      error: function (xhr, status, error) {
+        // Xử lý lỗi khi gọi API
+        console.error("API call failed:", error);
         // Hiển thị thông báo lỗi cho người dùng nếu cần thiết
       },
     });

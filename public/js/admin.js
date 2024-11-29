@@ -2,7 +2,7 @@ $(document).ready(function () {
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/users/getAllUser",
+      url: "/api/v1/users/getAllUser",
       method: "GET",
       success: function (data) {
         var tableHtml = "";

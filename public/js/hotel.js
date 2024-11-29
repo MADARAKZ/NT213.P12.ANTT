@@ -446,16 +446,9 @@ $(document).ready(async function () {
 
   async function getCurrentUser() {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -468,7 +461,6 @@ $(document).ready(async function () {
         throw new Error("Current user data is not available");
       }
 
-      // console.log("Current User:", currentUser); // Debugging statement
       return currentUser;
     } catch (error) {
       console.error("Error fetching current user:", error.message);
@@ -476,19 +468,11 @@ $(document).ready(async function () {
     }
   }
 
-  async function getGuestId() {
-    try {
-      const currentUser = await getCurrentUser(); // Giả sử getCurrentUser() trả về đối tượng người dùng
-      if (currentUser && currentUser.id) {
-        return currentUser.id;
-      } else {
-        throw new Error("Failed to get guest ID");
-      }
-    } catch (error) {
-      console.error("Error fetching guest ID:", error.message);
-      throw error; // Ném lỗi ra ngoài để handle khi gọi hàm này
-    }
-  }
+  const currentUser = await getCurrentUser();
+  const currentId = currentUser.id;
+
+  // $(".login-banner").hide();
+  // $(".get-lower-price").hide();
 
   document
     .querySelector("#reviewForm")
@@ -502,7 +486,7 @@ $(document).ready(async function () {
       var content = document.querySelector("textarea[name='content']").value;
       var hotelId = window.location.pathname.split("/").pop();
       hotelId = parseInt(hotelId, 10);
-      var guestId = await getGuestId();
+      var guestId = currentId;
       console.log("GuestId: ", guestId);
       guestId = parseInt(guestId, 10);
 
@@ -513,7 +497,6 @@ $(document).ready(async function () {
 
       var fileInput = document.querySelector("input[type='file']");
       var file = fileInput.files[0];
-      const token = localStorage.getItem("token");
 
       var formData = new FormData();
       if (fileInput) {
@@ -529,7 +512,7 @@ $(document).ready(async function () {
         const response = await fetch("/api/v1/reviews/create", {
           method: "POST",
           body: formData,
-          headers: { token },
+          headers: {},
         });
 
         if (!response.ok) {
@@ -571,17 +554,10 @@ $(document).ready(async function () {
     var href = $(this).attr("href");
 
     // Lấy id khách sạn từ href
-    var hotelId = href.split("/").pop();
 
     // Chuyển hướng đến trang khách sạn và truyền id khách sạn qua URL
     window.location.href = "/";
   });
-
-  const token = localStorage.getItem("token");
-  if (token) {
-    $(".login-banner").hide();
-    $(".get-lower-price").hide();
-  }
 
   var url = window.location.pathname;
   let slug = url.split("/")[2];

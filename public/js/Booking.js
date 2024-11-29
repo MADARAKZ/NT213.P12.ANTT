@@ -2,7 +2,7 @@ $(document).ready(function () {
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/booking",
+      url: "/api/v1/booking",
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -93,7 +93,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/booking/${id}`,
+      url: `/api/v1/booking/${id}`,
       method: "DELETE",
       success: function (data) {
         // Xử lý thành công
@@ -142,7 +142,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu thêm khách sạn với các files ảnh
     $.ajax({
-      url: `http://localhost:3030/api/v1/hotels`,
+      url: `/api/v1/hotels`,
       method: "POST",
       processData: false, // Ngăn jQuery xử lý dữ liệu
       contentType: false, // Ngăn jQuery đặt loại nội dung
@@ -170,7 +170,7 @@ $(document).ready(function () {
 
     // Send request to fetch booking details
     $.ajax({
-      url: `http://localhost:3030/api/v1/booking/${id}`,
+      url: `/api/v1/booking/${id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -227,7 +227,7 @@ $(document).ready(function () {
 
           // Make AJAX request to update booking
           $.ajax({
-            url: `http://localhost:3030/api/v1/booking/${id}`,
+            url: `/api/v1/booking/${id}`,
             method: "PUT",
             data: {
               room_id: roomId,

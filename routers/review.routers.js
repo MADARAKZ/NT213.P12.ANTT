@@ -8,15 +8,14 @@ const {
   updateReview,
   getFullReview,
 } = require("../controllers/reviews.controllers");
-const { authenticate } = require("../middlewares/authen/authenticate");
-const { authorize } = require("../middlewares/authen/authorize");
+const { authenticateToken } = require("../middlewares/authen/auth.middleware");
 const { checkExist } = require("../middlewares/validations/checkExist");
 const { uploadImage } = require("../middlewares/upload/upload-image");
 const ReviewRouter = express.Router();
 
 ReviewRouter.post(
   "/create",
-  authenticate,
+  authenticateToken,
   uploadCloud.single("file"),
   createReview
 );

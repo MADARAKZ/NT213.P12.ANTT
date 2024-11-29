@@ -1,7 +1,7 @@
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
 require("dotenv").config();
 const register = async (req, res) => {
   const { name, email, password, confirmpassword, numberPhone, type } =
@@ -78,6 +78,7 @@ const register = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const loginGG = async (req, res) => {
   try {
     const { email, name, authGgId, refreshToken } = req.body;
@@ -297,9 +298,20 @@ const updatePassword = async (req, res) => {
       return res.status(401).json({ error: "Invalid current password" });
     }
 
+    // Kiểm tra mật khẩu mới phải có ít nhất 8 ký tự, có chữ hoa, chữ thường và ký tự đặc biệt
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        error:
+          "New password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
+    }
+
     // Băm mật khẩu mới
     const salt = bcrypt.genSaltSync(10);
     const hashedNewPassword = bcrypt.hashSync(newPassword, salt);
+
     // Cập nhật mật khẩu mới
     await user.update({ password: hashedNewPassword });
 

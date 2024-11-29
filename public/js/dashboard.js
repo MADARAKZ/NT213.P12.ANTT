@@ -3,7 +3,6 @@ $(document).ready(async function () {
 
   // async function getCurrentUser() {
   //   try {
-      
 
   //     const response = await fetch("/api/v1/users/getCurrentUser", {
   //       method: "GET",
@@ -38,13 +37,13 @@ $(document).ready(async function () {
       // Gửi yêu cầu đăng xuất tới backend
       const response = await fetch("/api/v1/users/logout", {
         method: "POST",
-        credentials: "include" // Quan trọng để gửi kèm cookie
+        credentials: "include", // Quan trọng để gửi kèm cookie
       });
-  
+
       if (response.ok) {
         // Nếu đăng xuất thành công ở backend
         // Điều hướng về trang đăng nhập
-        window.location.href = "http://localhost:3030/signin";
+        window.location.href = "/signin";
       } else {
         // Xử lý lỗi nếu đăng xuất không thành công
         const errorText = await response.text();

@@ -197,7 +197,7 @@ $(document).ready(async function () {
           console.log(formData, "đ có form");
           // Gửi ajax request lên server
           $.ajax({
-            url: "http://localhost:3030/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
+            url: "/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
             type: "POST",
             data: formData,
             processData: false,
@@ -222,7 +222,7 @@ $(document).ready(async function () {
 
   renderPage();
   function findRoomById(roomId) {
-    return fetch("http://localhost:3030/api/v1/rooms/")
+    return fetch("/api/v1/rooms/")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Lỗi khi gọi API");
@@ -242,7 +242,7 @@ $(document).ready(async function () {
   //Render boooking lisst off usser
   function renderBookingList() {
     $.ajax({
-      url: `http://localhost:3030/api/v1/booking?user_id=${currentUser.id}`,
+      url: `/api/v1/booking?user_id=${currentUser.id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -325,7 +325,7 @@ $(document).ready(async function () {
     $(".popup-overlay-updateInfo").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/getDetailUser/${id}`, //getDetailHotel
+      url: `/api/v1/users/getDetailUser/${id}`, //getDetailHotel
       method: "GET",
       success: function (data) {
         $(".popup-overlay-updateInfo").html(`
@@ -384,7 +384,7 @@ $(document).ready(async function () {
           const address = $("#address-user").val();
 
           $.ajax({
-            url: `http://localhost:3030/api/v1/users/editUser/${id}`,
+            url: `/api/v1/users/editUser/${id}`,
             method: "PUT",
             data: {
               name: name,
@@ -417,24 +417,47 @@ $(document).ready(async function () {
     var id = $(this).val();
     $(".popup-overlay-update-pass").show();
     $(".popup-overlay-update-pass").html(`
-      <div class="popup-updateInfo"> 
-        <span class="close-btn">&times;</span> 
-        <h2>Thay đổi mật khẩu</h2> 
-        <form id="updateForm"> 
-          <label>Mật khẩu cũ</label>    
+      <div class="popup-updateInfo col-4">
+        <span class="close-btn">&times;</span>
+        <h2>Thay đổi mật khẩu</h2>
+        <form id="updateForm">
+          <label>Mật khẩu cũ</label>
           <input type="password" id="old-pass" name="" placeholder="Nhập mật khẩu cũ" required />
-          <p class="wrong-pass1" style="color:red; font-style:italic; display:none">* Mật khẩu không đúng</p>
-          <label>Mật khẩu mới</label>    
-          <input type="password" id="new-pass" name="" placeholder="Nhập mật khẩu mới" required /> 
-          <label>Nhập lại mật khẩu mới</label>    
-          <input type="password" id="confirm-new-pass" name="" placeholder="Nhập lại mật khẩu mới" required />  
-          <p class="wrong-pass2" style="color:red; font-style:italic; display:none">* Mật khẩu không trùng khớp</p>
-      
-          <div class="ebutton" id="update-pass"> 
-            <input type="submit" value="Cập nhật"> 
-          </div> 
-        </form> 
+          <p class="wrong-pass1" style="display:none">* Mật khẩu không đúng</p>
+          <label>Mật khẩu mới</label>
+          <input type="password" id="new-pass" name="" placeholder="Nhập mật khẩu mới" required />
+          <label class="invalid-pass" style="display:none">* Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, ký tự đặc biệt và số</label>
+          <label>Nhập lại mật khẩu mới</label>
+          <input type="password" id="confirm-new-pass" name="" placeholder="Nhập lại mật khẩu mới" required />
+          <label class="wrong-pass2" style="display:none">* Mật khẩu không trùng khớp</label>
+  
+          <div class="ebutton" id="update-pass">
+            <input type="submit" value="Cập nhật">
+          </div>
+        </form>
       </div>`);
+
+    // Thêm sự kiện kiểm tra thời gian thực cho mật khẩu mới và xác nhận mật khẩu
+    $("#new-pass, #confirm-new-pass").on("input", function () {
+      const newPass = $("#new-pass").val();
+      const confirmNewPass = $("#confirm-new-pass").val();
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+      // Kiểm tra mật khẩu mới
+      if (!passwordRegex.test(newPass)) {
+        $(".invalid-pass").show();
+      } else {
+        $(".invalid-pass").hide();
+      }
+
+      // Kiểm tra sự khớp của mật khẩu mới và mật khẩu xác nhận
+      if (newPass !== confirmNewPass) {
+        $(".wrong-pass2").show();
+      } else {
+        $(".wrong-pass2").hide();
+      }
+    });
 
     $(".ebutton").click(function (e) {
       e.preventDefault(); // Ngăn không cho form submit
@@ -443,36 +466,39 @@ $(document).ready(async function () {
       const newPass = $("#new-pass").val();
       const confirmNewPass = $("#confirm-new-pass").val();
 
-      if (newPass === confirmNewPass) {
-        $.ajax({
-          url: `http://localhost:3030/api/v1/users/updatePassword`,
-          method: "PUT",
-          data: {
-            userId: id,
-            currentPassword: oldPass,
-            newPassword: newPass,
-          },
-          success: function (data) {
-            isUpdatePasswordSuccess = true;
-            renderPage();
-            alert("Cập nhật mật khẩu thành công");
-          },
-          error: function (error) {
-            isUpdatePasswordSuccess = false;
-            $(".wrong-pass1").show();
-          },
-        });
-      } else {
-        isUpdatePasswordSuccess = false;
-        $(".wrong-pass2").show();
+      // Kiểm tra mật khẩu đã hợp lệ trước khi gửi yêu cầu
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(newPass)) {
+        $(".invalid-pass").show();
+        return;
       }
 
-      if (!isUpdatePasswordSuccess) {
-        // Popup vẫn hiển thị khi cập nhật mật khẩu không thành công
+      if (newPass !== confirmNewPass) {
+        $(".wrong-pass2").show();
         return;
-      } else {
-        $(".popup-overlay-update-pass").hide();
       }
+
+      // Gửi yêu cầu cập nhật mật khẩu nếu tất cả hợp lệ
+      $.ajax({
+        url: `/api/v1/users/updatePassword`,
+        method: "PUT",
+        data: {
+          userId: id,
+          currentPassword: oldPass,
+          newPassword: newPass,
+        },
+        success: function (data) {
+          isUpdatePasswordSuccess = true;
+          renderPage();
+          alert("Cập nhật mật khẩu thành công");
+          $(".popup-overlay-update-pass").hide();
+        },
+        error: function (error) {
+          isUpdatePasswordSuccess = false;
+          $(".wrong-pass1").show();
+        },
+      });
     });
 
     $(".close-btn").click(function () {

@@ -5,11 +5,11 @@ $(document).ready(function () {
 
   function renderPage() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/hotelAmenities/" + hotelId1,
+      url: "/api/v1/hotelAmenities/" + hotelId1,
       method: "GET",
       success: function (data) {
         console.log(data);
-        fetch("http://localhost:3030/api/v1/amenities?type=0")
+        fetch("/api/v1/amenities?type=0")
           .then((response) => response.json())
           .then((data1) => {
             const amenities1 = data1;
@@ -65,7 +65,7 @@ $(document).ready(function () {
     try {
       // Make AJAX request to fetch data
       const response = await $.ajax({
-        url: "http://localhost:3030/api/v1/amenities?type=0", // Assuming you want to fetch amenities of type 0
+        url: "/api/v1/amenities?type=0", // Assuming you want to fetch amenities of type 0
         method: "GET",
       });
 
@@ -139,7 +139,7 @@ $(document).ready(function () {
 
       // Perform AJAX request to create the service
       $.ajax({
-        url: "http://localhost:3030/api/v1/hotelAmenities", // Adjust the URL endpoint
+        url: "/api/v1/hotelAmenities", // Adjust the URL endpoint
         method: "POST",
         data: JSON.stringify(data),
         headers: {
@@ -205,7 +205,7 @@ $(document).ready(function () {
     let id = $(".popup-delete").attr("data-id");
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/hotelAmenities/${id}`,
+      url: `/api/v1/hotelAmenities/${id}`,
       method: "DELETE",
       success: function (data) {
         $(".popup-overlay-delete").hide();
@@ -232,7 +232,7 @@ $(document).ready(function () {
 
     // Send request to fetch service details
     $.ajax({
-      url: `http://localhost:3030/api/v1/hotelAmenities/amenities/${id}`,
+      url: `/api/v1/hotelAmenities/amenities/${id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -308,7 +308,7 @@ $(document).ready(function () {
 
           // Gửi yêu cầu AJAX khi dữ liệu đầu vào hợp lệ
           $.ajax({
-            url: `http://localhost:3030/api/v1/hotelAmenities/` + id,
+            url: `/api/v1/hotelAmenities/` + id,
             method: "PUT",
             contentType: "application/json",
             data: JSON.stringify({

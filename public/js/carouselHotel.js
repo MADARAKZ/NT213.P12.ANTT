@@ -50,7 +50,7 @@ $(document).ready(() => {
     const container = $("#" + containerId);
 
     $.ajax({
-      url: `http://localhost:3030/api/v1/hotels`,
+      url: `/api/v1/hotels`,
       method: "GET",
       data: { sortType: sortType },
       success: (data) => {

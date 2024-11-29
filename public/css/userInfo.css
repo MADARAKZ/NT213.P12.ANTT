@@ -156,7 +156,23 @@ body {
     border: none;
     background-color: whitesmoke;
 
+
+    
 }
+
+/* Đảm bảo các thông báo lỗi sẽ hiển thị theo chiều dọc mà không làm rộng thêm chiều rộng */
+.popup-updateInfo p {
+    display: block;  /* Hiển thị các thông báo cảnh báo theo chiều dọc */
+    margin-top: 5px; /* Tạo khoảng cách giữa các thông báo cảnh báo */
+    font-size: 14px; /* Tùy chỉnh kích thước font cho các thông báo */
+  }
+  
+  .wrong-pass1, .wrong-pass2, .invalid-pass {
+    color: red; /* Màu sắc cho cảnh báo */
+    font-style: italic; /* Kiểu font nghiêng */
+    display: none; /* Ẩn thông báo mặc định */
+  }
+  
 
 .updateInfo,
 .deleteUser {
