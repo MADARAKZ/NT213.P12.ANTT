@@ -31,12 +31,12 @@ module.exports = (sequelize, DataTypes) => {
       authGgId: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: null
+        defaultValue: null,
       },
       authType: {
-        type: DataTypes.ENUM('local', 'google', 'facebook'),
-        defaultValue: 'local'
-      }
+        type: DataTypes.ENUM("local", "google", "facebook"),
+        defaultValue: "local",
+      },
     },
     {
       sequelize,

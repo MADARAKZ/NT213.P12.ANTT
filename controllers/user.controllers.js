@@ -1,57 +1,53 @@
-const { prototype } = require("@sashido/teachablemachine-node");
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Op, where } = require("sequelize");
-require('dotenv').config();
+require("dotenv").config();
 const register = async (req, res) => {
-  const { name, email, password, confirmpassword, numberPhone, type } = req.body;
+  const { name, email, password, confirmpassword, numberPhone, type } =
+    req.body;
   try {
     // kiểm tra đã nhập đủ các trường thông tin hay chưa
-    if(!name || !email || !password || !confirmpassword || !numberPhone) {
+    if (!name || !email || !password || !confirmpassword || !numberPhone) {
       return res
-          .status(400)
-          .json({message: "Vui lòng nhập đầy đủ các trường thông tin"});
+        .status(400)
+        .json({ message: "Vui lòng nhập đầy đủ các trường thông tin" });
     }
 
     // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp nhau không
     if (password !== confirmpassword) {
       return res
-          .status(400)
-          .json({message: "Mật khẩu và xác nhận mật khẩu không khớp"});
+        .status(400)
+        .json({ message: "Mật khẩu và xác nhận mật khẩu không khớp" });
     }
 
     // Kiểm tra độ dài mật khẩu
     if (password.length < 8) {
       return res
-          .status(400)
-          .json({message: "Mật khẩu phải có ít nhất 8 ký tự"});
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
     }
 
     // Kiểm tra các yêu cầu về độ mạnh của mật khẩu
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
     if (!passwordRegex.test(password)) {
-      return res
-          .status(400)
-          .json({
-            message: "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"
-          });
+      return res.status(400).json({
+        message:
+          "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+      });
     }
 
     // Kiểm tra email hợp lệ
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res
-          .status(400)
-          .json({message: "Email không hợp lệ"});
+      return res.status(400).json({ message: "Email không hợp lệ" });
     }
 
     // Kiểm tra số điện thoại hợp lệ (số điện thoại Việt Nam)
     const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
     if (!phoneRegex.test(numberPhone)) {
-      return res
-          .status(400)
-          .json({message: "Số điện thoại không hợp lệ"});
+      return res.status(400).json({ message: "Số điện thoại không hợp lệ" });
     }
 
     // Kiểm tra xem email hoặc số điện thoại đã tồn tại hay chưa
@@ -86,30 +82,26 @@ const loginGG = async (req, res) => {
   try {
     const { email, name, authGgId, refreshToken } = req.body;
     console.log("<<check body>>>>", req.body);
-    
+
     // Tìm hoặc tạo user
     const user = await User.findOne({ where: { email } });
-    
-    console.log("check userrrrrrrrrrrrr",user)
+
+    console.log("check userrrrrrrrrrrrr", user);
     // Nếu user đã tồn tại, update thông tin
-    await user.update(
-      { token: refreshToken },
-      { where: { id: user.id } }
-    );
-    console.log(created ? 'New user created' : 'User updated', user);
+    await user.update({ token: refreshToken }, { where: { id: user.id } });
+    console.log(created ? "New user created" : "User updated", user);
 
     res.status(200).send({
       message: "Login successful",
       userId: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
     });
-
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).send({
       message: "Internal server error",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -120,7 +112,7 @@ const login = async (req, res) => {
   const user = await User.findOne({ where: { email } });
   if (user) {
     // B2: Kiểm tra mật khẩu có đúng hay không
-    
+
     const isAuthen = bcrypt.compareSync(password, user.password);
     if (isAuthen) {
       const accessToken = jwt.sign(
@@ -135,17 +127,14 @@ const login = async (req, res) => {
       );
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 phút
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 15 * 60 * 1000, // 15 phút
       });
       console.log("refreshToken", refreshToken);
-      console.log("<<<<<check USER>>>>>>",user)
-      await user.update(
-        { token: refreshToken },
-        { where: { id: user.id } }
-      );
-  
+      console.log("<<<<<check USER>>>>>>", user);
+      await user.update({ token: refreshToken }, { where: { id: user.id } });
+
       res.status(200).send({
         message: "successful",
         // token,
@@ -180,7 +169,7 @@ const getCurrentUser = async (req, res) => {
   }
 
   try {
-    console.log("ok")
+    console.log("ok");
     // Giải mã token và lấy thông tin người dùng
     const decode = jwt.verify(token, process.env.ACCESS_TOKEN); // Giải mã token
     console.log("Decode:", decode);
@@ -191,7 +180,7 @@ const getCurrentUser = async (req, res) => {
 
     if (currentUser) {
       // Exclude the password from the response
-      const { password,token, ...userWithoutPassword } = currentUser.toJSON();
+      const { password, token, ...userWithoutPassword } = currentUser.toJSON();
       res.status(200).send(userWithoutPassword); // Return user info without password
     } else {
       res.status(404).send("User not found"); // User not found
@@ -210,7 +199,6 @@ const getCurrentUser = async (req, res) => {
     res.status(500).send("Internal server error"); // Server error
   }
 };
-
 
 const getAllUser = async (req, res) => {
   const { name } = req.query;
@@ -388,7 +376,7 @@ const Logout = async (req, res) => {
   try {
     // Lấy thông tin người dùng từ token
     const token = req.cookies.accessToken;
-    
+
     if (!token) {
       return res.status(401).json({ message: "Không tìm thấy token" });
     }
@@ -408,15 +396,18 @@ const Logout = async (req, res) => {
     await user.update({ token: null });
 
     // Xóa access token trong cookie
-    res.clearCookie('accessToken');
+    res.clearCookie("accessToken");
 
     // Trả về phản hồi thành công
     res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (error) {
     console.error("Lỗi đăng xuất:", error);
-    
+
     // Nếu là lỗi token hết hạn hoặc không hợp lệ
-    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
       return res.status(401).json({ message: "Token không hợp lệ" });
     }
 

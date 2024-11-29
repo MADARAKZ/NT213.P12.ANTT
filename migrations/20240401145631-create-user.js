@@ -49,6 +49,9 @@ module.exports = {
       address: {
         type: Sequelize.TEXT,
       },
+      token: {
+        type: Sequelize.STRING,
+      },
 
       createdAt: {
         allowNull: false,

@@ -13,3 +13,4 @@ dist/
 # Thêm tệp hệ thống của OS, như trên macOS, Windows:
 .DS_Store
 Thumbs.db
+config/
