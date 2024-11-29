@@ -1,4 +1,35 @@
-$(document).ready(function () {
+$(document).ready(async function () {
+  async function getCurrentUser() {
+    try {
+      if (!token) {
+        throw new Error("No token found in localStorage");
+      }
+
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
+  }
+
+  const currentUser = await getCurrentUser();
   // Helper function to extract a query parameter
   function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
@@ -96,7 +127,7 @@ $(document).ready(function () {
     }
   });
 
-  const userID = localStorage.getItem("id");
+  const userID = currentUser.id;
   $.ajax({
     url: "http://localhost:3030/api/v1/users/getDetailUser/" + userID, // Endpoint to fetch user data
     method: "GET",

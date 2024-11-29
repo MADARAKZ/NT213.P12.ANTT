@@ -1,28 +1,22 @@
 const registerUser = (event) => {
   event.preventDefault(); // Ngăn chặn hành vi mặc định của nút submit
 
-  const name = $("#name").val();
-  const email = $("#email").val();
-  const password = $("#password").val();
-  const confirmPassword = $("#re-password").val();
-  const numberPhone = $("#numberPhone").val();
-  const type = localStorage.getItem("type") || "client";
+  const name = $("#name").val().trim();
+  const email = $("#email").val().trim();
+  const password = $("#password").val().trim();
+  const confirmpassword = $("#re-password").val().trim();
+  const numberPhone = $("#numberPhone").val().trim();
+
+  // Lấy `type` từ query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  var type = urlParams.get("type"); // Mặc định là "client" nếu không có `type`
+  if (type != "owner") {
+    type = "client";
+  }
   console.log(type);
 
   const confirmPasswordInput = $("#re-password");
   const confirmPasswordError = $("#re-password-error");
-
-  if (!name || !email || !password || !confirmPassword || !numberPhone) {
-    confirmPasswordInput.addClass("error");
-    confirmPasswordError.text("Vui lòng nhập đầy đủ thông tin");
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    confirmPasswordInput.addClass("error");
-    confirmPasswordError.text("Mật khẩu và xác nhận mật khẩu không khớp");
-    return;
-  }
 
   console.log("Sending registration request...");
 
@@ -35,16 +29,17 @@ const registerUser = (event) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, email, password, numberPhone, type }),
+    body: JSON.stringify({ name, email, password, confirmpassword, numberPhone, type }),
   })
-    .then((response) => {
+    .then(async (response) => {
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error("Email hoặc số điện thoại đã tồn tại trong hệ thống");
+        throw new Error(data.message || data.error || "Đã có lỗi xảy ra");
       }
-      return response.json();
+      return data;
     })
     .then((result) => {
-      localStorage.removeItem("type");
+      console.log("Đăng ký thành công:", result);
       console.log("Đăng ký:", result);
       // Chuyển hướng trang sau khi đăng ký thành công
       window.location.href = "http://localhost:3030/signin";

@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+const axios = require('axios');
 
 const register = async (req, res) => {
   const { name, email, password, numberPhone } = req.body;
@@ -23,25 +24,60 @@ const register = async (req, res) => {
   }
 };
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, 'g-recaptcha-response': recaptchaResponse } = req.body;
+  console.log("email", email);
   // b1 tìm user dựa trên email
   // b2 kiểm tra mật khẩu có đúng hay không
+  // xác minh capchat
+  const recaptchaVerifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+  const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY; // Add this to your .env file
+
+  const verifyResponse = await axios.post(recaptchaVerifyUrl, null, {
+    params: {
+      secret: recaptchaSecretKey,
+      response: recaptchaResponse
+    }
+  });
+
+  // If reCAPTCHA verification fails
+  if (!verifyResponse.data.success) {
+    return res.status(400).send({ message: 'reCAPTCHA verification failed' });
+  }
+
   const user = await User.findOne({
     where: {
       email,
     },
   });
   if (user) {
-    const token = jwt.sign(
-      { email: user.email, type: user.type },
-      "firewallbase64",
-      { expiresIn: 60 * 60 }
+    const accessToken = jwt.sign(
+      { userId: user.id, type: user.type },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
     );
+    const refreshToken = jwt.sign(
+      { userId: user.id, type: user.type },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
+
     const isAuthen = bcrypt.compareSync(password, user.password);
+ 
     if (isAuthen) {
-      res
-        .status(200)
-        .send({ message: "successful", token, type: user.type, id: user.id });
+      res.cookie("accessToken", accessToken, { httpOnly: true });
+      console.log("refreshToken", refreshToken);
+      res.status(200).send({
+        message: "successful",
+        type: user.type,
+        id: user.id,
+        token:refreshToken,
+        refreshToken : refreshToken,
+      });
     } else {
       res
         .status(500)

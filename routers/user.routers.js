@@ -1,9 +1,11 @@
 const { User } = require("../models");
 const passport = require("passport");
 const axios = require("axios");
+const jwt = require("jsonwebtoken");
 const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
+const ratelimit = require("express-rate-limit");
 
 // const { checkExist } = require("../middlewares/validations/checkExist");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
@@ -20,29 +22,39 @@ const {
   loginGG,
   // checkEmailExist,
   updatePassword,
+  getCurrentUser,
+  Logout,
 } = require("../controllers/user.controllers");
 const { checkExist } = require("../middlewares/validations/checkExist");
 const { authenticate } = require("../middlewares/authen/authenticate");
 const { authorize } = require("../middlewares/authen/authorize");
 
 const userRouter = express.Router();
+const limiter = ratelimit({
+  windowMs: 15*60*1000,
+  max: 10,
+  message: "Too many API request from this IP"
+}
+)
 
-userRouter.post("/register", register);
+userRouter.post("/register", limiter, register);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
-userRouter.post("/login", login);
-userRouter.post("/loginGG", loginGG);
+userRouter.post("/login", limiter, login);
+userRouter.post("/loginGG", limiter, loginGG);
+userRouter.post("/logout", limiter,Logout);
 userRouter.get("/getAllUser", getAllUser);
 userRouter.get("/getDetailUser/:id", getDetailUser);
 userRouter.get("/manageUsers", displayUser);
-userRouter.post("/updateImage/:id", uploadCloud.single("user"), updateImage);
+userRouter.post("/updateImage/:id", limiter, uploadCloud.single("user"), updateImage);
 
-userRouter.put("/editUser/:id", editUser);
-userRouter.put("/updatePassword", updatePassword);
+userRouter.put("/editUser/:id", limiter, editUser);
+userRouter.put("/updatePassword", limiter, updatePassword);
 
-userRouter.delete("/deleteUser/:id", deleteUser);
+userRouter.delete("/deleteUser/:id", limiter, deleteUser);
+userRouter.get("/getCurrentUser", limiter, getCurrentUser);
 require("dotenv").config();
 userRouter.use(
   session({
@@ -60,31 +72,108 @@ userRouter.get(
   })
 );
 
+// userRouter.get("/auth/google/callback", (req, res, next) => {
+//   passport.authenticate("google", (error, profile) => {
+//     let user = profile;
+//     console.log("profile", profile);
+//     fetch(`http://localhost:3030/api/v1/users/loginGG`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(user),
+//     })
+//       .then((response) => response.json())
+//       .then((data) => {
+//         let userData = {};
+//         console.log("API response:", data);
+//         userData = data;
+//         //req.session.data = userData;
+//         res.redirect(
+//           `http://localhost:3030/ff`
+//         );
+//       })
+//       .catch((err) => {
+//         console.error("Error calling API:", err);
+//         res.status(500).json({ error: "Failed to call login API" });
+//       });
+//   })(req, res, next);
+// });
+
 userRouter.get("/auth/google/callback", (req, res, next) => {
-  passport.authenticate("google", (error, profile) => {
-    let user = profile;
-    console.log("profile", profile);
-    fetch(`http://localhost:3030/api/v1/users/loginGG`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user.dataValues),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        let userData = {};
-        console.log("API response:", data);
-        userData = data;
-        req.session.data = userData;
-        res.redirect(
-          `http://localhost:3030/login-success?token=${data.token}&id=${data.id}&name=${data.name}&type=${data.type}`
-        );
-      })
-      .catch((err) => {
-        console.error("Error calling API:", err);
-        res.status(500).json({ error: "Failed to call login API" });
+  passport.authenticate("google", async (error, profile) => {
+    try {
+      if (error) {
+        return next(error);
+      }
+
+      if (!profile) {
+        return res.status(401).redirect('/login');
+      }
+     console.log("Profile",profile)
+      // Tạo JWT tokens
+      const accessToken = jwt.sign(
+        { 
+          userId: profile.id, 
+          name: profile.name,
+          type: profile.type 
+        },
+        process.env.ACCESS_TOKEN,
+        { expiresIn: "15m" }
+      );
+
+      const refreshToken = jwt.sign(
+        { 
+          userId: profile.id,
+          email: profile.email,
+        },
+        process.env.REFRESH_TOKEN,
+        { expiresIn: "7d" }
+      );
+
+      // Set cookies trực tiếp
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 phút
       });
+      // Gọi API login để lưu refresh token vào database
+      const response = await fetch(`http://localhost:3030/api/v1/users/loginGG`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: profile.email,
+          name: profile.name,
+          authGgId: profile.id,
+          refreshToken: refreshToken
+        }),
+      });
+
+      const data = await response.json();
+      console.log("API response:", data);
+
+      // Redirect sau khi xử lý thành công
+      res.redirect(`http://localhost:3030/`);
+
+    } catch (err) {
+      console.error("Authentication error:", err);
+      
+      // // Xóa cookies nếu có lỗi
+      // res.clearCookie("accessToken");
+      // res.clearCookie("refreshToken");
+
+      // Xử lý lỗi chi tiết
+      if (err.name === 'FetchError') {
+        return res.status(500).json({ error: "Failed to call login API" });
+      } else if (err instanceof TypeError) {
+        return res.status(400).json({ error: "Invalid data received" });
+      } else {
+        return res.status(500).json({ error: "Internal server error" });
+      }
+    }
   })(req, res, next);
 });
 

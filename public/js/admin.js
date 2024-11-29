@@ -37,7 +37,6 @@ $(document).ready(function () {
       },
     });
   }
-
   // Gọi hàm renderPage khi trang được tải
   renderPage();
 

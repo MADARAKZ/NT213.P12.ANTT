@@ -10,7 +10,7 @@ $(document).ready(function () {
   }
 
   $.ajax({
-    url: "http://localhost:3030/api/v1/hotels/" + hotelId,
+    url: "/api/v1/hotels/" + hotelId,
     method: "GET",
 
     success: function (data) {
@@ -184,7 +184,7 @@ $(document).ready(async function () {
   }
 
   function findHotelBySlug(slug) {
-    return fetch("http://localhost:3030/api/v1/hotels/")
+    return fetch("/api/v1/hotels/")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Lỗi khi gọi API");
@@ -234,7 +234,7 @@ $(document).ready(async function () {
   }
 
   function findHotelBySlug(slug) {
-    return fetch("http://localhost:3030/api/v1/hotels/")
+    return fetch("/api/v1/hotels/")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Lỗi khi gọi API");
@@ -259,7 +259,7 @@ $(document).ready(async function () {
   let arrayRoom = [];
 
   $.ajax({
-    url: "http://localhost:3030/api/v1/rooms?hotelId=" + hotelId,
+    url: "/api/v1/rooms?hotelId=" + hotelId,
     method: "GET",
 
     success: (data) => {
@@ -397,7 +397,7 @@ $(document).ready(async function () {
   });
   function loadReviews() {
     $.ajax({
-      url: "http://localhost:3030/api/v1/reviews?hotelId=" + hotelId,
+      url: "/api/v1/reviews?hotelId=" + hotelId,
       method: "GET",
       success: (data) => {
         if (!data) {
@@ -442,30 +442,53 @@ $(document).ready(async function () {
   // Tải danh sách đánh giá khi trang được tải
   loadReviews();
 
-  var guestId = localStorage.getItem("id");
-  guestId = parseInt(guestId, 10);
+  $(".send-review").show();
 
-  // Xử lý gửi biểu mẫu đánh giá
-  function fetchUserBookings(userId) {
-    $.ajax({
-      url: `http://localhost:3030/api/v1/booking?user_id=` + userId, // Đường dẫn tới API hoặc endpoint để lấy thông tin booking
-      type: "GET", // Loại yêu cầu là GET
-      contentType: "application/json",
-      success: function (data) {
-        data.forEach((booking) => {
-          if (arrayRoom.includes(booking.room_id)) {
-            $(".send-review").show();
-          }
-        });
-      },
-      error: function (xhr, status, error) {
-        // Xử lý lỗi khi yêu cầu không thành công
+  async function getCurrentUser() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found in localStorage");
+      }
 
-        console.error("Error fetching user bookings:", error);
-      },
-    });
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      // console.log("Current User:", currentUser); // Debugging statement
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
   }
-  fetchUserBookings(guestId);
+
+  async function getGuestId() {
+    try {
+      const currentUser = await getCurrentUser(); // Giả sử getCurrentUser() trả về đối tượng người dùng
+      if (currentUser && currentUser.id) {
+        return currentUser.id;
+      } else {
+        throw new Error("Failed to get guest ID");
+      }
+    } catch (error) {
+      console.error("Error fetching guest ID:", error.message);
+      throw error; // Ném lỗi ra ngoài để handle khi gọi hàm này
+    }
+  }
 
   document
     .querySelector("#reviewForm")
@@ -479,7 +502,8 @@ $(document).ready(async function () {
       var content = document.querySelector("textarea[name='content']").value;
       var hotelId = window.location.pathname.split("/").pop();
       hotelId = parseInt(hotelId, 10);
-      var guestId = localStorage.getItem("id");
+      var guestId = await getGuestId();
+      console.log("GuestId: ", guestId);
       guestId = parseInt(guestId, 10);
 
       if (!guestId || !hotelId || rating === undefined || !content) {
@@ -492,21 +516,21 @@ $(document).ready(async function () {
       const token = localStorage.getItem("token");
 
       var formData = new FormData();
-      formData.append("file", file);
+      if (fileInput) {
+        formData.append("file", file);
+      }
+
       formData.append("rating", rating);
       formData.append("description", content);
       formData.append("hotelId", hotelId);
       formData.append("guestId", guestId);
 
       try {
-        const response = await fetch(
-          "http://localhost:3030/api/v1/reviews/create",
-          {
-            method: "POST",
-            body: formData,
-            headers: { token },
-          }
-        );
+        const response = await fetch("/api/v1/reviews/create", {
+          method: "POST",
+          body: formData,
+          headers: { token },
+        });
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -587,7 +611,7 @@ $(document).ready(async function () {
   }
 
   function findHotelBySlug(slug) {
-    return fetch("http://localhost:3030/api/v1/hotels/")
+    return fetch("/api/v1/hotels/")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Lỗi khi gọi API");
@@ -607,7 +631,7 @@ $(document).ready(async function () {
   var hotel = await findHotelBySlug(slug);
   var hotelId = hotel.id;
   $.ajax({
-    url: "http://localhost:3030/api/v1/hotels/" + hotelId,
+    url: "/api/v1/hotels/" + hotelId,
     method: "GET",
 
     success: function (data) {
@@ -694,13 +718,13 @@ $(document).on("click", ".booking", function () {
     console.log(hotelData.checkInDate);
     //Send AJAX request to check availability
     $.ajax({
-      url: `http://localhost:3030/api/v1/booking/checkAvailability?checkInDate=${hotelData.checkInDate}&checkOutDate=${hotelData.checkOutDate}&roomId=${roomId}&quantity=${hotelData.numberOfRooms}`,
+      url: `/api/v1/booking/checkAvailability?checkInDate=${hotelData.checkInDate}&checkOutDate=${hotelData.checkOutDate}&roomId=${roomId}&quantity=${hotelData.numberOfRooms}`,
       type: "GET",
       success: (data) => {
         console.log(data);
         if (data) {
           // If available rooms exist, redirect to payment page
-          window.location.href = `http://localhost:3030/payment?hotelId=${hotelId}&roomId=${roomId}`;
+          window.location.href = `/payment?hotelId=${hotelId}&roomId=${roomId}`;
         } else {
           // If no available rooms, show a message
           alert("Không có phòng trống cho ngày đã chọn");
@@ -722,16 +746,12 @@ const findhotel = () => {
 
   // Gửi yêu cầu Axios tới API để tìm khách sạn với địa điểm đã nhập
   $.ajax({
-    url: `http://localhost:3030/api/v1/hotels?map=${encodeURIComponent(
-      location
-    )}`,
+    url: `/api/v1/hotels?map=${encodeURIComponent(location)}`,
     method: "GET",
     success: function (data) {
       // Cập nhật nội dung trang khách sạn
       localStorage.setItem("hotelData", JSON.stringify(data));
-      window.location.href = `http://localhost:3030/hotelList?map=${encodeURIComponent(
-        location
-      )}`;
+      window.location.href = `/hotelList?map=${encodeURIComponent(location)}`;
     },
   });
 };

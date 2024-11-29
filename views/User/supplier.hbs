@@ -289,14 +289,12 @@
     </footer>
 
     <script>
-      document.getElementById("register").addEventListener("click", function
-      (event) { event.preventDefault(); var href = this.getAttribute("href");
-      localStorage.setItem("type", "owner"); window.location.href =
-      "/register/"; });
-      document.getElementById("loggin").addEventListener("click", function
-      (event) { event.preventDefault(); var href = this.getAttribute("href");
-      localStorage.setItem("type", "owner"); window.location.href = "/signin/";
-      });
+      document.getElementById("register").addEventListener("click",
+      function(event) { event.preventDefault(); window.location.href =
+      "/register/?type=owner"; });
+      document.getElementById("loggin").addEventListener("click",
+      function(event) { event.preventDefault(); window.location.href =
+      "/signin/"; });
 
     </script>
 

@@ -4,11 +4,6 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessageModal = document.getElementById("errorMessageModal");
 
-var typpp = localStorage.getItem("type");
-if (typpp == "owner") {
-  $(".google-login-btn").hide();
-}
-
 let timeoutId = setTimeout(() => {
   localStorage.removeItem("type");
   console.log("Type removed from localStorage due to inactivity.");
@@ -22,10 +17,20 @@ form.addEventListener("submit", (e) => {
   const email = emailInput.value;
   const password = passwordInput.value;
 
+   // Lấy giá trị reCAPTCHA
+  const recaptchaResponse = grecaptcha.getResponse();
+  
+  // Kiểm tra xem captcha đã được điền chưa
+  if (recaptchaResponse.length === 0) {
+    errorMessageModal.textContent = "Vui lòng xác nhận reCAPTCHA";
+    return;
+  }
+
   // Tạo một object chứa dữ liệu đăng nhập
   const data = {
     email: email,
     password: password,
+    'g-recaptcha-response': recaptchaResponse   // gửi dữ liệu của mã capchat
   };
 
   // Gửi yêu cầu POST đến URL xử lý dữ liệu đăng nhập
@@ -35,15 +40,11 @@ form.addEventListener("submit", (e) => {
     contentType: "application/json",
     data: JSON.stringify(data),
     success: function (result) {
+      grecaptcha.reset(); //reset recapchat sau khi submit thành công
+
       if (result.message === "successful") {
-        const token = result.token; // Giả sử token được trả về là thuộc tính 'token' của đối tượng result
-        localStorage.setItem("token", token);
-        const name = result.name; //trả về undefined???
-        localStorage.setItem("userName", name);
-        const id = result.id; // Giả sử id được trả về là thuộc tính 'id' của đối tượng result
-        localStorage.setItem("id", id);
-        const type = result.type;
-        localStorage.setItem("type", type);
+        //console.log(result);
+        document.cookie = `accessToken=${result.accessToken}; HttpOnly`;
         if (result.type === "admin") {
           window.location.href = "/dashboard";
         } else if (result.type === "owner") {
@@ -56,17 +57,20 @@ form.addEventListener("submit", (e) => {
         errorMessageModal.textContent =
           "Email không tồn tại. Vui lòng kiểm tra lại.";
         $("#errorModal").modal("show"); // Hiển thị modal khi email không tồn tại
+        grecaptcha.reset();
       } else if (result.message === "incorrect_password") {
         errorMessageModal.textContent =
           "Mật khẩu không chính xác. Vui lòng thử lại.";
         $("#errorModal").modal("show"); // Hiển thị modal khi mật khẩu sai
+        grecaptcha.reset();
       } else {
         errorMessageModal.textContent =
           "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.";
         $("#errorModal").modal("show"); // Hiển thị modal khi đăng nhập thất bại
+        grecaptcha.reset();
       }
       // Xử lý kết quả trả về từ máy chủ
-      console.log(result);
+     //console.log(result);
     },
     error: function (xhr, status, error) {
       // Xử lý lỗi nếu có
@@ -74,6 +78,7 @@ form.addEventListener("submit", (e) => {
       errorMessageModal.textContent =
         "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.";
       $("#errorModal").modal("show"); // Hiển thị modal khi có lỗi xảy ra
+      grecaptcha.reset();
     },
   });
 });

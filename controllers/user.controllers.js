@@ -1,25 +1,69 @@
+const { prototype } = require("@sashido/teachablemachine-node");
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const { Op, where } = require("sequelize");
+require('dotenv').config();
 const register = async (req, res) => {
-  const { name, email, password, numberPhone, type } = req.body;
-
+  const { name, email, password, confirmpassword, numberPhone, type } = req.body;
   try {
+    // kiểm tra đã nhập đủ các trường thông tin hay chưa
+    if(!name || !email || !password || !confirmpassword || !numberPhone) {
+      return res
+          .status(400)
+          .json({message: "Vui lòng nhập đầy đủ các trường thông tin"});
+    }
+
+    // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp nhau không
+    if (password !== confirmpassword) {
+      return res
+          .status(400)
+          .json({message: "Mật khẩu và xác nhận mật khẩu không khớp"});
+    }
+
+    // Kiểm tra độ dài mật khẩu
+    if (password.length < 8) {
+      return res
+          .status(400)
+          .json({message: "Mật khẩu phải có ít nhất 8 ký tự"});
+    }
+
+    // Kiểm tra các yêu cầu về độ mạnh của mật khẩu
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    if (!passwordRegex.test(password)) {
+      return res
+          .status(400)
+          .json({
+            message: "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"
+          });
+    }
+
+    // Kiểm tra email hợp lệ
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res
+          .status(400)
+          .json({message: "Email không hợp lệ"});
+    }
+
+    // Kiểm tra số điện thoại hợp lệ (số điện thoại Việt Nam)
+    const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+    if (!phoneRegex.test(numberPhone)) {
+      return res
+          .status(400)
+          .json({message: "Số điện thoại không hợp lệ"});
+    }
+
     // Kiểm tra xem email hoặc số điện thoại đã tồn tại hay chưa
     const existingUser = await User.findOne({
       where: {
         [Op.or]: [{ email }, { numberPhone }],
       },
     });
-
     if (existingUser) {
-      // Nếu email hoặc số điện thoại đã tồn tại
       return res
         .status(400)
-        .json({ error: "Email or phone number already exists" });
+        .json({ error: "Email hoặc số điện thoại đã tồn tại" });
     }
 
     // Nếu không tồn tại, tiến hành tạo người dùng mới
@@ -32,7 +76,6 @@ const register = async (req, res) => {
       numberPhone,
       type,
     });
-
     return res.status(201).send(newUser);
   } catch (error) {
     console.error("Error registering user:", error);
@@ -40,45 +83,77 @@ const register = async (req, res) => {
   }
 };
 const loginGG = async (req, res) => {
-  const user = req.body;
+  try {
+    const { email, name, authGgId, refreshToken } = req.body;
+    console.log("<<check body>>>>", req.body);
+    
+    // Tìm hoặc tạo user
+    const user = await User.findOne({ where: { email } });
+    
+    console.log("check userrrrrrrrrrrrr",user)
+    // Nếu user đã tồn tại, update thông tin
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
+    console.log(created ? 'New user created' : 'User updated', user);
 
-  const token = jwt.sign(
-    { id: user.id, email: user.email, type: user.type },
-    "firewallbase64",
-    { expiresIn: 60 * 60 }
-  );
+    res.status(200).send({
+      message: "Login successful",
+      userId: user.id,
+      email: user.email,
+      name: user.name
+    });
 
-  res.status(200).send({
-    message: "successful",
-    token,
-    type: user.type,
-    id: user.id,
-    name: user.name,
-  });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).send({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
 };
+
 const login = async (req, res) => {
   const { email, password } = req.body;
-
   // B1: Tìm user dựa trên email
   const user = await User.findOne({ where: { email } });
-
   if (user) {
     // B2: Kiểm tra mật khẩu có đúng hay không
+    
     const isAuthen = bcrypt.compareSync(password, user.password);
-
     if (isAuthen) {
-      const token = jwt.sign(
-        { email: user.email, type: user.type },
-        "firewallbase64",
-        { expiresIn: 60 * 60 }
+      const accessToken = jwt.sign(
+        { userId: user.id, type: user.type },
+        process.env.ACCESS_TOKEN,
+        { expiresIn: "15m" }
       );
-
+      const refreshToken = jwt.sign(
+        { userId: user.id, type: user.type },
+        process.env.REFRESH_TOKEN,
+        { expiresIn: "7d" }
+      );
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 phút
+      });
+      console.log("refreshToken", refreshToken);
+      console.log("<<<<<check USER>>>>>>",user)
+      await user.update(
+        { token: refreshToken },
+        { where: { id: user.id } }
+      );
+  
       res.status(200).send({
         message: "successful",
-        token,
-        name: user.name,
-        type: user.type,
-        id: user.id,
+        // token,
+        // name: user.name,
+        // type: user.type,
+        // id: user.id,
+        // refreshToken: refreshToken,
+        // accessToken: accessToken,
       });
     } else {
       res
@@ -89,6 +164,54 @@ const login = async (req, res) => {
     res.status(404).send({ message: "khong co nguoi dung nay" });
   }
 };
+
+const getCurrentUser = async (req, res) => {
+  console.log("Headers:", req.headers); // In ra headers
+  console.log("Query Params:", req.query); // In ra query parameters
+  console.log("Body:", req.body); // In ra body của request
+  console.log("Cookies:", req.cookies); // In ra cookies, nếu có
+
+  const token = req.cookies.accessToken; // Lấy token từ cookie
+  //console.log("accessToken", token);
+
+  if (!token) {
+    console.log("fail");
+    return res.status(401).send("No token found in cookies"); // Không tìm thấy token
+  }
+
+  try {
+    console.log("ok")
+    // Giải mã token và lấy thông tin người dùng
+    const decode = jwt.verify(token, process.env.ACCESS_TOKEN); // Giải mã token
+    console.log("Decode:", decode);
+    const userId = decode.userId;
+
+    // Find the user in the database based on the userId
+    const currentUser = await User.findOne({ where: { id: userId } });
+
+    if (currentUser) {
+      // Exclude the password from the response
+      const { password,token, ...userWithoutPassword } = currentUser.toJSON();
+      res.status(200).send(userWithoutPassword); // Return user info without password
+    } else {
+      res.status(404).send("User not found"); // User not found
+    }
+  } catch (error) {
+    // Check for JWT specific errors
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).send("Invalid token"); // Invalid token
+    }
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).send("Token has expired"); // Expired token
+    }
+
+    // Handle other errors
+    console.error("Error decoding token:", error);
+    res.status(500).send("Internal server error"); // Server error
+  }
+};
+
+
 const getAllUser = async (req, res) => {
   const { name } = req.query;
   // console.log(data);
@@ -127,7 +250,17 @@ const editUser = async (req, res) => {
   console.log("10");
   try {
     const userId = req.params.id;
-    const { name, email, password, numberPhone, birthDate, gender, type, cccd, address } = req.body;
+    const {
+      name,
+      email,
+      password,
+      numberPhone,
+      birthDate,
+      gender,
+      type,
+      cccd,
+      address,
+    } = req.body;
     const detailUser = await User.findOne({
       where: {
         id: userId,
@@ -167,13 +300,13 @@ const updatePassword = async (req, res) => {
   try {
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // So sánh mật khẩu hiện tại với mật khẩu đã được băm trong cơ sở dữ liệu
     const isPasswordValid = bcrypt.compareSync(currentPassword, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid current password' });
+      return res.status(401).json({ error: "Invalid current password" });
     }
 
     // Băm mật khẩu mới
@@ -182,10 +315,10 @@ const updatePassword = async (req, res) => {
     // Cập nhật mật khẩu mới
     await user.update({ password: hashedNewPassword });
 
-    return res.status(200).json({ message: 'Password updated successfully' });
+    return res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
-    console.error('Error updating password:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating password:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -249,8 +382,51 @@ const getDetailUser = async (req, res) => {
     res.status(500).send(error);
   }
 };
+
+// Xử lí logout
+const Logout = async (req, res) => {
+  try {
+    // Lấy thông tin người dùng từ token
+    const token = req.cookies.accessToken;
+    
+    if (!token) {
+      return res.status(401).json({ message: "Không tìm thấy token" });
+    }
+
+    // Giải mã token để lấy userId
+    const decode = jwt.verify(token, process.env.ACCESS_TOKEN);
+    const userId = decode.userId;
+
+    // Tìm người dùng
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    // Xóa refresh token trong database
+    await user.update({ token: null });
+
+    // Xóa access token trong cookie
+    res.clearCookie('accessToken');
+
+    // Trả về phản hồi thành công
+    res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (error) {
+    console.error("Lỗi đăng xuất:", error);
+    
+    // Nếu là lỗi token hết hạn hoặc không hợp lệ
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token không hợp lệ" });
+    }
+
+    // Trả về lỗi server nếu có lỗi khác
+    res.status(500).json({ message: "Đã có lỗi xảy ra" });
+  }
+};
 module.exports = {
   register,
+  Logout,
   login,
   getAllUser,
   displayUser,
@@ -260,5 +436,6 @@ module.exports = {
   getDetailUser,
   // checkEmailExist,
   updatePassword,
-  loginGG
+  loginGG,
+  getCurrentUser,
 };

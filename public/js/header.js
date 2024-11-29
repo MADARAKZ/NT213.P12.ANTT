@@ -1,65 +1,119 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Kiểm tra giá trị của token
-  const token = getToken(); // Thay 'getToken()' bằng hàm lấy giá trị token của bạn
-  const userName = localStorage.getItem("userName");
+document.addEventListener("DOMContentLoaded", async () => {
+  // Lấy giá trị token từ localStorage
 
-  if (token) {
-    // Nếu token có giá trị khác null, thay đổi HTML của phần tử li
-    const signInSignUpLi = document.querySelector("#nav-login"); // Chọn phần tử li cần thay đổi
-    var href_val;
-    if (
-      localStorage.getItem("type") == "client" ||
-      localStorage.getItem("type") == "admin"
-    ) {
-      var href_val = "/userInfor";
-    } else if (localStorage.getItem("type") == "owner") {
-      var href_val = "/agentInfo";
+  // Hàm lấy thông tin người dùng hiện tại
+  async function getCurrentUser() {
+    try {
+      
+
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
     }
+  }
 
-    if (
-      localStorage.getItem("type") == "admin" ||
-      localStorage.getItem("type") == "owner"
-    )
-      document.getElementById("supplierTime").style.display = "none";
+  // Hàm gửi yêu cầu Logout
+  async function getLogout() {
+    try {
+      // Gửi yêu cầu đăng xuất tới backend
+      const response = await fetch("/api/v1/users/logout", {
+        method: "POST",
+        credentials: "include" // Quan trọng để gửi kèm cookie
+      });
+  
+      if (response.ok) {
+        // Nếu đăng xuất thành công ở backend
+        // Điều hướng về trang đăng nhập
+        window.location.href = "http://localhost:3030/signin";
+      } else {
+        // Xử lý lỗi nếu đăng xuất không thành công
+        const errorText = await response.text();
+        console.error("Logout failed:", errorText);
+        alert("Đăng xuất không thành công. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
+    }
+  }
 
-    const signIn = document.querySelector("#account");
-    signIn.innerHTML = `         <a href="/userInfor" class="btn-group1">  <i class="fa-regular fa-user"></i>
-  ${userName}</a>
 
-</button>`;
-    // HTML mới cho phần tử li nếu có token
-    signInSignUpLi.innerHTML = `
-            <div class="btn-group1">
-                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    data-bs-auto-close="false" aria-expanded="false" id="filte-dropdown">
-                    <i class="fa-regular fa-user"></i>
-                    ${userName}
-                </button>
-                <ul class="dropdown-menu" id="dropdownshown">
-                    <li><a class="dropdown-item2" href="${href_val}">Thông tin cá nhân</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li id="logout"><a class="dropdown-item" href="/">Đăng xuất</a></li>
-                </ul>
-            </div>
-        `;
+  const currennUser = await getCurrentUser();
 
-    document.getElementById("logout").addEventListener("click", function () {
-      // Xóa token khỏi local storage
-      localStorage.removeItem("token");
-      localStorage.removeItem("id");
-      localStorage.removeItem("userName");
+  // Kiểm tra token và cập nhật giao diện
+  if (currennUser) {
+    const userName = currennUser.name;
+    const userType = currennUser.type;
+    if (userName) {
+      // Nếu token hợp lệ và lấy được tên người dùng
 
-      // Thực hiện chuyển hướng về trang đăng nhập
-      window.location.href = "http://localhost:3030/signin";
-    });
+      const signInSignUpLi = document.querySelector("#nav-login");
+      let href_val = "";
+
+      // Xác định đường dẫn theo loại người dùng
+      if (userType === "client" || userType === "admin") {
+        href_val = "/userInfor";
+      } else if (userType === "owner") {
+        href_val = "/agentInfo";
+      }
+
+      // Ẩn phần tử nếu cần
+      if (userType === "admin" || userType === "owner") {
+        document.getElementById("supplierTime").style.display = "none";
+      }
+
+      // Cập nhật nội dung HTML cho phần tử #account
+      const signIn = document.querySelector("#account");
+      signIn.innerHTML = `
+        <a href="${href_val}" class="btn-group1">
+          <i class="fa-regular fa-user"></i> ${userName}
+        </a>
+      `;
+
+      // Cập nhật nội dung HTML cho phần tử li #nav-login
+      signInSignUpLi.innerHTML = `
+        <div class="btn-group1">
+          <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              data-bs-auto-close="false" aria-expanded="false" id="filte-dropdown">
+            <i class="fa-regular fa-user"></i> ${userName}
+          </button>
+          <ul class="dropdown-menu" id="dropdownshown">
+            <li><a class="dropdown-item2" href="${href_val}">Thông tin cá nhân</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li id="logout"><a class="dropdown-item" href="/">Đăng xuất</a></li>
+          </ul>
+        </div>
+      `;
+
+      // Thêm sự kiện cho nút "Đăng xuất"
+      document.getElementById("logout").addEventListener("click", async (event) => {
+        event.preventDefault();
+        // Xóa token và thông tin liên quan khỏi localStorage
+        await getLogout();
+      });
+    } else {
+      console.error("Failed to fetch userName or userName is null");
+    }
   }
 });
 
-// Hàm để lấy giá trị token, bạn cần thay đổi hàm này để phù hợp với cách lấy token của bạn
-function getToken() {
-  // Đoạn mã để lấy token từ localStorage hoặc sessionStorage hoặc bất kỳ cách lưu trữ nào
-  return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
-}
+// Hàm để lấy giá trị token, cần thay đổi hàm này để phù hợp với cách lấy token của bạn
 
 function toggleCollapse(btnNumber) {
   const buttons = document.querySelectorAll(".btn-outline-info");
@@ -107,50 +161,40 @@ toggleBtn.addEventListener("click", function () {
   }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const token = getToken(); // Lấy token
-
-  // Sự kiện click vào class toUserInfo
-  document.querySelector(".toUserInfo").addEventListener("click", function () {
-    // Kiểm tra nếu có token
-    if (token) {
-      if (
-        localStorage.getItem("type") == "client" ||
-        localStorage.getItem("type") == "admin"
-      ) {
-        // Di chuyển đến trang userInfor
-        window.location.href = "/userInfor";
-      } else if (localStorage.getItem("type") == "owner") {
-        // Di chuyển đến trang userInfor
-        window.location.href = "/agentInfo";
-      } else {
-        // Hiển thị thông báo yêu cầu đăng nhập
-        alert("Vui lòng đăng nhập để xem thông tin cá nhân.");
-        // Chuyển hướng đến trang login
-        window.location.href = "/signin";
-      }
+// Sự kiện click vào class toUserInfo
+document.querySelector(".toUserInfo").addEventListener("click", function () {
+  // Kiểm tra nếu có token
+  if (token) {
+    if (currentUser.type == "admin" || currentUser.type == "client") {
+      // Di chuyển đến trang userInfor
+      window.location.href = "/userInfor";
+    } else if (currentUser.type == "owner") {
+      // Di chuyển đến trang userInfor
+      window.location.href = "/agentInfo";
+    } else {
+      // Hiển thị thông báo yêu cầu đăng nhập
+      alert("Vui lòng đăng nhập để xem thông tin cá nhân.");
+      // Chuyển hướng đến trang login
+      window.location.href = "/signin";
     }
-  });
-  document.querySelector(".toUserInf").addEventListener("click", function () {
-    // Kiểm tra nếu có token
-    if (token) {
-      if (
-        localStorage.getItem("type") == "client" ||
-        localStorage.getItem("type") == "admin"
-      ) {
-        // Di chuyển đến trang userInfor
-        window.location.href = "/userInfor";
-      } else if (localStorage.getItem("type") == "owner") {
-        // Di chuyển đến trang userInfor
-        window.location.href = "/agentInfo";
-      } else {
-        // Hiển thị thông báo yêu cầu đăng nhập
-        alert("Vui lòng đăng nhập để xem thông tin cá nhân.");
-        // Chuyển hướng đến trang login
-        window.location.href = "/signin";
-      }
+  }
+});
+document.querySelector(".toUserInf").addEventListener("click", function () {
+  // Kiểm tra nếu có token
+  if (token) {
+    if (currentUser.type == "admin" || currentUser.type == "client") {
+      // Di chuyển đến trang userInfor
+      window.location.href = "/userInfor";
+    } else if (currentUser.type == "owner") {
+      // Di chuyển đến trang userInfor
+      window.location.href = "/agentInfo";
+    } else {
+      // Hiển thị thông báo yêu cầu đăng nhập
+      alert("Vui lòng đăng nhập để xem thông tin cá nhân.");
+      // Chuyển hướng đến trang login
+      window.location.href = "/signin";
     }
-  });
+  }
 });
 
 // Các hàm khác như getToken và toggleCollapse vẫn giữ nguyên

@@ -15,7 +15,6 @@ $(document).ready(function () {
     // Handle edit functionality here
     console.log("Edit image");
   });
-
   // Event listener for delete button
   $(document).on("click", "#deleteImageBtn", function () {
     // Handle delete functionality here

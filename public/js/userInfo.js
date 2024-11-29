@@ -1,224 +1,223 @@
-$(document).ready(function () {
-  function getToken() {
-    return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
-  }
-  function getUserId() {
-    return localStorage.getItem("id");
+$(document).ready(async function () {
+  async function getCurrentUser() {
+    try {
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
   }
 
-  const token = getToken();
-  const userId = getUserId(); // Lấy ownerId từ hàm getUserId() của bạn
-  if (token) {
-    console.log("Dang nhap thanh cong");
-  } else {
+  //const token = getToken();
+  const currentUser = await getCurrentUser();
+  console.log("<<<<DA NHAN DUOC FRONT END", currentUser);
+
+  /*if (!token) {
     alert("Vui lòng đăng nhập để xem thông tin người dùng!");
     window.location.href = "/signin";
-  }
-  if (localStorage.getItem("type") == "owner") {
+  }*/
+  if (currentUser.type == "owner") {
     alert("Bạn không có quyền xem trang này!");
     window.location.href = "/agentInfo";
   }
   const dashboard = document.querySelector(".dashboard");
   const mybooking = document.querySelector(".my-booking-item");
   // Các hàm khác như getToken và toggleCollapse vẫn giữ nguyên
-  if (localStorage.getItem("type") == "admin") {
+  if (currentUser.type == "admin") {
     dashboard.style.display = "block";
     mybooking.style.display = "none";
   }
 
   function renderPage() {
-    $.ajax({
-      url: "http://localhost:3030/api/v1/users/getAllUser",
-      method: "GET",
-      success: function (data) {
-        const user = data.find(function (h) {
-          return h.id == userId;
-        });
+    const user = currentUser;
 
-        if (user) {
-          var tableHtml = "";
-          tableHtml += '<div class="account-secure">';
-          tableHtml += "    <h2>Bảo mật tài khoản</h2>";
-          tableHtml += '    <div class="account">';
-          tableHtml += '        <div class="account-email ">';
-          tableHtml += '            <div class="email-info ">';
-          tableHtml += '                <div class="email-head">';
-          tableHtml +=
-            '                    <i class="fa-regular fa-envelope"></i>';
-          tableHtml += "                    <span>Email</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="email-acc">';
-          tableHtml += "                    <span>" + user.email + "</span>";
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
-          tableHtml += '        <div class="account-numberPhone ">';
-          tableHtml += '            <div class="numberPhone-info ">';
-          tableHtml += '                <div class="numberPhone-head">';
-          tableHtml += '                    <i class="fa fa-phone"></i>';
-          tableHtml += "                    <span>Số điện thoại</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="email-acc">';
-          tableHtml +=
-            "                    <span>" + user.numberPhone + "</span>";
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
-          tableHtml += '        <div class="account-pass" id="hienpass">';
-          tableHtml += '            <div class="pass-info">';
-          tableHtml += '                <div class="pass-head">';
-          tableHtml += '                    <i class="fa-solid fa-lock"></i>';
-          tableHtml += "                    <span>Password</span>";
-          tableHtml +=
-            '<button class= "update-pass-btn" value ="' +
-            user.id +
-            '">Cập nhật</button>';
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="pass-acc">';
-          tableHtml += "                    <span>" + "******" + "</span>";
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
-          tableHtml += "    </div>";
-          tableHtml += "</div>";
-          tableHtml += '<div class="profile">';
-          tableHtml += "    <h2>Thông tin cá nhân</h2>";
-          tableHtml += '    <div class="profile-detail ">';
-          tableHtml += '        <div class="profile1">';
-          tableHtml += '            <div class="name col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml += '                    <i class="fa-regular fa-user"></i>';
-          tableHtml += "                    <span>Tên</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          tableHtml += user.name;
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += '            <div class="name col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml +=
-            '                    <i class="fa-regular fa-calendar"></i>';
-          tableHtml += "                    <span>Ngày sinh</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          if (user.birthDate == null) tableHtml += user.birthDate;
-          else tableHtml += user.birthDate.slice(0, 10);
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
-          tableHtml += '        <div class="profile2">';
-          tableHtml += '            <div class="birth col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml += '                    <i class="fa fa-venus-mars"></i>';
-          tableHtml += "                    <span>Giới tính</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          if (user.gender) tableHtml += "Nam";
-          else tableHtml += "Nữ";
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += '            <div class="birth col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml += '                    <i class="fa-solid fa-users"></i>';
-          tableHtml += "                    <span>Loại người dùng</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          tableHtml += user.type;
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
+    if (user) {
+      var tableHtml = "";
+      tableHtml += '<div class="account-secure">';
+      tableHtml += "    <h2>Bảo mật tài khoản</h2>";
+      tableHtml += '    <div class="account">';
+      tableHtml += '        <div class="account-email ">';
+      tableHtml += '            <div class="email-info ">';
+      tableHtml += '                <div class="email-head">';
+      tableHtml += '                    <i class="fa-regular fa-envelope"></i>';
+      tableHtml += "                    <span>Email</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="email-acc">';
+      tableHtml += "                    <span>" + user.email + "</span>";
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
+      tableHtml += '        <div class="account-numberPhone ">';
+      tableHtml += '            <div class="numberPhone-info ">';
+      tableHtml += '                <div class="numberPhone-head">';
+      tableHtml += '                    <i class="fa fa-phone"></i>';
+      tableHtml += "                    <span>Số điện thoại</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="email-acc">';
+      tableHtml += "                    <span>" + user.numberPhone + "</span>";
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
+      tableHtml += '        <div class="account-pass" id="hienpass">';
+      tableHtml += '            <div class="pass-info">';
+      tableHtml += '                <div class="pass-head">';
+      tableHtml += '                    <i class="fa-solid fa-lock"></i>';
+      tableHtml += "                    <span>Password</span>";
+      tableHtml +=
+        '<button class= "update-pass-btn" value ="' +
+        user.id +
+        '">Cập nhật</button>';
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="pass-acc">';
+      tableHtml += "                    <span>" + "******" + "</span>";
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
+      tableHtml += "    </div>";
+      tableHtml += "</div>";
+      tableHtml += '<div class="profile">';
+      tableHtml += "    <h2>Thông tin cá nhân</h2>";
+      tableHtml += '    <div class="profile-detail ">';
+      tableHtml += '        <div class="profile1">';
+      tableHtml += '            <div class="name col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa-regular fa-user"></i>';
+      tableHtml += "                    <span>Tên</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      tableHtml += user.name;
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += '            <div class="name col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa-regular fa-calendar"></i>';
+      tableHtml += "                    <span>Ngày sinh</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      if (user.birthDate == null) tableHtml += user.birthDate;
+      else tableHtml += user.birthDate.slice(0, 10);
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
+      tableHtml += '        <div class="profile2">';
+      tableHtml += '            <div class="birth col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa fa-venus-mars"></i>';
+      tableHtml += "                    <span>Giới tính</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      if (user.gender) tableHtml += "Nam";
+      else tableHtml += "Nữ";
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += '            <div class="birth col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa-solid fa-users"></i>';
+      tableHtml += "                    <span>Loại người dùng</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      tableHtml += user.type;
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
 
-          tableHtml += '        <div class="profile2">';
-          tableHtml += '            <div class="birth col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml +=
-            '                    <i class="fa-solid fa-id-card"></i>';
-          tableHtml += "                    <span>CCCD</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          tableHtml += user.cccd;
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += '            <div class="birth col-6">';
-          tableHtml += '                <div class="title-name">';
-          tableHtml += '                    <i class="fa-solid fa-map"></i>';
-          tableHtml += "                    <span>Địa chỉ</span>";
-          tableHtml += "                </div>";
-          tableHtml += '                <div class="user-name">';
-          tableHtml += user.address;
-          tableHtml += "                </div>";
-          tableHtml += "            </div>";
-          tableHtml += "        </div>";
+      tableHtml += '        <div class="profile2">';
+      tableHtml += '            <div class="birth col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa-solid fa-id-card"></i>';
+      tableHtml += "                    <span>CCCD</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      tableHtml += user.cccd;
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += '            <div class="birth col-6">';
+      tableHtml += '                <div class="title-name">';
+      tableHtml += '                    <i class="fa-solid fa-map"></i>';
+      tableHtml += "                    <span>Địa chỉ</span>";
+      tableHtml += "                </div>";
+      tableHtml += '                <div class="user-name">';
+      tableHtml += user.address;
+      tableHtml += "                </div>";
+      tableHtml += "            </div>";
+      tableHtml += "        </div>";
 
-          tableHtml +=
-            '<button class= "updateInfo" value ="' +
-            user.id +
-            '">Chỉnh sửa thông tin</button>';
-          tableHtml += "    </div>";
-          tableHtml += "</div>";
-          $(".body_right .user-info").html(tableHtml);
-          var tableHtml1 = "";
-          tableHtml1 += '<div class="avatar-container">';
-          tableHtml1 +=
-            '<img src="' + user.url + '" alt="Avatar" class="avatar">';
-          tableHtml1 +=
-            ' <button id="updateAvatarButton" class="edit-button">✎</button>';
-          tableHtml1 += "</div>";
-          tableHtml1 +=
-            '<input type="file" name="user" id="avatarInput" accept="image/*" style="display: none;">';
-          tableHtml1 +=
-            '<button id="confirmAvatarButton" style="display: none;">Confirm</button>';
-          $(".member").html(tableHtml1);
-          console.log("Đang render page");
-          $("#updateAvatarButton").on("click", function () {
-            // Trigger the file input when the edit button is clicked
-            $("#avatarInput").click();
-          });
-          if (user.authType == "google") {
-            $("#hienpass").hide();
-          }
-          // Event listener for the confirmAvatarButton
-          $("#avatarInput").on("change", function (e) {
-            var file = e.target.files[0]; // Lấy file ảnh được chọn
-            console.log(file);
-            if (file) {
-              var formData = new FormData();
-              console.log(file);
+      tableHtml +=
+        '<button class= "updateInfo" value ="' +
+        user.id +
+        '">Chỉnh sửa thông tin</button>';
+      tableHtml += "    </div>";
+      tableHtml += "</div>";
+      $(".body_right .user-info").html(tableHtml);
+      var tableHtml1 = "";
+      tableHtml1 += '<div class="avatar-container">';
+      tableHtml1 += '<img src="' + user.url + '" alt="Avatar" class="avatar">';
+      tableHtml1 +=
+        ' <button id="updateAvatarButton" class="edit-button">✎</button>';
+      tableHtml1 += "</div>";
+      tableHtml1 +=
+        '<input type="file" name="user" id="avatarInput" accept="image/*" style="display: none;">';
+      tableHtml1 +=
+        '<button id="confirmAvatarButton" style="display: none;">Confirm</button>';
+      $(".member").html(tableHtml1);
+      console.log("Đang render page");
+      $("#updateAvatarButton").on("click", function () {
+        // Trigger the file input when the edit button is clicked
+        $("#avatarInput").click();
+      });
+      if (user.authType == "google") {
+        $("#hienpass").hide();
+      }
+      // Event listener for the confirmAvatarButton
+      $("#avatarInput").on("change", function (e) {
+        var file = e.target.files[0]; // Lấy file ảnh được chọn
+        console.log(file);
+        if (file) {
+          var formData = new FormData();
+          console.log(file);
 
-              formData.append("user", file);
-              console.log(file);
+          formData.append("user", file);
+          console.log(file);
 
-              console.log(formData, "đ có form");
-              // Gửi ajax request lên server
-              $.ajax({
-                url:
-                  "http://localhost:3030/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                  console.log("Upload thành công:", response);
-                  // Cập nhật ảnh mới vào avatar
-                  $(".avatar").attr("src", URL.createObjectURL(file));
-                },
-                error: function (xhr, status, error) {
-                  console.error("Lỗi khi upload ảnh:", error);
-                },
-              });
-            } else {
-              console.error("Không có file nào được chọn.");
-            }
+          console.log(formData, "đ có form");
+          // Gửi ajax request lên server
+          $.ajax({
+            url: "http://localhost:3030/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              console.log("Upload thành công:", response);
+              // Cập nhật ảnh mới vào avatar
+              $(".avatar").attr("src", URL.createObjectURL(file));
+            },
+            error: function (xhr, status, error) {
+              console.error("Lỗi khi upload ảnh:", error);
+            },
           });
         } else {
-          console.log("Không tìm thấy khách sạn có id là 4");
+          console.error("Không có file nào được chọn.");
         }
-      },
-      error: function (xhr, status, error) {
-        console.error(error);
-        console.log("Lỗi khi render page agent");
-      },
-    });
+      });
+    } else {
+      console.log("Không tìm thấy khách sạn có id là 4");
+    }
   } // end of renderPage()
 
   renderPage();
@@ -243,7 +242,7 @@ $(document).ready(function () {
   //Render boooking lisst off usser
   function renderBookingList() {
     $.ajax({
-      url: `http://localhost:3030/api/v1/booking?user_id=${userId}`,
+      url: `http://localhost:3030/api/v1/booking?user_id=${currentUser.id}`,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -456,7 +455,7 @@ $(document).ready(function () {
           success: function (data) {
             isUpdatePasswordSuccess = true;
             renderPage();
-            console.log("Cập nhật mật khẩu thành công");
+            alert("Cập nhật mật khẩu thành công");
           },
           error: function (error) {
             isUpdatePasswordSuccess = false;
