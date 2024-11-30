@@ -137,7 +137,7 @@ app.get("/dashboard", authenticateToken, requireAdmin, (req, res) => {
   res.render("Admin/dashboard");
 });
 
-app.get("/agentInfo", (req, res) => {
+app.get("/agentInfo", authenticateToken, (req, res) => {
   res.render("User/agentInfo");
 });
 app.get("/ManageRoom/:id", authenticateToken, requireAdmin, (req, res) => {
