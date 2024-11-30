@@ -9,6 +9,7 @@ var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
+const helmet = require("helmet")
 const {
   csrfProtection,
   parseForm,
@@ -20,7 +21,6 @@ const { User } = require("./models/User");
 const { access } = require("fs");
 var ls = require("local-storage");
 
-var logger = require("./utils/logger");
 
 const {
   authenticateToken,
@@ -41,11 +41,6 @@ app.use(
     credentials: true, // Đảm bảo gửi và nhận cookies
   })
 );
-app.use((req, res, next) => {
-  logger.info(`Request: ${req.method} ${req.url}`);
-  next();
-});
-
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -66,6 +61,78 @@ app.use(
     },
   })
 );
+
+// use helmet
+app.use(helmet());
+// Cấu hình Helmet CSP (Content Security Policy)
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"], // Allow resources only from the same origin (self)
+      
+      scriptSrc: [
+        "'self'",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net",
+        "https://apis.google.com",
+        "https://ajax.googleapis.com",
+        "https://code.jquery.com/",
+        "https://sandbox.vnpayment.vn",
+        "https://teachablemachine.withgoogle.com",
+        "https://embed.pickaxeproject.com" // Allow scripts from Google APIs
+      ],
+      scriptSrcAttr: ["'self'", "https://www.bing.com",
+      ], // Allow inline event handlers
+      styleSrc: [
+        "'self'", // Allow styles from the same origin
+        "https://cdnjs.cloudflare.com", // Font Awesome, Bootstrap from CDN
+        "https://fonts.googleapis.com", // Google Fonts from CDN
+        "https://fonts.gstatic.com", // Google Fonts static resources
+        "https://cdn.jsdelivr.net", // Bootstrap styles
+        "https://netdna.bootstrapcdn.com", // Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
+      ],
+
+      imgSrc: [
+        "'self'", // Allow images from the same origin
+        "https://res.cloudinary.com",
+        "https://th.bing.com",
+        "https://www.bing.com",
+        "https://phongreviews.com", // Cloudinary for images
+        "data:", // Allow data URIs (used for inline images or icons)
+      ],
+
+      fontSrc: [
+        "'self'", // Allow fonts from the same origin
+        "https://cdnjs.cloudflare.com", // Font Awesome
+        "https://fonts.googleapis.com", // Google Fonts stylesheets
+        "https://fonts.gstatic.com", // Google Fonts static resources
+        "https://netdna.bootstrapcdn.com", // Bootstrap fonts
+        
+      ],
+
+      connectSrc: [
+        "'self'", // Allow connections (e.g., API calls) from the same origin
+        "https://example.com",
+        "https://sandbox.vnpayment.vn",
+        "https://teachablemachine.withgoogle.com" // Replace with your specific API endpoint if needed
+      ],
+
+      objectSrc: ["'none'"], // Disallow all object, embed, or plugin-based resources for security
+
+      frameSrc: [
+        "'self'", // Allow frames from the same origin (if embedding is required)
+        "https://www.google.com", 
+        "https://www.bing.com",
+        "https://teachablemachine.withgoogle.com",
+        "https://embed.pickaxeproject.com"// Example: embedding Google Maps
+      ],
+
+      upgradeInsecureRequests: [], // Optionally enforce all requests to be over HTTPS (optional)
+    },
+  })
+);
+
+
 app.get("/image/classify", async (req, res) => {
   const { url } = req.query;
 
