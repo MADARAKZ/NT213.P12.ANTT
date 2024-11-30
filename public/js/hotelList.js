@@ -11,10 +11,18 @@ function clearSelection() {
   });
 }
 
-function redirectToMap(hotelName) {
-  window.location.href =
-    "https://www.bing.com/maps?q=" + encodeURIComponent(hotelName);
-}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Make sure the button exists before adding the event listener
+  const button = document.getElementById('btnlo');
+  if (button) {
+    button.addEventListener('click', function () {
+      // Get the hotel name (you can replace this with dynamic data if needed)
+      const hotelName = 'Hotel XYZ';  // Replace this with actual dynamic value
+      redirectToMap(hotelName);
+    });
+  }
+});
 // Function to update the displayed price value
 
 // Function to format currency for display
@@ -65,6 +73,10 @@ function numberWithCommas(x) {
 }
 
 $(document).ready(() => {
+  function redirectToMap(hotelName) {
+    window.location.href =
+      "https://www.bing.com/maps?q=" + encodeURIComponent(hotelName);
+  }
   function ChangeToSlug(title) {
     var slug;
     slug = title.toLowerCase();
@@ -167,7 +179,7 @@ $(document).ready(() => {
                     <p>${description}</p>
                     <p>
                       <i class="fa-solid fa-location-dot"></i>${item.map}
-                      <span><button id="btnlo" class="btn" data-bs-toggle="modal" onclick="redirectToMap('${item.name}' )" >Xem bản đồ</button></span>
+                      <span><button id="btnlo" class="btn" data-hotel-name="${item.name}">Xem bản đồ</button></span>
                     </p>
                   </div>
                 </div>
@@ -192,6 +204,11 @@ $(document).ready(() => {
         </div>
       `;
       container.insertAdjacentHTML("beforeend", card);
+    });
+    $(document).on('click', '#btnlo', function () {
+      const hotelName = $(this).data('hotel-name');
+      console.log('Hotel Name:', hotelName);
+      redirectToMap(hotelName);
     });
 
     let thisPage = 1;
