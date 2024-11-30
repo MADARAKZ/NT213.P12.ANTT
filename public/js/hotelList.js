@@ -276,7 +276,7 @@ $(document).ready(() => {
 
       paginationElement.style.display = list.length > limit ? "block" : "none";
     }
-
+    
     window.changePage = function (i) {
       thisPage = i;
       loadItem();
@@ -573,16 +573,48 @@ function showMoreFunc(elementID) {
   }
 }
 
-// Gọi hàm sendSelectedFacilities khi muốn gửi các giá trị đã chọn qua API
+document.addEventListener('DOMContentLoaded', function() {
+  // Lấy tất cả các item trong dropdown
+  const dropdownItems = document.querySelectorAll('.dropdown-item');
+  
+  // Lặp qua tất cả các item và thêm sự kiện click
+  dropdownItems.forEach(item => {
+    item.addEventListener('click', function(event) {
+      // Lấy giá trị text của mục đã chọn
+      const sortType = event.target.textContent.trim();
+      
+      // Gọi hàm changeSort và truyền giá trị của mục đã chọn
+      changeSort(sortType);
+    });
+  });
+  // Lấy tất cả các nút "Xem thêm"
+  const showMoreButtons = document.querySelectorAll('.change-color');
+  
+  // Lặp qua tất cả các nút "Xem thêm" và thêm sự kiện click
+  showMoreButtons.forEach(button => {
+    button.addEventListener('click', function(event) {
+      const buttonId = event.target.id;
+      // Gọi hàm showMoreFunc với ID của nút
+      showMoreFunc(buttonId);
+    });
+  });
+});
+
 function changeSort(sortType) {
-  // Lấy phần tử button dropdown để thay đổi nội dung
+  // Lấy phần tử button dropdown
   const dropdownButton = document.getElementById("filter-dropdown");
 
-  // Thay đổi nội dung của button dropdown
+  // Thay đổi nội dung của nút dropdown thành cụm người dùng chọn
   dropdownButton.innerHTML = `<i class="fa-solid fa-sort"></i> Sắp xếp theo: ${sortType}`;
 
-  // Đóng dropdown sau khi người dùng chọn
-  const dropdownMenu = document.querySelector(".dropdown-menu");
-  const bsDropdown = new bootstrap.Dropdown(dropdownButton); // Sử dụng Bootstrap để tạo dropdown
-  bsDropdown.hide(); // Đóng dropdown
+  // Đóng dropdown menu sau khi chọn
+  const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownButton);
+  if (dropdownInstance) {
+    dropdownInstance.hide();
+  }
+
+  // Gửi yêu cầu hoặc thực hiện hành động với `sortType`
+  console.log("Người dùng đã chọn sắp xếp:", sortType);
 }
+
+

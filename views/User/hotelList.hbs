@@ -430,30 +430,21 @@
                 </button>
 
               </div>
-              <div class="text_filter">
-                <div class="btn-group">
-                  <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    data-bs-auto-close="false" aria-expanded="false" id="filter-dropdown">
-                    <i class="fa-solid fa-sort"></i>
-                    Sắp xếp theo: Đề xuất
-                  </button>
-                  <ul class="dropdown-menu" id="dropdowshown">
-                    <li><a class="dropdown-item"  data-value="asc_price"
-                        onclick="changeSort('Giá tăng dần')">Giá tăng dần</a></li>
-                    <li><a class="dropdown-item"  data-value="desc_rating"
-                        onclick="changeSort('Xếp hạng sao')">Xếp hạng sao (từ cao đến thấp)</a></li>
-                    <li><a class="dropdown-item"  data-value="desc_feedback"
-                        onclick="changeSort('Đánh giá hàng đầu')">Đánh giá hàng đầu</a></li>
-                    <li>
-                      <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item"  data-value="desc_price"
-                        onclick="changeSort('Giá giảm dần')">Giá giảm dần</a></li>
-                  </ul>
-
-
-                </div>
-              </div>
+          <div class="text_filter">
+  <div class="btn-group">
+    <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+      aria-expanded="false" id="filter-dropdown">
+      <i class="fa-solid fa-sort"></i> Sắp xếp theo: Đề xuất
+    </button>
+    <ul class="dropdown-menu" id="dropdowshown">
+      <li><a class="dropdown-item" data-value="asc_price" onclick="changeSort('Giá tăng dần')">Giá tăng dần</a></li>
+      <li><a class="dropdown-item" data-value="desc_rating" onclick="changeSort('Xếp hạng sao')">Xếp hạng sao (từ cao đến thấp)</a></li>
+      <li><a class="dropdown-item" data-value="desc_feedback" onclick="changeSort('Đánh giá hàng đầu')">Đánh giá hàng đầu</a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" data-value="desc_price" onclick="changeSort('Giá giảm dần')">Giá giảm dần</a></li>
+    </ul>
+  </div>
+</div>
 
             </div>
           </div>
@@ -482,7 +473,6 @@
 
 
   {{>backToTop}}
-
   <!-- thu vien ho tro -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
     integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
