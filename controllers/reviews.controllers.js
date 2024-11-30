@@ -1,52 +1,70 @@
+const { body, validationResult } = require("express-validator");
 const { Reviews, Hotels, User } = require("../models");
 const { sanitizeObject } = require("../middlewares/validations/sanitize");
-const createReview = async (req, res) => {
-  try {
-    // Sanitize input data
-    sanitizeObject(req.body, ["description"]);
-    const { rating, description, hotelId, guestId } = req.body;
 
-    // Validate required fields
-    if (!guestId || !hotelId || rating === undefined || !description) {
-      return res.status(400).json({ error: "Invalid input data" });
+// Hàm tạo review với xác thực đầu vào
+const createReview = [
+  // Xác thực các trường đầu vào
+  body("rating")
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Rating phải từ 1 đến 5"),
+  body("description")
+    .isLength({ min: 5 })
+    .withMessage("Description phải ít nhất 5 ký tự"),
+  body("hotelId").isInt().withMessage("HotelId phải là một số hợp lệ"),
+  body("guestId").isInt().withMessage("GuestId phải là một số hợp lệ"),
+
+  // Hàm xử lý tạo review
+  async (req, res) => {
+    // Kiểm tra các lỗi xác thực
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    let newReviewData = {
-      rating,
-      description,
-      hotelId,
-      guestId,
-    };
+    try {
+      // Sanitize input data
+      sanitizeObject(req.body, ["description"]);
+      const { rating, description, hotelId, guestId } = req.body;
 
-    const { file } = req;
+      let newReviewData = {
+        rating,
+        description,
+        hotelId,
+        guestId,
+      };
 
-    if (file) {
-      // Kiểm tra loại file MIME để đảm bảo chỉ nhận ảnh
-      const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        return res
-          .status(400)
-          .json({ error: "Invalid file type. Only images are allowed." });
+      const { file } = req;
+
+      if (file) {
+        // Kiểm tra loại file MIME để đảm bảo chỉ nhận ảnh
+        const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return res
+            .status(400)
+            .json({ error: "Invalid file type. Only images are allowed." });
+        }
+
+        // Lưu đường dẫn file ảnh
+        const imagePath = file.path;
+        newReviewData.file = imagePath;
       }
 
-      // Lưu đường dẫn file ảnh
-      const imagePath = file.path;
-      newReviewData.file = imagePath;
+      // Tạo review mới
+      const newReview = await Reviews.create(newReviewData);
+      console.log(newReviewData);
+
+      res.status(201).send(newReview);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res
+        .status(500)
+        .send({ error: "An error occurred while creating the review." });
     }
+  },
+];
 
-    // Tạo review mới
-    const newReview = await Reviews.create(newReviewData);
-    console.log(newReviewData);
-
-    res.status(201).send(newReview);
-  } catch (error) {
-    console.error("Error creating review:", error);
-    res
-      .status(500)
-      .send({ error: "An error occurred while creating the review." });
-  }
-};
-
+// Hàm lấy tất cả review
 const getAllReview = async (req, res) => {
   const { hotelId } = req.query;
 
@@ -89,6 +107,7 @@ const getAllReview = async (req, res) => {
   }
 };
 
+// Các controller khác vẫn như cũ
 const getFullReview = async (req, res) => {
   try {
     const hotelList = await Reviews.findAll();
@@ -97,6 +116,7 @@ const getFullReview = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 const getDetailReview = async (req, res) => {
   const { id } = req.params;
   try {
@@ -110,6 +130,7 @@ const getDetailReview = async (req, res) => {
     res.status(500).send(error);
   }
 };
+
 const updateReview = async (req, res) => {
   const { id } = req.params;
   const { name, status, price, quantity, quantity_people, type_bed } = req.body;
@@ -129,6 +150,7 @@ const updateReview = async (req, res) => {
     res.status(500).send(error);
   }
 };
+
 const deleteReview = async (req, res) => {
   const { id } = req.params;
   try {

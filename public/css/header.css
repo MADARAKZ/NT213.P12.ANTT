@@ -298,3 +298,7 @@ strong {
   border: 0;
   border-radius: var(--bs-dropdown-item-border-radius, 0);
 }
+
+h1{
+  color: white; 
+}

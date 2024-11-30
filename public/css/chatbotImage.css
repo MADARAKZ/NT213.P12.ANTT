@@ -199,3 +199,12 @@ header h2 {
     display: block;
   }
 }
+
+#chatlo{
+  max-width: 200px;
+}
+
+
+.fa-solid fa-camera{
+  color: white;
+}

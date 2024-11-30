@@ -16,7 +16,9 @@ function clearSelection() {
 function formatCurrency(amount) {
   return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+const tokencsrf = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute("content");
 document.addEventListener("DOMContentLoaded", function () {
   const priceRange1 = document.getElementById("price_range1");
   const valueElement1 = document.getElementById("value1");
@@ -160,7 +162,7 @@ $(document).ready(() => {
                     <p>${description}</p>
                     <p>
                       <i class="fa-solid fa-location-dot"></i>${item.map}
-                      <span><button class="btn" data-bs-toggle="modal" onclick="redirectToMap('${item.name}' )" style="color: blue">Xem bản đồ</button></span>
+                      <span><button id="btnlo" class="btn" data-bs-toggle="modal" onclick="redirectToMap('${item.name}' )" >Xem bản đồ</button></span>
                     </p>
                   </div>
                 </div>
@@ -312,7 +314,7 @@ $(document).ready(() => {
       type: "POST",
       credentials: "include",
       headers: {
-      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+        "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
       },
       data: JSON.stringify(filters),
       contentType: "application/json",
@@ -420,7 +422,7 @@ $(document).ready(() => {
       type: "POST",
       credentials: "include",
       headers: {
-      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+        "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
       },
       data: JSON.stringify(filters),
       contentType: "application/json",
@@ -523,7 +525,7 @@ $(document).ready(() => {
       type: "POST",
       credentials: "include",
       headers: {
-      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+        "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
       },
       data: JSON.stringify(filters),
       contentType: "application/json",

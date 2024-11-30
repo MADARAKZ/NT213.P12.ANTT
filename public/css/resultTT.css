@@ -172,3 +172,34 @@ button:hover {
 .bank-item input[type="radio"] {
   margin-right: 10px; /* Khoảng cách giữa radio button và label */
 }
+
+.Yorder{
+  height: 550px;
+}
+
+#hhh{
+  padding-left: 25px
+}
+#checkOut{
+  color: #262626;
+}
+
+#doi{
+  border: 0; padding-bottom: 10
+}
+
+#fullName{
+  padding-left: 40px;
+}
+
+#nochiu{
+  border: 0; padding-top: 10; padding-bottom:10px
+}
+
+#suy{
+  padding-top: 0; padding-bottom: 25px
+}
+
+#ccc{
+  border: 0;
+}

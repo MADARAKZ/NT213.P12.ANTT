@@ -1121,6 +1121,14 @@ express-session@^1.18.0:
     safe-buffer "5.2.1"
     uid-safe "~2.1.5"
 
+express-validator@^7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/express-validator/-/express-validator-7.2.0.tgz#f6077758732d52e2365bb983b1abaca51bbefba6"
+  integrity sha512-I2ByKD8panjtr8Y05l21Wph9xk7kk64UMyvJCl/fFM/3CTJq8isXYPLeKW/aZBCdb/LYNv63PwhY8khw8VWocA==
+  dependencies:
+    lodash "^4.17.21"
+    validator "~13.12.0"
+
 express@^4.21.1:
   version "4.21.1"
   resolved "https://registry.npmjs.org/express/-/express-4.21.1.tgz"
@@ -2379,9 +2387,9 @@ sequelize-pool@^7.1.0:
   resolved "https://registry.npmjs.org/sequelize-pool/-/sequelize-pool-7.1.0.tgz"
   integrity sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==
 
-sequelize@^6.37.4:
+sequelize@^6.37.5:
   version "6.37.5"
-  resolved "https://registry.npmjs.org/sequelize/-/sequelize-6.37.5.tgz"
+  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-6.37.5.tgz#2711ab97d0e0fe49c652368946a7312eb0f11cd7"
   integrity sha512-10WA4poUb3XWnUROThqL2Apq9C2NhyV1xHPMZuybNMCucDsbbFuKg51jhmyvvAUyUqCiimwTZamc3AHhMoBr2Q==
   dependencies:
     "@types/debug" "^4.1.8"
@@ -2813,6 +2821,11 @@ validator@^13.9.0:
   resolved "https://registry.npmjs.org/validator/-/validator-13.11.0.tgz"
   integrity sha512-Ii+sehpSfZy+At5nPdnyMhx78fEoPDkR2XW/zimHEL3MyGJQOCQ7WeP20jPYRz7ZCpcKLB21NxuXHF3bxjStBQ==
 
+validator@~13.12.0:
+  version "13.12.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-13.12.0.tgz#7d78e76ba85504da3fee4fd1922b385914d4b35f"
+  integrity sha512-c1Q0mCiPlgdTVVVIJIrBuxNicYE+t/7oKeI9MWLj3fh/uq2Pxh/3eeWbVZ4OcGW1TUf53At0njHw5SMdA3tmMg==
+
 vary@^1, vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
@@ -2839,6 +2852,8 @@ vary@^1, vary@~1.1.2:
     expressjs "^1.0.1"
     faker "^5.5.3"
     hbs "^4.2.0"
+    helmet "^8.0.0"
+    helmet-csp "^4.0.0"
     jsonwebtoken "^9.0.2"
     local-storage "^2.0.0"
     mkdirp "^3.0.1"
@@ -2852,10 +2867,10 @@ vary@^1, vary@~1.1.2:
     passport-google-oauth20 "^2.0.0"
     qs "^6.12.1"
     sanitize-html "^2.13.1"
-    sequelize "^6.37.4"
+    sequelize "^6.37.5"
     sharp "^0.33.3"
     store "^2.0.12"
-    vexere "file:C:/Users/Admin/AppData/Local/Yarn/Cache/v6/npm-vexere-1.0.0-d0f9b1b8-b047-47a8-834b-42b0d49e67a4-1732952916327/node_modules/vexere"
+    vexere "file:C:/Users/Seipieh/AppData/Local/Yarn/Cache/v6/npm-vexere-1.0.0-310aff4b-3149-4c59-af6e-8648bc9f6ca7-1732966395777/node_modules/vexere"
     vue "^3.4.26"
     winston "^3.17.0"
 

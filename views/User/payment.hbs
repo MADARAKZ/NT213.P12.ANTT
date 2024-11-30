@@ -2,7 +2,7 @@
 
   <head>
     <meta charset="UTF-8" />
-     <meta name="csrf-token" content="{{csrfToken}}">
+    <meta name="csrf-token" content="{{csrfToken}}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" href="/css/payment.css" />
@@ -67,7 +67,7 @@
             <input type="radio" name="dbt" value="cd" />
             Thanh toán trực tiếp
           </div>
-          <div style="padding-top: 0;" class="place-order1">
+          <div id="nl" class="place-order1">
             <button id="Order1" type="button">Place Order</button>
           </div><!-- Yorder -->
         </form>
@@ -82,22 +82,21 @@
             </tr>
             <tr>
               <td><span id="checkIn"></span></td>
-              <td><span id="checkOut" style="color: #262626;"></span></td>
+              <td><span id="checkOut"></span></td>
             </tr>
             <tr>
               <td>Số lượng phòng</td>
               <td><span id="manyRooms"></span></td>
             </tr>
             <tr>
-              <td style="border: 0">Mã giảm giá</td>
-              <td style="border: 0;"><input id="Coupon" type="text" /></td>
+              <td id="xl">Mã giảm giá</td>
+              <td id="xl"><input id="Coupon" type="text" /></td>
             </tr>
             <tr>
               <td></td>
-              <td
-                colspan="2"
-                style="padding-top: 0;padding-bottom: 10px;"
-              ><button id="applyCoupon">Apply</button></td>
+              <td colspan="2" id="nc"><button
+                  id="applyCoupon"
+                >Apply</button></td>
             </tr>
             <tr>
               <td>Tổng cộng</td>
@@ -115,7 +114,7 @@
             <input type="radio" name="dbt" value="cd" />
             Thanh toán trực tiếp
           </div>
-          <div style="padding-top: 0;" class="place-order">
+          <div id="nc" class="place-order">
             <button id="Order" type="button">Place Order</button>
           </div><!-- Yorder -->
         </div>

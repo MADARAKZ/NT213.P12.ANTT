@@ -10,6 +10,9 @@
     flex: 1;
     padding: 20px;
 }
+#imageInput{
+    display: none;
+}
 
 .agent-search {
     display: flex;

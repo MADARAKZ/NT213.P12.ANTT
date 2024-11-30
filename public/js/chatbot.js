@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       className === "outgoing"
         ? `
         <span class="material-symbols-outlined">smart_toy</span>
-        <img src="${message}" style="max-width: 200px;">
+        <img id="chatlo" src="${message}" >
       `
         : `
         <span class="material-symbols-outlined">smart_toy</span>

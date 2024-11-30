@@ -1,5 +1,7 @@
 $(document).ready(function () {
-  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   $(document).on("click", ".fa-image", function () {
     var imageUrl = $(this).data("image-url");
     $("#imagePreview").attr("src", imageUrl);
@@ -103,7 +105,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       success: function (data) {
         // Xử lý thành công
@@ -137,7 +139,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       success: function (data) {
         // Xử lý thành công
@@ -186,7 +188,7 @@ $(document).ready(function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       headers: {
         "Content-Type": "application/json",
@@ -262,7 +264,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -303,7 +305,7 @@ $(document).ready(function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       data: { imageUrl: imageUrl }, // Gửi đường dẫn ảnh cần xóa
       success: function (data) {
@@ -348,7 +350,7 @@ $(document).ready(function () {
                   <input type="email" id="email" name="email" placeholder="Email" value="${data.email}" required>
               
                 <label>Số điện thoại</label>
-                    <input type="text" id="numberPhone" name="numberPhone" placeholder="number phone" value="${data.numberPhone}" style="flex: 80%;">
+                    <input type="text" id="numberPhone" name="numberPhone" placeholder="number phone" value="${data.numberPhone}" >
                 <label>Loại người dùng</label>    
                     <select id="typeSelect" name="type">
                   <option value="">Chọn loại</option>
@@ -387,7 +389,7 @@ $(document).ready(function () {
             method: "PUT",
             credentials: "include",
             headers: {
-              'CSRF-Token': tokencsrf,
+              "CSRF-Token": tokencsrf,
               "Content-Type": "application/json",
             },
             data: JSON.stringify(dataT),

@@ -1734,3 +1734,71 @@ strong {
 }
 
 /* change prop type of position on menu */
+#tdlo{
+    width:25%
+}
+
+#btnlolo, #chiur{
+    color: blue
+}
+
+#locl{
+    overflow-x: hidden;
+}
+
+#haiz{
+    border-bottom : none
+}
+
+#dmm{
+    width: 100%;
+}
+
+#hetcuu{
+    margin : 0; padding : 0 3px 0 10px;   
+}
+
+#dmm1{
+    width: 100% ; height: 70px;
+}
+
+#hetcuu1{
+    margin : 0; padding : 0 10px 0 3px;
+}
+
+#chiu{
+    padding: 0;
+}
+
+#import1,#import2,#import3{
+   
+    border: none;
+    text-align : center
+}
+
+#dl{
+    margin:0 10px
+}
+
+#metm{
+    font-weight: bold; width: 30%;
+}
+
+#j{
+    width: 60%;
+}
+#q{
+    width: 40%;
+}
+
+#carousel-controls{
+    display: none;
+}
+
+#pi{
+    background-color: white; 
+}
+
+#thieu{
+    font-size: small
+}

@@ -171,9 +171,8 @@ $(document).ready(async function () {
         ' <button id="updateAvatarButton" class="edit-button">✎</button>';
       tableHtml1 += "</div>";
       tableHtml1 +=
-        '<input type="file" name="user" id="avatarInput" accept="image/*" style="display: none;">';
-      tableHtml1 +=
-        '<button id="confirmAvatarButton" style="display: none;">Confirm</button>';
+        '<input id="avt" type="file" name="user" id="avatarInput" accept="image/*" >';
+      tableHtml1 += '<button id="confirmAvatarButton" >Confirm</button>';
       $(".member").html(tableHtml1);
       console.log("Đang render page");
       $("#updateAvatarButton").on("click", function () {
@@ -252,7 +251,7 @@ $(document).ready(async function () {
           tableHtml += '<div class="row empty-booking">';
           tableHtml += '<div class="col-5" >';
           tableHtml +=
-            '    <img style="width:267px" src="https://ak-d.tripcdn.com/images/05E6w12000cqchxs29CAB.gif">';
+            '    <img id="imglo" src="https://ak-d.tripcdn.com/images/05E6w12000cqchxs29CAB.gif">';
           tableHtml += "</div>";
           tableHtml += '<div class="col-7">';
           tableHtml +=
@@ -423,13 +422,13 @@ $(document).ready(async function () {
         <form id="updateForm">
           <label>Mật khẩu cũ</label>
           <input type="password" id="old-pass" name="" placeholder="Nhập mật khẩu cũ" required />
-          <p class="wrong-pass1" style="display:none">* Mật khẩu không đúng</p>
+          <p class="wrong-pass1" >* Mật khẩu không đúng</p>
           <label>Mật khẩu mới</label>
           <input type="password" id="new-pass" name="" placeholder="Nhập mật khẩu mới" required />
-          <label class="invalid-pass" style="display:none">* Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, ký tự đặc biệt và số</label>
+          <label class="invalid-pass" >* Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, ký tự đặc biệt và số</label>
           <label>Nhập lại mật khẩu mới</label>
           <input type="password" id="confirm-new-pass" name="" placeholder="Nhập lại mật khẩu mới" required />
-          <label class="wrong-pass2" style="display:none">* Mật khẩu không trùng khớp</label>
+          <label class="wrong-pass2" >* Mật khẩu không trùng khớp</label>
   
           <div class="ebutton" id="update-pass">
             <input type="submit" value="Cập nhật">

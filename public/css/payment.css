@@ -230,3 +230,19 @@ button:hover{
     display: block;
   }
 }
+
+#nl{
+  padding-top: 0;
+}
+
+#checkOut{
+  color: #262626;
+}
+
+#xl{
+  border: 0;
+}
+
+#nc{
+  padding-top: 0;padding-bottom: 10px;
+}

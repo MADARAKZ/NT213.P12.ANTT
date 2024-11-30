@@ -199,3 +199,19 @@ body {
 }
 
 @media only screen and (min-width:46.25em) and(max-width:63.9375em) {}
+
+#errorMessageModal{
+  margin-bottom:16px; margin-top:-20px
+}
+
+.recaptcha-container{
+  margin: 15px 0; display: flex; justify-content: center;
+}
+
+#hh{
+  margin-left: 60px;
+}
+
+#xl{
+  text-decoration: none;
+}

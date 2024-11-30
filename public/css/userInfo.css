@@ -666,7 +666,7 @@ footer img {
 }
 
 #confirmAvatarButton {
-    display: block;
+    display: none;
     margin-top: 10px;
     /* Adjust as needed */
     padding: 8px 16px;
@@ -688,4 +688,13 @@ footer img {
 #message {
     margin-top: 10px;
     color: green;
+    display: none;
+}
+
+#avt{
+    display: none
+}
+
+#imglo{
+    width:267px
 }

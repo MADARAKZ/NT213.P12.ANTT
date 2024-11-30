@@ -321,3 +321,8 @@ footer {
         width: 100% !important;
     }
 }
+
+
+.card{
+    width: 18rem;
+}

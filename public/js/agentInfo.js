@@ -2,7 +2,9 @@ $(document).ready(async function () {
   function getToken() {
     return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
   }
-  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   const token = getToken();
   async function getCurrentUser() {
     try {
@@ -168,9 +170,8 @@ $(document).ready(async function () {
         ' <button id="updateAvatarButton" class="edit-button">✎</button>';
       tableHtml1 += "</div>";
       tableHtml1 +=
-        '<input type="file" name="user" id="avatarInput" accept="image/*" style="display: none;">';
-      tableHtml1 +=
-        '<button id="confirmAvatarButton" style="display: none;">Confirm</button>';
+        '<input type="file" name="user" id="avatarInput" accept="image/*" >';
+      tableHtml1 += '<button id="confirmAvatarButton" >Confirm</button>';
       $(".member").html(tableHtml1);
       console.log("Đang render page");
       $("#updateAvatarButton").on("click", function () {
@@ -192,9 +193,9 @@ $(document).ready(async function () {
             url: "/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
             type: "POST",
             credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
+            headers: {
+              "CSRF-Token": tokencsrf,
+            },
             data: formData,
             processData: false,
             contentType: false,
@@ -392,7 +393,7 @@ $(document).ready(async function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       success: function (data) {
         // Xử lý thành công
@@ -447,7 +448,7 @@ $(document).ready(async function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       processData: false, // Prevent jQuery from processing data
       contentType: false, // Prevent jQuery from setting content type
@@ -551,9 +552,9 @@ $(document).ready(async function () {
             url: `/api/v1/hotels/updateHotel/${id}`,
             method: "PUT",
             credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
+            headers: {
+              "CSRF-Token": tokencsrf,
+            },
             data: {
               name: name,
               star: star,
@@ -650,9 +651,9 @@ $(document).ready(async function () {
             url: `/api/v1/users/editUser/${id}`,
             method: "PUT",
             credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
+            headers: {
+              "CSRF-Token": tokencsrf,
+            },
             data: {
               name: name,
               numberPhone: numberPhone,
@@ -812,7 +813,7 @@ $(document).ready(async function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -918,7 +919,7 @@ $(document).ready(async function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       data: formData,
       processData: false, // Không xử lý dữ liệu
@@ -951,12 +952,12 @@ $(document).ready(async function () {
         <form id="updateForm"> 
           <label>Mật khẩu cũ</label>    
           <input type="password" id="old-pass" name="" placeholder="Nhập mật khẩu cũ" required />
-          <p class="wrong-pass1" style="color:red; font-style:italic; display:none">* Mật khẩu không đúng</p>
+          <p class="wrong-pass1" >* Mật khẩu không đúng</p>
           <label>Mật khẩu mới</label>    
           <input type="password" id="new-pass" name="" placeholder="Nhập mật khẩu mới" required /> 
           <label>Nhập lại mật khẩu mới</label>    
           <input type="password" id="confirm-new-pass" name="" placeholder="Nhập lại mật khẩu mới" required />  
-          <p class="wrong-pass2" style="color:red; font-style:italic; display:none">* Mật khẩu không trùng khớp</p>
+          <p class="wrong-pass2" >* Mật khẩu không trùng khớp</p>
       
           <div class="ebutton" id="update-pass"> 
             <input type="submit" value="Cập nhật"> 
@@ -976,9 +977,9 @@ $(document).ready(async function () {
           url: `/api/v1/users/updatePassword`,
           method: "PUT",
           credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
+          headers: {
+            "CSRF-Token": tokencsrf,
+          },
           data: {
             userId: id,
             currentPassword: oldPass,

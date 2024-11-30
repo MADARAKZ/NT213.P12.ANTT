@@ -11,6 +11,9 @@
     padding: 20px;
 }
 
+#imageInput{
+    display: none;
+}
 .room-search {
     display: flex;
     align-items: center;

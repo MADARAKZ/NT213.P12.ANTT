@@ -1,7 +1,9 @@
 // hotel.js
 
 $(document).ready(function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   // Lấy id khách sạn từ URL
   var url = window.location.pathname;
   var hotelId = url.substring(url.lastIndexOf("/") + 1);
@@ -52,11 +54,11 @@ $(document).ready(function () {
       <div class="col-7 left-sry">
       <h2>${data.name} </h2>
       <p><i class="fa-solid fa-location-dot"></i> ${data.map}
-        <button class="btn" data-bs-toggle="modal" onclick="redirectToMap('${data.name}')" style="color: blue">Xem bản đồ</button>
+        <button id="btnlolo" class="btn" data-bs-toggle="modal" onclick="redirectToMap('${data.name}')" >Xem bản đồ</button>
       </p>
       <p class="intro"><i class="bi bi-buildings-fill"></i>Hãy để chuyến đi của quý khách có một khởi đầu tuyệt vời khi ở lại
         khách sạn này, nơi có Wi-Fi miễn phí trong tất cả các phòng.
-        <button class="btn" data-bs-toggle="modal" data-bs-target="#introductionModal" style="color: blue">Xem thêm</button>
+        <button id="btnlolo" class="btn" data-bs-toggle="modal" data-bs-target="#introductionModal" >Xem thêm</button>
       </p>
 
       <!-- Map Modal -->
@@ -131,8 +133,8 @@ $(document).ready(function () {
                 </div>
               </div>
               <div class="col-8">
-                <div data-bs-spy="scroll" data-bs-target="#list-hotel-upload" data-bs-smooth-scroll="true"
-                  class="scrollspy-example" tabindex="0" style="overflow-x: hidden;">
+                <div id="locl" data-bs-spy="scroll" data-bs-target="#list-hotel-upload" data-bs-smooth-scroll="true"
+                  class="scrollspy-example" tabindex="0" >
                   <p id="feature">Nổi bật</p>
                   <div class="row" id="clickHotel">
                     
@@ -315,19 +317,19 @@ $(document).ready(async function () {
         <div class="container-fluid" id="room-id">
           <h2>${item.name}</h2>
           <div class="row">
-            <div style="border-bottom : none" class="col-lg-2 ">
+            <div id="haiz" class="col-lg-2 ">
               <div class="baseroom">
               
                 <div class="baseroom_img">
-               <img src="${imgRoom1}" alt="" style="width: 100%;">
+               <img id="dmm" src="${imgRoom1}" alt="" >
                 </div>
                 <div class="baseroom_img1">
                   <div class="row no-gutters">
-                    <div style="margin : 0; padding : 0 3px 0 10px;" class="col-6"><img
-                        src="${imgRoom2}" alt="" style="width: 100% ; height: 70px;">
+                    <div id="hetcuu"  class="col-6"><img id="dmm1"
+                        src="${imgRoom2}" alt="" >
                     </div>
-                    <div style="margin : 0; padding : 0 10px 0 3px;" class="col-6"><img
-                        src="${imgRoom3}" alt="" style="width: 100%; height: 70px;">
+                    <div id="hetcuu1" class="col-6"><img id="dmm1"
+                        src="${imgRoom3}" alt="" >
                     </div>
                   </div>
                 </div>
@@ -343,12 +345,12 @@ $(document).ready(async function () {
                 </div>
               </div>
             </div>
-            <div style="padding: 0;" class="col-lg-10  ">
+            <div id="chiu"  class="col-lg-10  ">
               <div class="container">
                 <div class="row" id="optioon">
-                  <div id="import1" style="border: none;" class="col-lg-5">Lựa chọn của bạn</div>
-                  <div id="import2" style="border: none; text-align : center" class="col-lg-2">Số lượng người</div>
-                  <div id="import3" style="border: none; text-align : center" class="col-lg-5">Giá phòng hôm nay</div>
+                  <div id="import1"  class="col-lg-5">Lựa chọn của bạn</div>
+                  <div id="import2" class="col-lg-2">Số lượng người</div>
+                  <div id="import3"  class="col-lg-5">Giá phòng hôm nay</div>
                 </div>
                 <div class="row">
                   <div class="col-lg-5">
@@ -392,6 +394,7 @@ $(document).ready(async function () {
           </div>
         </div>
       </div>`;
+
         $(".room-booking").append(card);
       });
     },
@@ -512,10 +515,10 @@ $(document).ready(async function () {
       try {
         const response = await fetch("/api/v1/reviews/create", {
           method: "POST",
-      credentials: "include",
-      headers: {
-      'CSRF-Token': token // <-- is the csrf token as a header
-      },
+          credentials: "include",
+          headers: {
+            "CSRF-Token": token, // <-- is the csrf token as a header
+          },
           body: formData,
           headers: {},
         });
@@ -633,9 +636,7 @@ $(document).ready(async function () {
       for (let i = 0; i < Math.min(4, imgFeature.length); i++) {
         const imageURL = imgFeature[i];
         imgHTML += `
-            <td style="width:25%" ${
-              i === 0 ? 'rowspan="2" ' : 'class="img-active"'
-            }>
+            <td id="tdlo"  ${i === 0 ? 'rowspan="2" ' : 'class="img-active"'}>
                 <img src="${imageURL}" alt="">
             </td>
         `;
@@ -647,7 +648,7 @@ $(document).ready(async function () {
       for (let i = 4; i < Math.min(7, imgFeature.length); i++) {
         const imageURL = imgFeature[i];
         imgHTML += `
-            <td style="width:25%" class="img-active">
+            <td id="tdlo"  class="img-active">
                 <img src="${imageURL}" alt="">
             </td>
         `;

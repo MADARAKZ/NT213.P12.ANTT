@@ -1,5 +1,7 @@
 $(document).ready(function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -55,8 +57,8 @@ $(document).ready(function () {
     type: "POST",
     credentials: "include",
     headers: {
-    'CSRF-Token': token // <-- is the csrf token as a header
-  },
+      "CSRF-Token": token, // <-- is the csrf token as a header
+    },
     contentType: "application/x-www-form-urlencoded",
     data: formData,
     success: (response) => {
@@ -73,7 +75,7 @@ $(document).ready(function () {
         );
         bankElement += `<input type="radio" name="bank" value="${bank.bank_code}" id="${bank.bank_code}">`;
         bankElement += `<label for="${bank.bank_code}">`;
-        bankElement += `<img src="${logoLink}" alt="${bank.bank_name}" style="width: 100px; height: auto;">`;
+        bankElement += `<img id="imghi" src="${logoLink}" alt="${bank.bank_name}" >`;
         bankElement += `<p>${bank.bank_name}</p>`;
         bankElement += `</label></div>`;
         $("#bankList").append(bankElement);
@@ -98,23 +100,22 @@ $(document).ready(function () {
     console.log(data);
 
     $.ajax({
-
-        url: "http://localhost:3030/api/v1/vnpay/create-vnpay-url",
-        method: "POST",
-        credentials: "include",
-  headers: {
-    'CSRF-Token': token // <-- is the csrf token as a header
-  },
-        data: JSON.stringify(data), // Send data as JSON string
-        contentType: "application/json",
-        success: function (response) {
-          // Chuyển hướng trang web tới URL nhận được từ API
-           window.location.href = response.data.url;
-          console.log(response.data.url);
-        },
-        error: function (xhr, status, error) {
-          // Xử lý lỗi khi gọi API
-          console.error("API call failed:", error);
+      url: "http://localhost:3030/api/v1/vnpay/create-vnpay-url",
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": token, // <-- is the csrf token as a header
+      },
+      data: JSON.stringify(data), // Send data as JSON string
+      contentType: "application/json",
+      success: function (response) {
+        // Chuyển hướng trang web tới URL nhận được từ API
+        window.location.href = response.data.url;
+        console.log(response.data.url);
+      },
+      error: function (xhr, status, error) {
+        // Xử lý lỗi khi gọi API
+        console.error("API call failed:", error);
 
         // Hiển thị thông báo lỗi cho người dùng nếu cần thiết
       },

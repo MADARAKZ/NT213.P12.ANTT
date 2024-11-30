@@ -519,3 +519,7 @@ select,
 .image-actions button {
   margin: 0 5px;
 }
+
+#numberPhone{
+  flex: 80%;
+}

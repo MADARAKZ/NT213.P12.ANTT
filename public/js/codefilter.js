@@ -160,7 +160,7 @@ $(document).ready(() => {
                       <p>${description}</p>
                       <p>
                         <i class="fa-solid fa-location-dot"></i>${item.map}
-                        <span><button class="btn" data-bs-toggle="modal" onclick="redirectToMap('${item.name}' )" style="color: blue">Xem bản đồ</button></span>
+                        <span><button id="btnlo" class="btn" data-bs-toggle="modal" onclick="redirectToMap('${item.name}' )" >Xem bản đồ</button></span>
                       </p>
                     </div>
                   </div>

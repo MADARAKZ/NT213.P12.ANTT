@@ -78,21 +78,14 @@
             <!-- Vị trí hiển thị lỗi cho mật khẩu -->
             <span id="password-error" class="error-message"></span>
           </div>
-          <div
-            class="modal-body"
-            id="errorMessageModal"
-            style="margin-bottom:16px; margin-top:-20px"
-          >
+          <div class="modal-body" id="errorMessageModal">
             <!-- Error message will be inserted here -->
           </div>
           <div class="remember-forgot">
             <a></a>
             <a href="/ForgotPass">Forgot Password</a>
           </div>
-          <div
-            class="recaptcha-container"
-            style="margin: 15px 0; display: flex; justify-content: center;"
-          >
+          <div class="recaptcha-container">
             <div
               class="g-recaptcha"
               data-sitekey="6Lfv34wqAAAAAJ3YMjekI0NPatFxdg6R2NDZNyXD"
@@ -104,13 +97,13 @@
           </div>
           <button class="google-login-btn">
             <img
+              id="hh"
               src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
               alt="Google logo"
-              style="margin-left: 60px;"
             />
             <a
+              id="xl"
               href="http://localhost:3030/api/v1/users/auth/google"
-              style=" text-decoration: none;"
             >Login with Google</a>
 
           </button>

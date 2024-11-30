@@ -9,7 +9,9 @@ var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
-const helmet = require("helmet")
+const helmet = require("helmet");
+const nonceMiddleware = require("./middlewares/csp/nonce");
+
 const {
   csrfProtection,
   parseForm,
@@ -20,7 +22,6 @@ const { rootRouter } = require("./routers");
 const { User } = require("./models/User");
 const { access } = require("fs");
 var ls = require("local-storage");
-
 
 const {
   authenticateToken,
@@ -43,7 +44,7 @@ app.use(
 );
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 100,
   message: "Too many API request from this IP",
 });
 
@@ -63,15 +64,16 @@ app.use(
 );
 
 // use helmet
-app.use(helmet());
+
 // Cấu hình Helmet CSP (Content Security Policy)
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"], // Allow resources only from the same origin (self)
-      
+
       scriptSrc: [
         "'self'",
+        "'unsafe-inline'",
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net",
         "https://apis.google.com",
@@ -79,17 +81,19 @@ app.use(
         "https://code.jquery.com/",
         "https://sandbox.vnpayment.vn",
         "https://teachablemachine.withgoogle.com",
-        "https://embed.pickaxeproject.com" // Allow scripts from Google APIs
+        "https://embed.pickaxeproject.com", // Allow scripts from Google APIs
+        (req, res) => `'nonce-${res.locals.nonce}'`,
       ],
-      scriptSrcAttr: ["'self'", "https://www.bing.com",
-      ], // Allow inline event handlers
+      scriptSrcAttr: ["'self'", "https://www.bing.com"], // Allow inline event handlers
       styleSrc: [
         "'self'", // Allow styles from the same origin
+        "'unsafe-inline'",
         "https://cdnjs.cloudflare.com", // Font Awesome, Bootstrap from CDN
         "https://fonts.googleapis.com", // Google Fonts from CDN
         "https://fonts.gstatic.com", // Google Fonts static resources
         "https://cdn.jsdelivr.net", // Bootstrap styles
         "https://netdna.bootstrapcdn.com", // Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
+        (req, res) => `'nonce-${res.locals.nonce}'`,
       ],
 
       imgSrc: [
@@ -107,31 +111,29 @@ app.use(
         "https://fonts.googleapis.com", // Google Fonts stylesheets
         "https://fonts.gstatic.com", // Google Fonts static resources
         "https://netdna.bootstrapcdn.com", // Bootstrap fonts
-        
       ],
 
       connectSrc: [
         "'self'", // Allow connections (e.g., API calls) from the same origin
         "https://example.com",
         "https://sandbox.vnpayment.vn",
-        "https://teachablemachine.withgoogle.com" // Replace with your specific API endpoint if needed
+        "https://teachablemachine.withgoogle.com", // Replace with your specific API endpoint if needed
       ],
 
       objectSrc: ["'none'"], // Disallow all object, embed, or plugin-based resources for security
 
       frameSrc: [
         "'self'", // Allow frames from the same origin (if embedding is required)
-        "https://www.google.com", 
+        "https://www.google.com",
         "https://www.bing.com",
         "https://teachablemachine.withgoogle.com",
-        "https://embed.pickaxeproject.com"// Example: embedding Google Maps
+        "https://embed.pickaxeproject.com", // Example: embedding Google Maps
       ],
 
       upgradeInsecureRequests: [], // Optionally enforce all requests to be over HTTPS (optional)
     },
   })
 );
-
 
 app.get("/image/classify", async (req, res) => {
   const { url } = req.query;
