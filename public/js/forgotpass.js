@@ -1,11 +1,17 @@
 $(document).ready(function () {
   const emailInput = $("#email");
   const responseMessage = $("#responseMessage");
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  // Hàm kiểm tra email hợp lệ
+  function validateEmail(email) {
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    return emailRegex.test(email);
+  }
 
   // Kiểm tra thời gian thực cho email
   emailInput.on("input", function () {
     const email = emailInput.val().trim();
-
     if (!email) {
       responseMessage.text("Email address is required.");
       responseMessage.removeClass("success-message").addClass("error-message");
@@ -42,6 +48,10 @@ $(document).ready(function () {
     $.ajax({
       url: "/api/v1/authen/forgotpassword", // Thay bằng endpoint thực tế
       method: "POST",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token, // Gửi CSRF token
+      },
       data: JSON.stringify({ email: email }),
       contentType: "application/json",
       success: function (response) {
@@ -50,13 +60,15 @@ $(document).ready(function () {
 
         if (response) {
           // Thành công: Chuyển hướng hoặc hiển thị thông báo
-          window.location.href = `/resetpassword`;
           responseMessage.text(
             "A password reset link has been sent to your email."
           );
           responseMessage
             .removeClass("error-message")
             .addClass("success-message");
+          setTimeout(() => {
+            window.location.href = `/resetpassword`;
+          }, 1500); // Chuyển hướng sau 1.5 giây
         } else {
           // Lỗi từ phía server: Email không tồn tại
           responseMessage.text("Email does not exist.");
@@ -79,10 +91,4 @@ $(document).ready(function () {
       },
     });
   });
-
-  // Hàm kiểm tra email hợp lệ
-  function validateEmail(email) {
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    return emailRegex.test(email);
-  }
 });

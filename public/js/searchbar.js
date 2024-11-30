@@ -321,42 +321,8 @@ updateButtonStyles();
 const input = document.getElementById("hotel-destination");
 const autocomplete = document.getElementById("autocomplete");
 
-input.addEventListener("input", async function () {
-  const inputValue = this.value.toLowerCase();
-  autocomplete.innerHTML = "";
 
-  if (inputValue.length > 0) {
-    try {
-      const response = await fetch("/api/v1/hotels/getAllMap"); // URL của endpoint trên server
-      if (!response.ok) throw new Error("Network response was not ok");
-      const cities = await response.json();
-
-      const matches = cities.filter((city) =>
-        city.toLowerCase().includes(inputValue)
-      );
-
-      matches.forEach((match) => {
-        const suggestion = document.createElement("div");
-        suggestion.innerText = match;
-        suggestion.addEventListener("click", function () {
-          input.value = match;
-          autocomplete.innerHTML = "";
-        });
-        autocomplete.appendChild(suggestion);
-      });
-    } catch (error) {
-      console.error("Error fetching districts:", error);
-    }
-  }
-});
-
-// Xử lý sự kiện khi ô nhập mất focus (blur)
-document.addEventListener("click", function (event) {
-  if (event.target !== input) {
-    autocomplete.innerHTML = "";
-  }
-});
-
+// Gắn sự kiện click cho nút có id là "search-btn"
 document.querySelector(".search-button").addEventListener("click", function () {
   // Thu thập dữ liệu từ form
   let destination = document.getElementById("hotel-destination").value.trim();

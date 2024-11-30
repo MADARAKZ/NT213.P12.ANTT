@@ -9,10 +9,10 @@ const {
   //   updateAmenity,
   //   deleteAmenity,
 } = require("../controllers/amenities.controller.js");
-
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 const AmenityRouter = express.Router();
 
-AmenityRouter.post("/", createAmenity);
+AmenityRouter.post("/", parseForm, csrfProtection, createAmenity);
 AmenityRouter.get("/", getAllAmenity);
 AmenityRouter.get("/:id", getDetailAmenity);
 

@@ -1,5 +1,8 @@
 $(document).ready(function () {
+  
   // var room = localStorage.getItem("roomId");
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  
   var url = window.location.pathname;
   var room = url.substring(url.lastIndexOf("/") + 1);
   function renderPage() {
@@ -142,6 +145,10 @@ $(document).ready(function () {
       $.ajax({
         url: "/api/v1/roomAmenities", // Adjust the URL endpoint
         method: "POST",
+        credentials: "include",
+        headers: {
+          'CSRF-Token': token // <-- is the csrf token as a header
+        },
         data: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
@@ -206,6 +213,10 @@ $(document).ready(function () {
     $.ajax({
       url: `/api/v1/roomAmenities/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
       success: function (data) {},
       error: function (error) {
         console.log("Lỗi khi xóa người dùng", id, error);
@@ -311,6 +322,10 @@ $(document).ready(function () {
           $.ajax({
             url: `/api/v1/roomAmenities/` + id,
             method: "PUT",
+            credentials: "include",
+            headers: {
+              'CSRF-Token': token // <-- is the csrf token as a header
+            },
             contentType: "application/json",
             data: JSON.stringify({
               roomId: RoomId,

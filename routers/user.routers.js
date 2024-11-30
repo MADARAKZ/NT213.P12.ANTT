@@ -1,6 +1,6 @@
-const { User } = require("../models");
+
 const passport = require("passport");
-const axios = require("axios");
+
 const jwt = require("jsonwebtoken");
 const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
@@ -26,21 +26,24 @@ const {
   Logout,
 } = require("../controllers/user.controllers");
 
+var { csrfProtection, parseForm } = require("../middlewares/authen/csrfProtection"); 
+
 const userRouter = express.Router();
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 200,
   message: "Too many API request from this IP",
 });
 
-userRouter.post("/register", limiter, register);
+userRouter.post("/register", limiter,parseForm, csrfProtection, register);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
-userRouter.post("/login", limiter, login);
-userRouter.post("/loginGG", limiter, loginGG);
-userRouter.post("/logout", limiter, Logout);
+
+userRouter.post("/login", limiter,parseForm, csrfProtection, login);
+userRouter.post("/loginGG", limiter,parseForm, csrfProtection, loginGG);
+userRouter.post("/logout", limiter,parseForm, csrfProtection,Logout);
 userRouter.get("/getAllUser", getAllUser);
 userRouter.get("/getDetailUser/:id", getDetailUser);
 userRouter.get("/manageUsers", displayUser);
@@ -51,10 +54,10 @@ userRouter.post(
   updateImage
 );
 
-userRouter.put("/editUser/:id", limiter, editUser);
-userRouter.put("/updatePassword", limiter, updatePassword);
+userRouter.put("/editUser/:id", limiter,parseForm, csrfProtection, editUser);
+userRouter.put("/updatePassword", limiter,parseForm, csrfProtection, updatePassword);
 
-userRouter.delete("/deleteUser/:id", limiter, deleteUser);
+userRouter.delete("/deleteUser/:id", limiter,parseForm, csrfProtection, deleteUser);
 userRouter.get("/getCurrentUser", limiter, getCurrentUser);
 require("dotenv").config();
 userRouter.use(

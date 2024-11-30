@@ -1,43 +1,17 @@
 $(document).ready(async function () {
-  // Hàm ánh xạ ID của mục menu tới tên partial tương ứng
 
-  // async function getCurrentUser() {
-  //   try {
-
-  //     const response = await fetch("/api/v1/users/getCurrentUser", {
-  //       method: "GET",
-  //       credentials: "include",
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       throw new Error(`Failed to fetch current user: ${errorText}`);
-  //     }
-
-  //     const currentUser = await response.json();
-  //     if (!currentUser) {
-  //       throw new Error("Current user data is not available");
-  //     }
-
-  //     return currentUser;
-  //   } catch (error) {
-  //     console.error("Error fetching current user:", error.message);
-  //     return null; // Return null to indicate an error occurred
-  //   }
-  // }
-
-  // const currentUser = await getCurrentUser();
-
-  // if (currentUser.type != "admin") {
-  //   $(".template").hide();
-  //   window.location.href = "/";
-  // }
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      
   async function getLogout() {
     try {
       // Gửi yêu cầu đăng xuất tới backend
       const response = await fetch("/api/v1/users/logout", {
         method: "POST",
-        credentials: "include", // Quan trọng để gửi kèm cookie
+
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       });
 
       if (response.ok) {

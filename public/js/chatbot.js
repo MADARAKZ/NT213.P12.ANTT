@@ -3,86 +3,71 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.querySelector(".close-btn");
   const chatbox = document.querySelector(".chatbox");
   const sendChatBtn = document.getElementById("send-btn");
-  const fileInput = document.querySelector(' .chat-input input[type="file"]');
+  const fileInput = document.querySelector('.chat-input input[type="file"]');
   const sendBtn = document.getElementById("send-btn");
+
+  const token = localStorage.getItem("token");
+  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+
   $("#send-btn").click(function () {
     try {
-      const fileInput = document.querySelector(
-        '.chat-input input[type="file"]'
-      );
-
-      // Kiểm tra nếu có file được chọn
       if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append("ModelAlImage", file);
 
-        // Thực hiện yêu cầu AJAX bằng jQuery
         $.ajax({
-          url: "/api/v1/chatbotAl/findlocation",
+          url: "http://localhost:3030/api/v1/chatbotAl/findlocation",
           method: "POST",
+          credentials: "include",
+          headers: {
+            "CSRF-Token": tokencsrf,
+            token: token,
+          },
           data: formData,
-          processData: false, // Không xử lý dữ liệu trước khi gửi
-          contentType: false, // Không đặt header 'Content-Type' tự động
+          processData: false,
+          contentType: false,
           success: function (response) {
-            try {
-              console.log("API response:", response);
-              // Xử lý phản hồi từ API ở đây
-              const selectedLocation = response.find(
-                (item) => item.score > 0.5
-              );
-              if (selectedLocation) {
-                const locationName = selectedLocation.class;
+            console.log("API response:", response);
 
-                // Thêm phản hồi vào khung chat
-                var message = `Địa điểm bạn cần tìm là ${locationName}, đây là một số gợi ý về khách sạn của chúng tôi.`;
-
-                chatbox.appendChild(createChatLi(message, "incoming"));
-                chatbox.scrollTop = chatbox.scrollHeight; // Cuộn xuống dòng cuối cùng
-                const diaDiemToTinhThanh = {
-                  "Bà Nà Hill": "Đà Nẵng",
-                  "Phố Cổ Hội An": "Đà Nẵng",
-                  "Phong Nha Kẻ Bàng": "Quảng Bình",
-                  "Nha Trang": "Nha Trang",
-                  "Vịnh Hạ Long": "Quảng Ninh",
-                  "Phú Quốc": "Phú Quốc",
-                  Huế: "Huế",
-                  "Đà Lạt": "Đà Lạt",
-                };
-
-                function layTinhThanh(tenDiaDiem) {
-                  return diaDiemToTinhThanh[tenDiaDiem] || tenDiaDiem;
-                }
-                const tinh = layTinhThanh(locationName);
-
-                setTimeout(function () {
-                  window.location.href = `/hotelList?destination=${tinh}`;
-                }, 1500); // 20 giây
-              } else {
-                message = `Hình ảnh bạn cung cấp không phù hợp với hệ thống của chúng tôi.`;
-                chatbox.appendChild(createChatLi(message, "incoming"));
-                console.log("Không có địa điểm nào có score > 0.5.");
-              }
-            } catch (processingError) {
-              console.error("Error processing API response:", processingError);
-              const errorMessage =
-                "Đã xảy ra lỗi khi xử lý phản hồi từ hệ thống.";
-              chatbox.appendChild(createChatLi(errorMessage, "incoming"));
+            const selectedLocation = response.find((item) => item.score > 0.5);
+            if (selectedLocation) {
+              const locationName = selectedLocation.class;
+              const message = `Địa điểm bạn cần tìm là ${locationName}, đây là một số gợi ý về khách sạn của chúng tôi.`;
+              chatbox.appendChild(createChatLi(message, "incoming"));
               chatbox.scrollTop = chatbox.scrollHeight;
+
+              const diaDiemToTinhThanh = {
+                "Bà Nà Hill": "Đà Nẵng",
+                "Phố Cổ Hội An": "Đà Nẵng",
+                "Phong Nha Kẻ Bàng": "Quảng Bình",
+                "Nha Trang": "Nha Trang",
+                "Vịnh Hạ Long": "Quảng Ninh",
+                "Phú Quốc": "Phú Quốc",
+                Huế: "Huế",
+                "Đà Lạt": "Đà Lạt",
+              };
+
+              const layTinhThanh = (tenDiaDiem) => diaDiemToTinhThanh[tenDiaDiem] || tenDiaDiem;
+              const tinh = layTinhThanh(locationName);
+
+              setTimeout(() => {
+                window.location.href = `/hotelList?destination=${tinh}`;
+              }, 1500);
+            } else {
+              const message = "Hình ảnh bạn cung cấp không phù hợp với hệ thống của chúng tôi.";
+              chatbox.appendChild(createChatLi(message, "incoming"));
+              console.log("Không có địa điểm nào có score > 0.5.");
             }
           },
           error: function (error) {
             console.error("Error sending file:", error);
-            if (error.status === 401) {
-              const message = "Vui lòng đăng nhập để tìm kiếm.";
-              chatbox.appendChild(createChatLi(message, "incoming"));
-              chatbox.scrollTop = chatbox.scrollHeight;
-            } else {
-              // Xử lý các lỗi khác theo nhu cầu
-              const errorMessage = "Có lỗi xảy ra. Vui lòng thử lại sau.";
-              chatbox.appendChild(createChatLi(errorMessage, "incoming"));
-              chatbox.scrollTop = chatbox.scrollHeight;
-            }
+            const message =
+              error.status === 401
+                ? "Vui lòng đăng nhập để tìm kiếm."
+                : "Có lỗi xảy ra. Vui lòng thử lại sau.";
+            chatbox.appendChild(createChatLi(message, "incoming"));
+            chatbox.scrollTop = chatbox.scrollHeight;
           },
         });
       } else {
@@ -96,9 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Thêm sự kiện 'change' cho input file
   fileInput.addEventListener("change", () => {
-    // Kiểm tra nếu có file được chọn
     if (fileInput.files.length > 0) {
       sendBtn.style.display = "inline-block";
     }
@@ -108,21 +91,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatLi = document.createElement("li");
     chatLi.classList.add("chat", className);
 
-    let chatContent;
-    if (className === "outgoing") {
-      // Tin nhắn đi là hình ảnh xem trước
-      chatContent = `
-                <span class="material-symbols-outlined">smart_toy</span>
-                <img src="${message}" style="max-width: 200px;">`;
-    } else {
-      // Tin nhắn đến là của con bot
-      chatContent = `
-                <span class="material-symbols-outlined">smart_toy</span>
-                <p>${message}</p>
-            `;
-    }
+    const chatContent =
+      className === "outgoing"
+        ? `
+        <span class="material-symbols-outlined">smart_toy</span>
+        <img src="${message}" style="max-width: 200px;">
+      `
+        : `
+        <span class="material-symbols-outlined">smart_toy</span>
+        <p>${message}</p>
+      `;
 
-    // Thêm nội dung vào thẻ <li>
     chatLi.innerHTML = chatContent;
     return chatLi;
   };
@@ -135,26 +114,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = (e) => {
       const imageUrl = e.target.result;
-
-      // Thêm hình ảnh xem trước vào khung chat bên phải
       chatbox.appendChild(createChatLi(imageUrl, "outgoing"));
       chatbox.scrollTop = chatbox.scrollHeight;
     };
 
-    // Đọc file như Data URL
     reader.readAsDataURL(file);
   };
 
-  // Sự kiện click để gửi tin nhắn chat
   sendChatBtn.addEventListener("click", handleChat);
 
-  // Sự kiện click để đóng chatbot
   closeBtn.addEventListener("click", () => {
     document.body.classList.remove("show-chatbot");
   });
-  // Sự kiện click để hiển thị/ẩn chatbot
+
   chatbotToggler.addEventListener("click", () => {
     document.body.classList.toggle("show-chatbot");
   });

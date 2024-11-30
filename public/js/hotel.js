@@ -1,6 +1,7 @@
 // hotel.js
 
 $(document).ready(function () {
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   // Lấy id khách sạn từ URL
   var url = window.location.pathname;
   var hotelId = url.substring(url.lastIndexOf("/") + 1);
@@ -511,6 +512,10 @@ $(document).ready(async function () {
       try {
         const response = await fetch("/api/v1/reviews/create", {
           method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
           body: formData,
           headers: {},
         });

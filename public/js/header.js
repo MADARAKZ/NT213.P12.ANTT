@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Lấy giá trị token từ localStorage
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   // Hàm lấy thông tin người dùng hiện tại
   async function getCurrentUser() {
@@ -32,7 +33,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Gửi yêu cầu đăng xuất tới backend
       const response = await fetch("/api/v1/users/logout", {
         method: "POST",
-        credentials: "include", // Quan trọng để gửi kèm cookie
+        credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      }, // Quan trọng để gửi kèm cookie
+
       });
 
       if (response.ok) {

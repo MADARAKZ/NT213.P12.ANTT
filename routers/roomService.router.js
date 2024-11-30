@@ -11,16 +11,16 @@ const {
   
   searchRoomsByAmenities,
 } = require("../controllers/room_service.controller.js");
-
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 const RoomAmenityRouter = express.Router();
 
 RoomAmenityRouter.get("/:roomId", getroomService);
 RoomAmenityRouter.get("/amenities/:serviceId", getRoomHaveAmenities);
 RoomAmenityRouter.get("/service/:id", getService);
-RoomAmenityRouter.post("/", addRoomAmenity);
-RoomAmenityRouter.put("/:id", updateRoomAmenity);
-RoomAmenityRouter.delete("/:id", deleteRoomAmenity);
-RoomAmenityRouter.post("/Room/amenities", searchRoomsByAmenities);
+RoomAmenityRouter.post("/",parseForm, csrfProtection, addRoomAmenity);
+RoomAmenityRouter.put("/:id",parseForm, csrfProtection, updateRoomAmenity);
+RoomAmenityRouter.delete("/:id",parseForm, csrfProtection, deleteRoomAmenity);
+RoomAmenityRouter.post("/Room/amenities",parseForm, csrfProtection, searchRoomsByAmenities);
 module.exports = {
   RoomAmenityRouter,
 };

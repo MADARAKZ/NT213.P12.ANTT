@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  const tokencsrf= document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
@@ -144,6 +145,10 @@ $(document).ready(function () {
     $.ajax({
       url: `/api/v1/hotels`,
       method: "POST",
+        credentials: "include",
+        headers: {
+        'CSRF-Token': tokencsrf,
+        },
       processData: false, // Ngăn jQuery xử lý dữ liệu
       contentType: false, // Ngăn jQuery đặt loại nội dung
       data: formData,
@@ -229,6 +234,10 @@ $(document).ready(function () {
           $.ajax({
             url: `/api/v1/booking/${id}`,
             method: "PUT",
+        credentials: "include",
+        headers: {
+        'CSRF-Token': tokencsrf,
+        },
             data: {
               room_id: roomId,
               full_name: fullName,

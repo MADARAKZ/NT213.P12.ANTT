@@ -1,4 +1,6 @@
 $(document).ready(async function () {
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
   async function getCurrentUser() {
     try {
       if (!token) {
@@ -178,6 +180,10 @@ $(document).ready(async function () {
     $.ajax({
       url: "/api/v1/booking/",
       method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {

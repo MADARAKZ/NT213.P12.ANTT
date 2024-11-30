@@ -16,7 +16,7 @@ function clearSelection() {
 function formatCurrency(amount) {
   return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-
+const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 document.addEventListener("DOMContentLoaded", function () {
   const priceRange1 = document.getElementById("price_range1");
   const valueElement1 = document.getElementById("value1");
@@ -153,7 +153,7 @@ $(document).ready(() => {
               <div class="card-body">
                 <div class="head-title">
                   <h5 class="card-title">
-                    <a href="/hotel//${slug}/${item.id}" class="hotel-link">${item.name}</a>
+                    <a href="/hotel/${slug}/${item.id}" class="hotel-link">${item.name}</a>
                     ${stars}
                   </h5>
                   <div class="card-describle">
@@ -310,6 +310,10 @@ $(document).ready(() => {
     $.ajax({
       url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+      },
       data: JSON.stringify(filters),
       contentType: "application/json",
       success: function (response) {
@@ -414,6 +418,10 @@ $(document).ready(() => {
     $.ajax({
       url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+      },
       data: JSON.stringify(filters),
       contentType: "application/json",
       success: function (response) {
@@ -513,6 +521,10 @@ $(document).ready(() => {
     $.ajax({
       url: "/api/v1/hotelAmenities/hotel/amenities",
       type: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': tokencsrf // <-- is the csrf token as a header
+      },
       data: JSON.stringify(filters),
       contentType: "application/json",
       success: function (response) {

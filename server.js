@@ -8,9 +8,10 @@ const { sequelize } = require("./models");
 var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
-const cookieParser = require("cookie-parser");
 const ratelimit = require("express-rate-limit");
-
+const {csrfProtection,
+  parseForm,
+  cookieParser} = require("./middlewares/authen/csrfProtection")
 // require("./passport");
 const { rootRouter } = require("./routers");
 const { User } = require("./models/User");
@@ -21,20 +22,19 @@ const {
   requireAdmin,
   requireCustomer,
 } = require("./middlewares/authen/auth.middleware");
-
+const c = require("config");
 require("dotenv").config();
 const app = express();
+// Sử dụng session middleware trước nếu bạn cần dùng session
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true })); // Ensure this line is present
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3030', // Domain của frontend
+  credentials: true               // Đảm bảo gửi và nhận cookies
+}));
 
-app.use(
-  cors({
-    origin: "http://localhost:3030", // Domain của frontend
-    credentials: true, // Đảm bảo gửi và nhận cookies
-  })
-);
 
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
@@ -46,13 +46,16 @@ app.use(express.json({ extended: true }));
 app.use(express.urlencoded());
 app.use(
   session({
-    secret: process.env.SECRET_KEY, // Sử dụng khóa bí mật từ biến môi trường hoặc một khóa mặc định
+    secret: process.env.SECRET_KEY, // Thay bằng một chuỗi bí mật mạnh
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Đặt thành true nếu sử dụng HTTPS
+    cookie: {
+      httpOnly: true,
+      secure: false,  // Đặt true nếu dùng HTTPS
+      sameSite: "Strict", // Ngăn chặn tấn công CSRF
+    },
   })
 );
-
 app.get("/image/classify", async (req, res) => {
   const { url } = req.query;
 
@@ -79,88 +82,84 @@ app.use(express.static(publicPathDirectory));
 app.use("/api/v1", rootRouter);
 
 // Define routes
-app.get("/", (req, res) => {
-  res.render("User/mainpage");
+app.get("/",csrfProtection, (req, res) => {
+  res.render("User/mainpage", { csrfToken: req.csrfToken() });
 });
 
-app.get("/chatbotimage", (req, res) => {
-  res.render("User/chatbotImage");
+app.get("/chatbotimage",csrfProtection, (req, res) => {
+  res.render("User/chatbotImage",{ csrfToken: req.csrfToken() });
 });
-app.get("/chatbot", (req, res) => {
-  res.render("User/chatbot");
-});
-
-app.get("/hotelList", (req, res) => {
-  res.render("User/hotelList");
+app.get("/chatbot",csrfProtection, (req, res) => {
+  res.render("User/chatbot",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/supplier", (req, res) => {
-  res.render("User/supplier");
+app.get("/hotelList",csrfProtection, (req, res) => {
+  res.render("User/hotelList",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/register", (req, res) => {
-  res.render("User/register");
+app.get("/supplier",csrfProtection, (req, res) => {
+  res.render("User/supplier",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/aboutUs", (req, res) => {
-  res.render("User/aboutUs");
+app.get("/register",csrfProtection, (req, res) => {
+  // Render trang đăng ký với CSRF token
+  res.render("User/register", { csrfToken: req.csrfToken() });
 });
 
-app.get("/userInfo", authenticateToken, requireCustomer, (req, res) => {
-  res.render("User/userInfo");
-});
-app.get("/signin", limiter, (req, res) => {
-  res.render("User/signin");
+app.get("/aboutUs",csrfProtection, (req, res) => {
+  res.render("User/aboutUs",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/user", (req, res) => {
+app.get("/userInfo",csrfProtection, authenticateToken, requireCustomer, (req, res) => {
+  res.render("User/userInfo",{ csrfToken: req.csrfToken() });
+});
+app.get("/signin", limiter,csrfProtection, (req, res) => {
+  res.render("User/signin",{ csrfToken: req.csrfToken() });
+});
+
+app.get("/user",csrfProtection, (req, res) => {
   // Render the sidebar template directly (no need for separate route)
-  res.render("User/user");
+  res.render("User/user",{ csrfToken: req.csrfToken() });
 });
-app.get("/payment", (req, res) => {
-  res.render("User/payment");
+app.get("/payment",csrfProtection, (req, res) => {
+  res.render("User/payment",{ csrfToken: req.csrfToken() });
 });
-app.get("/paymentmethod", (req, res) => {
-  res.render("User/paymentMethod");
+app.get("/paymentmethod",csrfProtection, (req, res) => {
+  res.render("User/paymentMethod",{ csrfToken: req.csrfToken() });
 });
-app.get("/result", (req, res) => {
-  res.render("User/result");
+app.get("/result",csrfProtection, (req, res) => {
+  res.render("User/result",{ csrfToken: req.csrfToken() });
 });
-app.get("/resultTT", (req, res) => {
-  res.render("User/resultTT");
+app.get("/resultTT",csrfProtection, (req, res) => {
+  res.render("User/resultTT",{ csrfToken: req.csrfToken() });
 });
-app.get("/coupons", (req, res) => {
+app.get("/coupons", csrfProtection,(req, res) => {
   // Rendecouponsidebar template dir
-  res.render("coupons");
+  res.render("coupons",{ csrfToken: req.csrfToken() });
 });
-app.get("/dashboard", authenticateToken, requireAdmin, (req, res) => {
-  res.render("Admin/dashboard");
+app.get("/dashboard",csrfProtection, authenticateToken, requireAdmin, (req, res) => {
+  res.render("Admin/dashboard",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/agentInfo", authenticateToken, (req, res) => {
-  res.render("User/agentInfo");
+app.get("/agentInfo",csrfProtection, (req, res) => {
+  res.render("User/agentInfo",{ csrfToken: req.csrfToken() });
 });
-app.get("/ManageRoom/:id", authenticateToken, requireAdmin, (req, res) => {
+app.get("/ManageRoom/:id",csrfProtection, authenticateToken, requireAdmin, (req, res) => {
   var hotelId = req.params.id;
-  res.render("Admin/partials/room", { roomId: hotelId });
+  res.render("Admin/partials/room", { roomId: hotelId },{ csrfToken: req.csrfToken() });
 });
-app.get(
-  "/ManageHotelService/:id",
-  authenticateToken,
-  requireAdmin,
-  (req, res) => {
-    var hotelId = req.params.id;
-    res.render("Admin/partials/HotelService", { id: hotelId });
-  }
-);
-
-app.get("/myBooking", (req, res) => {
-  res.render("User/myBooking");
+app.get("/ManageHotelService/:id",csrfProtection,authenticateToken, requireAdmin, (req, res) => {
+  var hotelId = req.params.id;
+  res.render("Admin/partials/HotelService", { id: hotelId },{ csrfToken: req.csrfToken() });
 });
 
-app.get("/ManageRoomService/:id", (req, res) => {
+app.get("/myBooking",csrfProtection, (req, res) => {
+  res.render("User/myBooking",{ csrfToken: req.csrfToken() });
+});
+
+app.get("/ManageRoomService/:id",csrfProtection, (req, res) => {
   var roomId = req.params.id;
-  res.render("Admin/partials/RoomService", { id: roomId });
+  res.render("Admin/partials/RoomService", { id: roomId },{ csrfToken: req.csrfToken() });
 });
 
 function ChangeToSlug(title) {
@@ -207,14 +206,14 @@ function findHotelBySlug(slug) {
     });
 }
 
-app.get("/hotel/:slug/:id", (req, res) => {
+app.get("/hotel/:slug/:id",csrfProtection, (req, res) => {
   var slug = req.params.slug;
   var hotel = findHotelBySlug(slug);
 
   if (hotel) {
     var hotelId = hotel.id;
     console.log(hotelId);
-    res.render("User/hotel");
+    res.render("User/hotel",{ csrfToken: req.csrfToken() });
   } else {
     alert("loi");
   }
@@ -225,8 +224,8 @@ app.get("/hotel/:slug/:id", (req, res) => {
 //   res.render("User/userInfor", { id: id });
 // });
 
-app.get("/userInfor", (req, res) => {
-  res.render("User/userInfor");
+app.get("/userInfor",csrfProtection, (req, res) => {
+  res.render("User/userInfor",{ csrfToken: req.csrfToken() });
 });
 
 // app.get("/admin", (req, res) => {
@@ -236,11 +235,11 @@ app.get("/userInfor", (req, res) => {
 // app.get("/admin/hotel", (req, res) => {
 //   res.render("Admin/partials/agent");
 // });
-app.get("/admin/addHotel", (req, res) => {
-  res.render("Admin/partials/agentForm");
+app.get("/admin/addHotel",csrfProtection, (req, res) => {
+  res.render("Admin/partials/agentForm",{ csrfToken: req.csrfToken() });
 });
-app.get("/agent/addHotel", (req, res) => {
-  res.render("Admin/partials/agentForm");
+app.get("/agent/addHotel",csrfProtection, (req, res) => {
+  res.render("Admin/partials/agentForm",{ csrfToken: req.csrfToken() });
 });
 // app.get("/admin/Hotel/Service", (req, res) => {
 //   res.render("Admin/partials/HotelService");
@@ -255,21 +254,22 @@ app.get("/agent/addHotel", (req, res) => {
 //   res.render("Admin/partials/Booking");
 // });
 
-app.get("/ForgotPass", (req, res) => {
-  res.render("User/forgotPass");
+app.get("/ForgotPass",csrfProtection, (req, res) => {
+  res.render("User/forgotPass",{ csrfToken: req.csrfToken() });
 });
 
-app.get("/resetpassword", (req, res) => {
-  res.render("user/resetPass");
+app.get("/resetpassword",csrfProtection, (req, res) => {
+  res.render("user/resetPass",{ csrfToken: req.csrfToken() });
 });
-app.get("/login-success", (req, res) => {
-  res.render("user/loginSuccess");
+app.get("/login-success",csrfProtection, (req, res) => {
+  res.render("user/loginSuccess",{ csrfToken: req.csrfToken() });
 });
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Middleware to refresh access token
-app.post("/token", async (req, res) => {
+app.post("/token",csrfProtection, async (req, res) => {
   const refreshToken = req.body.token;
   if (!refreshToken) return res.sendStatus(401);
 
@@ -287,6 +287,8 @@ app.post("/token", async (req, res) => {
     res.json({ accessToken });
   });
 });
+
+
 
 // Configure Handlebars
 const hbs = exphbs.create({

@@ -12,9 +12,9 @@ const {
   deleteUrlImageRoom,
   getAllUrlImageRoom,
 } = require("../controllers/urlImageRoom.controller.js");
-
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 // Create a new UrlImageHotel
-urlImageRoom.post("/", uploadCloud.array("room", 10), createUrlImageRoom);
+urlImageRoom.post("/",parseForm, csrfProtection, uploadCloud.array("room", 10), createUrlImageRoom);
 
 // Get UrlImageHotel by ID
 urlImageRoom.get("/", getUrlImageRoomById);
@@ -22,7 +22,7 @@ urlImageRoom.get("/", getUrlImageRoomById);
 urlImageRoom.get("/getAllUrlImageRoom", getAllUrlImageRoom);
 
 // Delete UrlImageHotel by ID
-urlImageRoom.delete("/:id", deleteUrlImageRoom);
+urlImageRoom.delete("/:id",parseForm, csrfProtection, deleteUrlImageRoom);
 
 module.exports = {
   urlImageRoom,
