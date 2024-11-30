@@ -6,8 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.querySelector('.chat-input input[type="file"]');
   const sendBtn = document.getElementById("send-btn");
 
-  const token = localStorage.getItem("token");
-  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
 
   $("#send-btn").click(function () {
     try {
@@ -22,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
           credentials: "include",
           headers: {
             "CSRF-Token": tokencsrf,
-            token: token,
           },
           data: formData,
           processData: false,
@@ -48,14 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Đà Lạt": "Đà Lạt",
               };
 
-              const layTinhThanh = (tenDiaDiem) => diaDiemToTinhThanh[tenDiaDiem] || tenDiaDiem;
+              const layTinhThanh = (tenDiaDiem) =>
+                diaDiemToTinhThanh[tenDiaDiem] || tenDiaDiem;
               const tinh = layTinhThanh(locationName);
 
               setTimeout(() => {
                 window.location.href = `/hotelList?destination=${tinh}`;
               }, 1500);
             } else {
-              const message = "Hình ảnh bạn cung cấp không phù hợp với hệ thống của chúng tôi.";
+              const message =
+                "Hình ảnh bạn cung cấp không phù hợp với hệ thống của chúng tôi.";
               chatbox.appendChild(createChatLi(message, "incoming"));
               console.log("Không có địa điểm nào có score > 0.5.");
             }
