@@ -8,6 +8,7 @@ const ratelimit = require("express-rate-limit");
 
 // const { checkExist } = require("../middlewares/validations/checkExist");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
+const { uploadImage } = require("../middlewares/upload/upload-image");
 const express = require("express");
 const {
   register,
@@ -49,9 +50,12 @@ userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
 userRouter.get("/getAllUser", getAllUser);
 userRouter.get("/getDetailUser/:id", getDetailUser);
 userRouter.get("/manageUsers", displayUser);
+
 userRouter.post(
   "/updateImage/:id",
+  uploadImage,
   limiter,
+
   uploadCloud.single("user"),
   updateImage
 );

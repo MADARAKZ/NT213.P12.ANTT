@@ -2,29 +2,57 @@ const { UrlImageHotel } = require("../models");
 const { Op, literal } = require("express");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const createUrlImageHotel = async (req, res) => {
-  try {
-    const { HotelId } = req.body;
-    const { files } = req;
-    console.log(files);
-    // Iterate over each file and create a corresponding UrlImageHotel record
-    for (const file of files) {
-      const imagePath = file.path;
-      const name = file.filename;
+const { body, validationResult } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 
-      // Create UrlImageHotel record associated with the new hotel
-      const imageUrlRecord = await UrlImageHotel.create({
-        url: imagePath,
-        file_name: name,
-        HotelId: HotelId,
+const createUrlImageHotel = [
+  // Validate HotelId
+  body("HotelId").notEmpty().withMessage("Hotel ID is required"),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, ["HotelId"]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const { HotelId } = req.body;
+      const { files } = req;
+
+      if (!files || files.length === 0) {
+        return res.status(400).send("No files uploaded.");
+      }
+
+      console.log(files);
+      // Iterate over each file and create a corresponding UrlImageHotel record
+      for (const file of files) {
+        const imagePath = file.path;
+        const name = file.filename;
+
+        // Create UrlImageHotel record associated with the hotel
+        const imageUrlRecord = await UrlImageHotel.create({
+          url: imagePath,
+          file_name: name,
+          HotelId: HotelId,
+        });
+
+        console.log("Created UrlImageHotel record:", imageUrlRecord);
+      }
+
+      res.status(201).send("Images uploaded successfully");
+    } catch (error) {
+      console.error("Error creating UrlImageHotel:", error);
+      res.status(500).json({
+        error: "Failed to create UrlImageHotel",
+        message: error.message,
       });
     }
-    res.status(201).send("successful");
-  } catch (error) {
-    console.log("Error creating UrlHotel:", error);
-    res.status(500).send(error);
-  }
-};
+  },
+];
 
 const getUrlImageHotelById = async (req, res) => {
   const { HotelId } = req.query; // Lấy hotelId từ URL parameter

@@ -1,16 +1,16 @@
-td{
+#xuila td{
     padding: 5px 10px;
 }
 
-table{
+#xuila{
     border-collapse: collapse;
 }
 
-input{
+#docla{
     width: auto; background: red; color: #fff; border: none; padding: 5px 20px;
 }
 
-img{
+#preview{
     max-width: 200px; display: none;
 }
 

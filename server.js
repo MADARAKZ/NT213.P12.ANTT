@@ -10,7 +10,6 @@ var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
 const helmet = require("helmet");
-const nonceMiddleware = require("./middlewares/csp/nonce");
 
 const {
   csrfProtection,

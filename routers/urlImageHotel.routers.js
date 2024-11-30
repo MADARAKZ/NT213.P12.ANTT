@@ -10,18 +10,34 @@ const {
   updateUrlImageHotel,
   getAllUrlImageHotel,
 } = require("../controllers/urlimagehotel.controller");
-var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
+var {
+  csrfProtection,
+  parseForm,
+} = require("../middlewares/authen/csrfProtection");
 
 // Create a new UrlImageHotel
-urlImageHotel.post("/",parseForm, csrfProtection, uploadCloud.array("hotel", 10), createUrlImageHotel);
+urlImageHotel.post(
+  "/",
+  parseForm,
+  uploadImage2,
+  csrfProtection,
+  uploadCloud.array("hotel", 10),
+  createUrlImageHotel
+);
 
 // Get UrlImageHotel by ID
 urlImageHotel.get("/", getUrlImageHotelById);
 // Update UrlImageHotel by ID
-urlImageHotel.put("/:id",parseForm, csrfProtection, updateUrlImageHotel);
+urlImageHotel.put("/:id", parseForm, csrfProtection, updateUrlImageHotel);
 
 // Delete UrlImageHotel by ID
-urlImageHotel.delete("/",parseForm, csrfProtection, deleteUrlImageHotel);
+urlImageHotel.delete(
+  "/",
+  parseForm,
+  csrfProtection,
+  deleteImageMiddleware,
+  deleteUrlImageHotel
+);
 
 urlImageHotel.get("/getAllHotelImg", getAllUrlImageHotel);
 

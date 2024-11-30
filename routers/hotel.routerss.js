@@ -12,17 +12,45 @@ const {
   searchIdHotelByName,
   getAllMaps,
 } = require("../controllers/hotel.controllers.js");
-var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
+var {
+  csrfProtection,
+  parseForm,
+  cookieParser,
+} = require("../middlewares/authen/csrfProtection");
 const HotelRouter = express.Router();
-HotelRouter.post("/",parseForm, csrfProtection, uploadCloud.array("hotel", 10), createHotel);
+HotelRouter.post(
+  "/",
+  parseForm,
+  csrfProtection,
+  uploadImage2,
+  uploadCloud.array("hotel", 10),
+  createHotel
+);
 // HotelRouter.post("/", createHotel);
 HotelRouter.get("/getAllMap", getAllMaps);
 HotelRouter.get("/", getAllHotel);
 HotelRouter.get("/:id", getDetailHotel);
 
-HotelRouter.put("/updateHotel/:id", parseForm, csrfProtection,checkExist(Hotels), updateHotel);
-HotelRouter.delete("/deleteHotel/:id", parseForm, csrfProtection,checkExist(Hotels), deleteHotel);
-HotelRouter.post("/getIdByHotelName",parseForm, csrfProtection, searchIdHotelByName);
+HotelRouter.put(
+  "/updateHotel/:id",
+  parseForm,
+  csrfProtection,
+  checkExist(Hotels),
+  updateHotel
+);
+HotelRouter.delete(
+  "/deleteHotel/:id",
+  parseForm,
+  csrfProtection,
+  checkExist(Hotels),
+  deleteHotel
+);
+HotelRouter.post(
+  "/getIdByHotelName",
+  parseForm,
+  csrfProtection,
+  searchIdHotelByName
+);
 
 module.exports = {
   HotelRouter,

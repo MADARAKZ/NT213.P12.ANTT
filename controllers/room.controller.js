@@ -7,13 +7,67 @@ const {
 } = require("../models");
 const cloudinary = require("cloudinary").v2;
 const { Op } = require("sequelize");
-const createRoom = async (req, res) => {
-  const { name, status, price, quantity, quantity_people, hotelId, type_bed } =
-    req.body;
-  console.log(req.body);
-  try {
-    // Create a new room record in the database
-    const newRoom = await Room.create({
+const { validationResult } = require("express-validator");
+const { body } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
+
+const createRoom = [
+  // Validate các trường
+  body("name")
+    .notEmpty()
+    .withMessage("Room name is required")
+    .isLength({ max: 100 })
+    .withMessage("Room name must not exceed 100 characters"),
+  body("status")
+    .notEmpty()
+    .withMessage("Room status is required")
+    .isIn(["available", "unavailable", "maintenance"])
+    .withMessage(
+      "Room status must be one of 'available', 'unavailable', or 'maintenance'"
+    ),
+  body("price")
+    .notEmpty()
+    .withMessage("Room price is required")
+    .isFloat({ min: 0 })
+    .withMessage("Room price must be a positive number"),
+  body("quantity")
+    .notEmpty()
+    .withMessage("Room quantity is required")
+    .isInt({ min: 1 })
+    .withMessage("Room quantity must be at least 1"),
+  body("quantity_people")
+    .notEmpty()
+    .withMessage("Number of people allowed is required")
+    .isInt({ min: 1 })
+    .withMessage("Number of people must be at least 1"),
+  body("hotelId").notEmpty().withMessage("Hotel ID is required"),
+  body("type_bed")
+    .notEmpty()
+    .withMessage("Type of bed is required")
+    .isIn(["single", "double", "queen", "king"])
+    .withMessage(
+      "Type of bed must be one of 'single', 'double', 'queen', or 'king'"
+    ),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, [
+      "name",
+      "status",
+      "price",
+      "quantity",
+      "quantity_people",
+      "hotelId",
+      "type_bed",
+    ]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
       name,
       status,
       price,
@@ -21,36 +75,49 @@ const createRoom = async (req, res) => {
       quantity_people,
       hotelId,
       type_bed,
-    });
+    } = req.body;
 
-    // Retrieve uploaded files from the request
-    const { files } = req;
-    console.log(files);
-    // Iterate over each file and create a corresponding UrlImageRoom record
-    for (const file of files) {
-      const imagePath = file.path;
-      const name = file.filename;
-
-      // Create UrlImageHotel record associated with the new hotel
-      const imageUrlRecord = await UrlImageRoom.create({
-        url: imagePath,
-        file_name: name,
-        IdRoom: newRoom.id,
+    try {
+      // Create a new room record in the database
+      const newRoom = await Room.create({
+        name,
+        status,
+        price,
+        quantity,
+        quantity_people,
+        hotelId,
+        type_bed,
       });
 
-      console.log("Created UrlImageRoom record:", imageUrlRecord);
-    }
+      // Retrieve uploaded files from the request
+      const { files } = req;
+      console.log(files);
+      // Iterate over each file and create a corresponding UrlImageRoom record
+      for (const file of files) {
+        const imagePath = file.path;
+        const fileName = file.filename;
 
-    // Send a success response with the newly created room
-    res.status(201).send(newRoom);
-  } catch (error) {
-    // Handle errors and send an error response
-    console.error("Error creating room:", error);
-    res
-      .status(500)
-      .send({ error: "Failed to create room", message: error.message });
-  }
-};
+        // Create UrlImageRoom record associated with the new room
+        const imageUrlRecord = await UrlImageRoom.create({
+          url: imagePath,
+          file_name: fileName,
+          IdRoom: newRoom.id,
+        });
+
+        console.log("Created UrlImageRoom record:", imageUrlRecord);
+      }
+
+      // Send a success response with the newly created room
+      res.status(201).send(newRoom);
+    } catch (error) {
+      // Handle errors and send an error response
+      console.error("Error creating room:", error);
+      res
+        .status(500)
+        .send({ error: "Failed to create room", message: error.message });
+    }
+  },
+];
 const getAllRoom = async (req, res) => {
   const { hotelId } = req.query;
 

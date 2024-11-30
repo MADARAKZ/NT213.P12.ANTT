@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/css/commentForm.css">
 <form name="reviewForm" id="reviewForm" method="post" action="">
-  <table>
-    <tr>
+  <table id="xuila">
+    <tr >
       <td >Đánh giá số sao</td>
       <td >
          {{>starRating}} 
@@ -16,7 +16,7 @@
     <tr>
       <td >Tệp tin</td>
       <td >
-        <input type="file" name="file" id="fileInput" onchange="previewImage()" />
+        <input  type="file" name="file" id="fileInput" onchange="previewImage()" />
         <br>
         <img id="preview" src="#" alt="Hình ảnh xem trước" >
       </td>
@@ -24,33 +24,11 @@
     <tr>
       <td ></td>
       <td >
-        <input type="submit"  value="Gửi feedback" onclick="resetPreview()" />
+        <input id="docla" type="submit"  value="Gửi feedback" onclick="resetPreview()" />
       </td>
     </tr>
   </table>
 </form>
 
-<script>
-  function previewImage() {
-    var fileInput = document.getElementById('fileInput');
-    var preview = document.getElementById('preview');
 
-    // Kiểm tra xem người dùng đã chọn tệp tin hay chưa
-    if (fileInput.files && fileInput.files[0]) {
-      var reader = new FileReader();
-
-      reader.onload = function(e) {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-      }
-
-      reader.readAsDataURL(fileInput.files[0]);
-    }
-  }
-
-  function resetPreview() {
-    var preview = document.getElementById('preview');
-    preview.src = '';
-    preview.style.display = 'none';
-  }
-</script>
+<script src="/js/comment.js"></script>

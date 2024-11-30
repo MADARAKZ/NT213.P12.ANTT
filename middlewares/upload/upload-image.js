@@ -1,26 +1,30 @@
 const mkdirp = require("mkdirp");
 const multer = require("multer");
+const path = require("path");
 
+// Tạo middleware uploadImage
 const uploadImage = (type) => {
-  const made = mkdirp.sync(`./public/image/${type}`);
+  // Tạo thư mục nếu chưa tồn tại
+  const dir = `./public/image/${type}`;
+  mkdirp.sync(dir);
 
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, `./public/image/${type}`); // Đặt nơi lưu tệp
+      cb(null, dir); // Đặt nơi lưu tệp
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + "_" + file.originalname); // Đổi tên tệp
+      const uniqueSuffix = Date.now() + "_" + Math.round(Math.random() * 1e9); // Tạo tên tệp duy nhất
+      cb(null, uniqueSuffix + path.extname(file.originalname)); // Đổi tên tệp và giữ lại phần mở rộng
     },
   });
 
   const upload = multer({
     storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn kích thước tệp tối đa là 5MB
     fileFilter: function (req, file, cb) {
       // Danh sách các phần mở rộng hợp lệ
       const allowedExtensions = [".png", ".jpg", ".jpeg"];
-
-      // Lấy phần mở rộng tệp
-      const fileExtension = file.originalname.slice(-4).toLowerCase(); // Kiểm tra 4 ký tự cuối của tên tệp
+      const fileExtension = path.extname(file.originalname).toLowerCase(); // Lấy phần mở rộng tệp
 
       // Kiểm tra xem phần mở rộng có hợp lệ không
       if (allowedExtensions.includes(fileExtension)) {
@@ -31,7 +35,20 @@ const uploadImage = (type) => {
     },
   });
 
-  return upload.single(type); // Chỉ tải lên một tệp mỗi lần
+  return (req, res, next) => {
+    upload.single(type)(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        // Xử lý lỗi từ multer
+        return res.status(400).json({ error: err.message });
+      } else if (err) {
+        // Xử lý lỗi khác
+        return res
+          .status(500)
+          .json({ error: "Internal Server Error", details: err.message });
+      }
+      next(); // Tiếp tục xử lý nếu không có lỗi
+    });
+  };
 };
 
 module.exports = {

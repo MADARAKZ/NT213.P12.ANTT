@@ -10,6 +10,11 @@ function clearSelection() {
     radio.checked = false;
   });
 }
+
+function redirectToMap(hotelName) {
+  window.location.href =
+    "https://www.bing.com/maps?q=" + encodeURIComponent(hotelName);
+}
 // Function to update the displayed price value
 
 // Function to format currency for display

@@ -1,43 +1,61 @@
 const { Booking, Room, User, Hotels } = require("../models");
 const { Op } = require("sequelize");
 
-const createBooking = async (req, res) => {
-  const {
-    room_id,
-    user_id,
-    check_in_date,
-    check_out_date,
-    total_price,
-    status,
-    special_requests,
-    quantity,
-    full_name,
-    hotel_id,
-  } = req.body;
+const { validationResult } = require("express-validator");
+const { body } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 
-  try {
-    // Kiểm tra tính khả dụng của phòng
-    const room = await Room.findOne({ where: { id: room_id } });
-    if (!room) {
-      return res.status(400).send({ message: "Room not found" });
+const createBooking = [
+  // Validate các trường
+  body("room_id").notEmpty().withMessage("Room ID is required"),
+  body("user_id").notEmpty().withMessage("User ID is required"),
+  body("check_in_date")
+    .notEmpty()
+    .withMessage("Check-in date is required")
+    .isISO8601()
+    .withMessage("Check-in date must be in valid date format"),
+  body("check_out_date")
+    .notEmpty()
+    .withMessage("Check-out date is required")
+    .isISO8601()
+    .withMessage("Check-out date must be in valid date format")
+    .custom((check_out_date, { req }) => {
+      const check_in_date = req.body.check_in_date;
+      if (new Date(check_out_date) <= new Date(check_in_date)) {
+        throw new Error("Check-out date must be after check-in date");
+      }
+      return true;
+    }),
+  body("total_price").notEmpty().withMessage("Total price is required"),
+  body("quantity")
+    .notEmpty()
+    .withMessage("Quantity is required")
+    .isInt({ min: 1 })
+    .withMessage("Quantity must be at least 1"),
+  body("full_name").notEmpty().withMessage("Full name is required"),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, [
+      "room_id",
+      "user_id",
+      "check_in_date",
+      "check_out_date",
+      "total_price",
+      "status",
+      "special_requests",
+      "quantity",
+      "full_name",
+      "hotel_id",
+    ]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const bookedQuantity = await Booking.sum("quantity", {
-      where: {
-        room_id,
-        check_in_date: { [Op.lt]: check_out_date },
-        check_out_date: { [Op.gt]: check_in_date },
-      },
-    });
-
-    if ((bookedQuantity || 0) + quantity > room.quantity) {
-      return res
-        .status(400)
-        .send({ message: `Not enough rooms available for the selected dates` });
-    }
-
-    // Tạo một bản ghi Booking
-    const newBooking = await Booking.create({
+    const {
       room_id,
       user_id,
       check_in_date,
@@ -48,14 +66,50 @@ const createBooking = async (req, res) => {
       quantity,
       full_name,
       hotel_id,
-    });
+    } = req.body;
 
-    res.status(201).send(newBooking);
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    res.status(500).send(error);
-  }
-};
+    try {
+      // Kiểm tra tính khả dụng của phòng
+      const room = await Room.findOne({ where: { id: room_id } });
+      if (!room) {
+        return res.status(400).send({ message: "Room not found" });
+      }
+
+      const bookedQuantity = await Booking.sum("quantity", {
+        where: {
+          room_id,
+          check_in_date: { [Op.lt]: check_out_date },
+          check_out_date: { [Op.gt]: check_in_date },
+        },
+      });
+
+      if ((bookedQuantity || 0) + quantity > room.quantity) {
+        return res.status(400).send({
+          message: `Not enough rooms available for the selected dates`,
+        });
+      }
+
+      // Tạo một bản ghi Booking
+      const newBooking = await Booking.create({
+        room_id,
+        user_id,
+        check_in_date,
+        check_out_date,
+        total_price,
+        status,
+        special_requests,
+        quantity,
+        full_name,
+        hotel_id,
+      });
+
+      res.status(201).send(newBooking);
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      res.status(500).send(error);
+    }
+  },
+];
 
 const getAllBooking = async (req, res) => {
   const {

@@ -11,43 +11,95 @@ const { sequelize } = require("../models");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 // const amenities = require("../models/amenities");
-const createHotel = async (req, res) => {
-  const { name, star, map, TypeHotel, payment, ownerId } = req.body;
+const { validationResult } = require("express-validator");
+const { body } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize"); // Import sanitizeObject
 
-  try {
-    // Create the hotel record
-    const newHotel = await Hotels.create({
-      name,
-      star,
-      map,
-      TypeHotel,
-      payment,
-      ownerId,
-    });
-    console.log(newHotel);
-    const { files } = req;
-    console.log(files);
-    // Iterate over each file and create a corresponding UrlImageHotel record
-    for (const file of files) {
-      const imagePath = file.path;
-      const name = file.filename;
+const createHotel = [
+  // Validate các trường
+  body("name").trim().notEmpty().withMessage("Hotel name is required"),
 
-      // Create UrlImageHotel record associated with the new hotel
-      const imageUrlRecord = await UrlImageHotel.create({
-        url: imagePath,
-        file_name: name,
-        HotelId: newHotel.id,
-      });
-      console.log("Created UrlImageHotel record:", imageUrlRecord);
+  body("star")
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Star rating must be between 1 and 5"),
+
+  body("map").trim().notEmpty().withMessage("Map link is required"),
+
+  body("TypeHotel").trim().notEmpty().withMessage("Type of hotel is required"),
+
+  body("payment").trim().notEmpty().withMessage("Payment method is required"),
+
+  body("ownerId")
+    .notEmpty()
+    .withMessage("Owner ID is required")
+    .isInt()
+    .withMessage("Owner ID must be an integer"),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, [
+      "name",
+      "star",
+      "map",
+      "TypeHotel",
+      "payment",
+      "ownerId",
+    ]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    // Send the response with the newly created hotel
-    res.status(201).send(newHotel);
-  } catch (error) {
-    console.error("Error creating hotel:", error);
-    res.status(500).send(error);
-  }
-};
+    const { name, star, map, TypeHotel, payment, ownerId } = req.body;
+    const { files } = req; // Giả định files đã được xử lý bởi middleware như multer
+
+    try {
+      // Create the hotel record
+      const newHotel = await Hotels.create({
+        name,
+        star,
+        map,
+        TypeHotel,
+        payment,
+        ownerId,
+      });
+      console.log("Created hotel record:", newHotel);
+
+      // Kiểm tra nếu có tệp được tải lên
+      if (files && files.length > 0) {
+        // Iterate over each file and create a corresponding UrlImageHotel record
+        for (const file of files) {
+          const imagePath = file.path;
+          const filename = file.filename;
+
+          // Create UrlImageHotel record associated with the new hotel
+          const imageUrlRecord = await UrlImageHotel.create({
+            url: imagePath,
+            file_name: filename,
+            HotelId: newHotel.id,
+          });
+          console.log("Created UrlImageHotel record:", imageUrlRecord);
+        }
+      } else {
+        console.warn("No images uploaded for this hotel.");
+      }
+
+      // Send the response with the newly created hotel
+      return res.status(201).json({
+        message: "Hotel created successfully",
+        hotel: newHotel,
+      });
+    } catch (error) {
+      console.error("Error creating hotel:", error);
+      return res.status(500).json({
+        error: "Internal Server Error",
+        details: error.message,
+      });
+    }
+  },
+];
 
 function getOrderCriteria(sortType) {
   switch (sortType) {

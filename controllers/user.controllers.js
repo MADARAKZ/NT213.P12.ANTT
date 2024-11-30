@@ -3,81 +3,98 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 require("dotenv").config();
-const register = async (req, res) => {
-  const { name, email, password, confirmpassword, numberPhone, type } =
-    req.body;
-  try {
-    // kiểm tra đã nhập đủ các trường thông tin hay chưa
-    if (!name || !email || !password || !confirmpassword || !numberPhone) {
-      return res
-        .status(400)
-        .json({ message: "Vui lòng nhập đầy đủ các trường thông tin" });
-    }
+const { validationResult } = require("express-validator"); // Import validationResult
+const { body } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 
-    // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp nhau không
-    if (password !== confirmpassword) {
-      return res
-        .status(400)
-        .json({ message: "Mật khẩu và xác nhận mật khẩu không khớp" });
-    }
+const register = [
+  // Làm sạch dữ liệu đầu vào
+  (req, res, next) => {
+    sanitizeObject(req.body, ["name", "email", "password", "numberPhone"]);
+    next();
+  },
 
-    // Kiểm tra độ dài mật khẩu
-    if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
-    }
+  // Validate các trường
+  body("name").trim().notEmpty().withMessage("Vui lòng nhập tên"),
 
-    // Kiểm tra các yêu cầu về độ mạnh của mật khẩu
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        message:
-          "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Email không hợp lệ")
+    .custom(async (value) => {
+      const existingUser = await User.findOne({ where: { email: value } });
+      if (existingUser) {
+        throw new Error("Email đã tồn tại");
+      }
+    }),
+
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Mật khẩu phải có ít nhất 8 ký tự")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage(
+      "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"
+    ),
+
+  body("confirmpassword").custom((value, { req }) => {
+    if (value !== req.body.password) {
+      throw new Error("Mật khẩu và xác nhận mật khẩu không khớp");
+    }
+    return true;
+  }),
+
+  body("numberPhone")
+    .trim()
+    .matches(/(84|0[3|5|7|8|9])+([0-9]{8})\b/)
+    .withMessage("Số điện thoại không hợp lệ")
+    .custom(async (value) => {
+      const existingUser = await User.findOne({
+        where: { numberPhone: value },
       });
+      if (existingUser) {
+        throw new Error("Số điện thoại đã tồn tại");
+      }
+    }),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    // Kiểm tra email hợp lệ
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Email không hợp lệ" });
-    }
+    const { name, email, password, numberPhone, type } = req.body;
 
-    // Kiểm tra số điện thoại hợp lệ (số điện thoại Việt Nam)
-    const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-    if (!phoneRegex.test(numberPhone)) {
-      return res.status(400).json({ message: "Số điện thoại không hợp lệ" });
-    }
+    try {
+      // Băm mật khẩu
+      const salt = await bcrypt.genSalt(10);
+      const hashPassword = await bcrypt.hash(password, salt);
 
-    // Kiểm tra xem email hoặc số điện thoại đã tồn tại hay chưa
-    const existingUser = await User.findOne({
-      where: {
-        [Op.or]: [{ email }, { numberPhone }],
-      },
-    });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "Email hoặc số điện thoại đã tồn tại" });
-    }
+      // Tạo người dùng mới
+      const newUser = await User.create({
+        name,
+        email,
+        password: hashPassword,
+        numberPhone,
+        type,
+      });
 
-    // Nếu không tồn tại, tiến hành tạo người dùng mới
-    const salt = bcrypt.genSaltSync(10);
-    const hashPassword = bcrypt.hashSync(password, salt);
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashPassword,
-      numberPhone,
-      type,
-    });
-    return res.status(201).send(newUser);
-  } catch (error) {
-    console.error("Error registering user:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+      // Trả về thông tin người dùng mới
+      return res.status(201).json({
+        message: "User registered successfully",
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          numberPhone: newUser.numberPhone,
+        },
+      });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+];
 
 const loginGG = async (req, res) => {
   try {

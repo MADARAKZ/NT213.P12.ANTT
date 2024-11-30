@@ -1,31 +1,56 @@
 const { UrlImageRoom } = require("../models");
 const cloudinary = require("cloudinary").v2;
-const createUrlImageRoom = async (req, res) => {
-  {
+const { body, validationResult } = require("express-validator");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
+
+const createUrlImageRoom = [
+  // Validate IdRoom
+  body("IdRoom").notEmpty().withMessage("Room ID is required"),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, ["IdRoom"]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
       const { IdRoom } = req.body;
-
       const { files } = req;
+
+      if (!files || files.length === 0) {
+        return res.status(400).send("No files uploaded.");
+      }
+
       console.log(files);
-      // Iterate over each file and create a corresponding UrlImageHotel record
+      // Iterate over each file and create a corresponding UrlImageRoom record
       for (const file of files) {
         const imagePath = file.path;
         const name = file.filename;
 
-        // Create UrlImageHotel record associated with the new hotel
+        // Create UrlImageRoom record associated with the new room
         const imageUrlRecord = await UrlImageRoom.create({
           url: imagePath,
           file_name: name,
           IdRoom: IdRoom,
         });
+
+        console.log("Created UrlImageRoom record:", imageUrlRecord);
       }
-      res.status(201).send("successful");
+
+      res.status(201).send("Images uploaded successfully");
     } catch (error) {
-      console.log("Error creating UrlHotel:", error);
-      res.status(500).send(error);
+      console.error("Error creating UrlImageRoom:", error);
+      res.status(500).json({
+        error: "Failed to create UrlImageRoom",
+        message: error.message,
+      });
     }
-  }
-};
+  },
+];
 
 const getUrlImageRoomById = async (req, res) => {
   const { IdRoom } = req.query;

@@ -1,21 +1,86 @@
 const { Coupons } = require("../models");
-const create = async (req, res) => {
-  const { code, percent, begin, end } = req.body;
-  try {
-    // tao ra mot chuoi ngau nhien
-    // ma hoa chuoi salt + password
-    const newCoupon = await Coupons.create({
-      code,
-      percent,
-      begin,
-      end,
-    });
-    res.status(201).send(newCoupon);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-};
+const { validationResult } = require("express-validator");
+const { body } = require("express-validator");
+const crypto = require("crypto");
 
+const { sanitizeObject } = require("../middlewares/validations/sanitize"); // Import sanitizeObject
+
+const createCoupon = [
+  // Validate các trường
+  body("code")
+    .trim()
+    .optional() // Đánh dấu là tùy chọn vì có thể tạo mã ngẫu nhiên
+    .isLength({ max: 50 })
+    .withMessage("Coupon code must not exceed 50 characters"),
+
+  body("percent")
+    .notEmpty()
+    .withMessage("Discount percent is required")
+    .isFloat({ min: 0, max: 100 })
+    .withMessage("Discount percent must be between 0 and 100"),
+
+  body("begin")
+    .notEmpty()
+    .withMessage("Start date is required")
+    .isISO8601()
+    .withMessage("Start date must be in valid date format"),
+
+  body("end")
+    .notEmpty()
+    .withMessage("End date is required")
+    .isISO8601()
+    .withMessage("End date must be in valid date format")
+    .custom((end, { req }) => {
+      const begin = req.body.begin;
+      if (new Date(end) <= new Date(begin)) {
+        throw new Error("End date must be after the start date");
+      }
+      return true;
+    }),
+
+  // Xử lý sau khi validate
+  async (req, res) => {
+    // Sanitize request body
+    sanitizeObject(req.body, ["code", "percent", "begin", "end"]);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    let { code, percent, begin, end } = req.body;
+
+    try {
+      // Tạo chuỗi mã hóa ngẫu nhiên nếu code không được cung cấp
+      if (!code) {
+        const randomBytes = crypto.randomBytes(8).toString("hex");
+        code = `CPN-${randomBytes.toUpperCase()}`;
+      }
+
+      // Tạo coupon mới
+      const newCoupon = await Coupons.create({
+        code,
+        percent,
+        begin,
+        end,
+      });
+
+      // Trả về phản hồi thành công
+      return res.status(201).json({
+        message: "Coupon created successfully",
+        coupon: newCoupon,
+      });
+    } catch (error) {
+      console.error("Error creating coupon:", error);
+
+      // Phản hồi lỗi server
+      return res.status(500).json({
+        error: "Internal Server Error",
+        details: error.message,
+      });
+    }
+  },
+];
 const getAllCoupon = async (req, res) => {
   try {
     const couponList = await Coupons.findAll();
@@ -106,7 +171,7 @@ const getCouponByCode = async (req, res) => {
 };
 
 module.exports = {
-  create,
+  createCoupon,
   getAllCoupon,
   displayCoupon,
   editCoupon,
