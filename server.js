@@ -72,7 +72,6 @@ app.use(
 
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'",
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net",
         "https://apis.google.com",
@@ -80,18 +79,20 @@ app.use(
         "https://code.jquery.com/",
         "https://sandbox.vnpayment.vn",
         "https://teachablemachine.withgoogle.com",
-        "https://embed.pickaxeproject.com", // Allow scripts from Google APIs
+        "https://embed.pickaxeproject.com",
+        "https://www.google.com",
+        "https://www.gstatic.com/", // Allow scripts from Google APIs
         (req, res) => `'nonce-${res.locals.nonce}'`,
       ],
       scriptSrcAttr: ["'self'", "https://www.bing.com"], // Allow inline event handlers
       styleSrc: [
         "'self'", // Allow styles from the same origin
-        "'unsafe-inline'",
         "https://cdnjs.cloudflare.com", // Font Awesome, Bootstrap from CDN
         "https://fonts.googleapis.com", // Google Fonts from CDN
         "https://fonts.gstatic.com", // Google Fonts static resources
         "https://cdn.jsdelivr.net", // Bootstrap styles
-        "https://netdna.bootstrapcdn.com", // Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
+        "https://netdna.bootstrapcdn.com",
+        "https://unpkg.com/",// Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
         (req, res) => `'nonce-${res.locals.nonce}'`,
       ],
 
@@ -100,7 +101,8 @@ app.use(
         "https://res.cloudinary.com",
         "https://th.bing.com",
         "https://www.bing.com",
-        "https://phongreviews.com", // Cloudinary for images
+        "https://phongreviews.com", 
+        "https://www.gstatic.com/",// Cloudinary for images
         "data:", // Allow data URIs (used for inline images or icons)
       ],
 
@@ -109,7 +111,8 @@ app.use(
         "https://cdnjs.cloudflare.com", // Font Awesome
         "https://fonts.googleapis.com", // Google Fonts stylesheets
         "https://fonts.gstatic.com", // Google Fonts static resources
-        "https://netdna.bootstrapcdn.com", // Bootstrap fonts
+        "https://netdna.bootstrapcdn.com",
+        "https://unpkg.com/" // Bootstrap fonts
       ],
 
       connectSrc: [
@@ -126,14 +129,15 @@ app.use(
         "https://www.google.com",
         "https://www.bing.com",
         "https://teachablemachine.withgoogle.com",
-        "https://embed.pickaxeproject.com", // Example: embedding Google Maps
+        "https://embed.pickaxeproject.com",
+        "https://www.google.com/recaptcha/",
+         // Example: embedding Google Maps
       ],
 
       upgradeInsecureRequests: [], // Optionally enforce all requests to be over HTTPS (optional)
     },
   })
 );
-
 app.get("/image/classify", async (req, res) => {
   const { url } = req.query;
 
