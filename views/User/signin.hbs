@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
-     <meta name="csrf-token" content="{{csrfToken}}">
+    <meta name="csrf-token" content="{{csrfToken}}" />
     <link rel="stylesheet" href="/css/sign_in.css" />
     <!-- icon  -->
     <link
@@ -48,17 +48,23 @@
   <body>
     <div class="container-login">
       <div class="wrapper">
-        <form action="/api/v1/users/login" method="POST" id="login-form">
+        <form action="/api/v1/users/login" method="POST">
           <!-- Ensure method and action are set -->
           <h1>Login</h1>
-           <div class="input-box">
-            <input id="email" name="email" type="text" placeholder="Email" required /> <!-- Add name attribute -->
+          <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+          <div class="input-box">
+            <input
+              id="email"
+              name="email"
+              type="text"
+              placeholder="Email"
+              required
+            />
+            <!-- Add name attribute -->
             <i class="bx bxs-user"></i>
             <!-- Vị trí hiển thị lỗi cho email -->
             <span id="email-error" class="error-message"></span>
           </div>
-
-          <!-- Password Input -->
           <div class="input-box">
             <input
               id="password"
@@ -67,26 +73,22 @@
               placeholder="Password"
               required
             />
+            <!-- Add name attribute -->
             <i class="bx bxs-lock-alt"></i>
             <!-- Vị trí hiển thị lỗi cho mật khẩu -->
             <span id="password-error" class="error-message"></span>
           </div>
-
-          <!-- Error Message Modal -->
           <div
             class="modal-body"
             id="errorMessageModal"
-            style="margin-bottom: 16px; margin-top: -20px"
+            style="margin-bottom:16px; margin-top:-20px"
           >
             <!-- Error message will be inserted here -->
           </div>
-
           <div class="remember-forgot">
-            <label></label>
+
             <a href="/ForgotPass">Forgot Password</a>
           </div>
-
-          <!-- reCAPTCHA -->
           <div
             class="recaptcha-container"
             style="margin: 15px 0; display: flex; justify-content: center;"
@@ -96,16 +98,10 @@
               data-sitekey="6Lfv34wqAAAAAJ3YMjekI0NPatFxdg6R2NDZNyXD"
             ></div>
           </div>
-
-          <!-- Login Button -->
           <button type="submit" class="btn">Login</button>
-
-          <!-- Register Link -->
           <div class="register-link">
             <p>Don't have an account? <a href="/register">Register</a></p>
           </div>
-
-          <!-- Google Login Button -->
           <button class="google-login-btn">
             <img
               src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -113,9 +109,10 @@
               style="margin-left: 60px;"
             />
             <a
-              href="/api/v1/users/auth/google"
-              style="text-decoration: none;"
+              href="http://localhost:3030/api/v1/users/auth/google"
+              style=" text-decoration: none;"
             >Login with Google</a>
+
           </button>
         </form>
       </div>
