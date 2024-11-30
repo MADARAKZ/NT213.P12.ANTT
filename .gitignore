@@ -1,6 +1,7 @@
 # Các tệp và thư mục không cần upload lên Git
-node_modules/
 .env
+node_modules/
+
 *.log
 
 # Nếu có thư mục build hoặc dist, bạn cũng có thể thêm vào
