@@ -23,10 +23,10 @@ const {
   requireCustomer,
 } = require("./middlewares/authen/auth.middleware");
 const c = require("config");
+const { constants } = require("buffer");
 require("dotenv").config();
 const app = express();
 // Sử dụng session middleware trước nếu bạn cần dùng session
-
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true })); // Ensure this line is present
 app.use(express.json());
@@ -34,7 +34,10 @@ app.use(cors({
   origin: 'http://localhost:3030', // Domain của frontend
   credentials: true               // Đảm bảo gửi và nhận cookies
 }));
-
+app.use((req, res, next) => {
+  logger.info(`Request: ${req.method} ${req.url}`);
+  next();
+});
 
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
