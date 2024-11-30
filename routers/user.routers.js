@@ -1,4 +1,3 @@
-
 const passport = require("passport");
 
 const jwt = require("jsonwebtoken");
@@ -26,7 +25,10 @@ const {
   Logout,
 } = require("../controllers/user.controllers");
 
-var { csrfProtection, parseForm } = require("../middlewares/authen/csrfProtection"); 
+var {
+  csrfProtection,
+  parseForm,
+} = require("../middlewares/authen/csrfProtection");
 
 const userRouter = express.Router();
 const limiter = ratelimit({
@@ -35,15 +37,15 @@ const limiter = ratelimit({
   message: "Too many API request from this IP",
 });
 
-userRouter.post("/register", limiter,parseForm, csrfProtection, register);
+userRouter.post("/register", limiter, parseForm, csrfProtection, register);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
 
-userRouter.post("/login", limiter,parseForm, csrfProtection, login);
-userRouter.post("/loginGG", limiter,parseForm, csrfProtection, loginGG);
-userRouter.post("/logout", limiter,parseForm, csrfProtection,Logout);
+userRouter.post("/login", limiter, parseForm, csrfProtection, login);
+userRouter.post("/loginGG", limiter, parseForm, csrfProtection, loginGG);
+userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
 userRouter.get("/getAllUser", getAllUser);
 userRouter.get("/getDetailUser/:id", getDetailUser);
 userRouter.get("/manageUsers", displayUser);
@@ -54,10 +56,22 @@ userRouter.post(
   updateImage
 );
 
-userRouter.put("/editUser/:id", limiter,parseForm, csrfProtection, editUser);
-userRouter.put("/updatePassword", limiter,parseForm, csrfProtection, updatePassword);
+userRouter.put("/editUser/:id", limiter, parseForm, csrfProtection, editUser);
+userRouter.put(
+  "/updatePassword",
+  limiter,
+  parseForm,
+  csrfProtection,
+  updatePassword
+);
 
-userRouter.delete("/deleteUser/:id", limiter,parseForm, csrfProtection, deleteUser);
+userRouter.delete(
+  "/deleteUser/:id",
+  limiter,
+  parseForm,
+  csrfProtection,
+  deleteUser
+);
 userRouter.get("/getCurrentUser", limiter, getCurrentUser);
 require("dotenv").config();
 userRouter.use(
