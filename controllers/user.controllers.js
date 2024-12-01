@@ -255,7 +255,7 @@ const displayUser = async (req, res) => {
 const editUser = async (req, res) => {
   console.log("10");
   try {
-    const userId = req.params.id;
+    const userId = req.user.userId;
     const {
       name,
       email,
@@ -301,8 +301,8 @@ const editUser = async (req, res) => {
 };
 
 const updatePassword = async (req, res) => {
-  const { userId, currentPassword, newPassword } = req.body;
-
+  const { currentPassword, newPassword } = req.body;
+  const {userId} = req.user;
   try {
     const user = await User.findByPk(userId);
     if (!user) {
@@ -340,7 +340,7 @@ const updatePassword = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   try {
     const deletedUsers = await User.findOne({
       where: {
@@ -355,7 +355,7 @@ const deleteUser = async (req, res) => {
   }
 };
 const updateImage = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   console.log("id", id);
   try {
     const updateHotel = await User.findOne({
@@ -389,9 +389,10 @@ const updateImage = async (req, res) => {
 const getDetailUser = async (req, res) => {
   console.log("3");
   try {
+    const userId = req.user.userId;
     const detailHotel = await User.findOne({
       where: {
-        id: req.params.id,
+        id: userId,
       },
     });
     res.status(200).send(detailHotel);

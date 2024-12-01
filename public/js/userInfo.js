@@ -1,4 +1,7 @@
 $(document).ready(async function () {
+  const tokencsrf = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute("content");
   async function getCurrentUser() {
     try {
       const response = await fetch("/api/v1/users/getCurrentUser", {
@@ -198,6 +201,10 @@ $(document).ready(async function () {
           $.ajax({
             url: "/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
             type: "POST",
+            credentials: "include",
+            headers: {
+              "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
+            },
             data: formData,
             processData: false,
             contentType: false,
@@ -243,6 +250,7 @@ $(document).ready(async function () {
     $.ajax({
       url: `/api/v1/booking?user_id=${currentUser.id}`,
       method: "GET",
+      credentials: "include",
       success: function (data) {
         console.log(data);
         var tableHtml = "";
@@ -324,8 +332,9 @@ $(document).ready(async function () {
     $(".popup-overlay-updateInfo").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `/api/v1/users/getDetailUser/${id}`, //getDetailHotel
+      url: `http://localhost:3030/api/v1/users/getDetailUser/`, 
       method: "GET",
+      credentials: "include",
       success: function (data) {
         $(".popup-overlay-updateInfo").html(`
           <div class="popup-updateInfo"> 
@@ -373,7 +382,7 @@ $(document).ready(async function () {
           </div> `);
 
         $(".ebutton").click(function () {
-          console.log(id);
+          console.log("Đang gửi yêu cầu chỉnh sửa thông tin người dùng");
           const name = $("#name-user").val();
           const numberPhone = $("#numberPhone-user").val();
           const email = $("#email-user").val();
@@ -381,10 +390,13 @@ $(document).ready(async function () {
           const gender = $("#gender-user").val();
           const cccd = $("#cccd-user").val();
           const address = $("#address-user").val();
-
           $.ajax({
-            url: `/api/v1/users/editUser/${id}`,
+            url: `http://localhost:3030/api/v1/users/editUser`,
             method: "PUT",
+            credentials: "include",
+            headers: {
+              "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
+            },
             data: {
               name: name,
               numberPhone: numberPhone,
@@ -482,6 +494,10 @@ $(document).ready(async function () {
       $.ajax({
         url: `/api/v1/users/updatePassword`,
         method: "PUT",
+        credentials: "include",
+        headers: {
+          "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
+        },
         data: {
           userId: id,
           currentPassword: oldPass,

@@ -102,7 +102,8 @@ app.use(
         "https://th.bing.com",
         "https://www.bing.com",
         "https://phongreviews.com", 
-        "https://www.gstatic.com/",// Cloudinary for images
+        "https://www.gstatic.com/",
+        "https://ak-d.tripcdn.com/",// Cloudinary for images
         "data:", // Allow data URIs (used for inline images or icons)
       ],
 

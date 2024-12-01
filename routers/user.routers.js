@@ -5,7 +5,7 @@ const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
 const ratelimit = require("express-rate-limit");
-
+const {authenticationMiddleware} = require("../middlewares/authen/token");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
 const { uploadImage } = require("../middlewares/upload/upload-image");
@@ -45,38 +45,41 @@ userRouter.post("/register", limiter, parseForm, csrfProtection, register);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
 
 userRouter.post("/login", limiter, parseForm, csrfProtection, login);
-userRouter.post("/loginGG", limiter, parseForm, csrfProtection, loginGG);
+userRouter.post("/loginGG", limiter, loginGG);
 userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
 userRouter.get("/getAllUser", getAllUser);
-userRouter.get("/getDetailUser/:id", getDetailUser);
+userRouter.get("/getDetailUser",limiter,authenticationMiddleware, getDetailUser);
 userRouter.get("/manageUsers", displayUser);
 
 userRouter.post(
   "/updateImage/:id",
   uploadImage,
+  parseForm,
+  csrfProtection,
   limiter,
 
   uploadCloud.single("user"),
   updateImage
 );
 
-userRouter.put("/editUser/:id", limiter, parseForm, csrfProtection, editUser);
+userRouter.put("/editUser", limiter, parseForm, csrfProtection,authenticationMiddleware, editUser);
 userRouter.put(
   "/updatePassword",
   limiter,
   parseForm,
   csrfProtection,
+  authenticationMiddleware,
   updatePassword
 );
 
 userRouter.delete(
-  "/deleteUser/:id",
+  "/deleteUser",
   limiter,
   parseForm,
   csrfProtection,
   deleteUser
 );
-userRouter.get("/getCurrentUser", limiter, getCurrentUser);
+userRouter.get("/getCurrentUser", limiter, authenticationMiddleware, getCurrentUser);
 require("dotenv").config();
 userRouter.use(
   session({
@@ -93,34 +96,6 @@ userRouter.get(
     session: false,
   })
 );
-
-// userRouter.get("/auth/google/callback", (req, res, next) => {
-//   passport.authenticate("google", (error, profile) => {
-//     let user = profile;
-//     console.log("profile", profile);
-//     fetch(`/api/v1/users/loginGG`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(user),
-//     })
-//       .then((response) => response.json())
-//       .then((data) => {
-//         let userData = {};
-//         console.log("API response:", data);
-//         userData = data;
-//         //req.session.data = userData;
-//         res.redirect(
-//           `/ff`
-//         );
-//       })
-//       .catch((err) => {
-//         console.error("Error calling API:", err);
-//         res.status(500).json({ error: "Failed to call login API" });
-//       });
-//   })(req, res, next);
-// });
 
 userRouter.get("/auth/google/callback", (req, res, next) => {
   passport.authenticate("google", async (error, profile) => {
