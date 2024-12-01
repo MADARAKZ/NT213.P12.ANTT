@@ -1,11 +1,11 @@
 const passport = require("passport");
-
 const jwt = require("jsonwebtoken");
 const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
 const ratelimit = require("express-rate-limit");
 const {authenticationMiddleware} = require("../middlewares/authen/token");
+const {authenticateToken, requireAdmin, requireCustomer, requireOwner} = require("../middlewares/authen/auth.middleware");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
 const { uploadImage } = require("../middlewares/upload/upload-image");
@@ -17,9 +17,11 @@ const {
   updateImage,
   displayUser,
   editUser,
+  editUserAdmin,
   deleteUser,
   getDetailUser,
   loginGG,
+  getDetailingUser,
   // checkEmailExist,
   updatePassword,
   getCurrentUser,
@@ -47,10 +49,11 @@ userRouter.post("/register", limiter, parseForm, csrfProtection, register);
 userRouter.post("/login", limiter, parseForm, csrfProtection, login);
 userRouter.post("/loginGG", limiter, loginGG);
 userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
-userRouter.get("/getAllUser", getAllUser);
+userRouter.get("/getAllUser",limiter,authenticationMiddleware, requireAdmin, getAllUser);
 userRouter.get("/getDetailUser",limiter,authenticationMiddleware, getDetailUser);
 userRouter.get("/manageUsers", displayUser);
-
+userRouter.get("/getDetailingUser/:id", limiter, authenticationMiddleware, requireAdmin, getDetailingUser);
+userRouter.put("/editUserAdmin/:id", limiter,parseForm, csrfProtection, authenticationMiddleware, requireAdmin, editUserAdmin);
 userRouter.post(
   "/updateImage/:id",
   uploadImage,
@@ -73,10 +76,12 @@ userRouter.put(
 );
 
 userRouter.delete(
-  "/deleteUser",
+  "/deleteUser/:id",
   limiter,
   parseForm,
   csrfProtection,
+  authenticateToken,
+  requireAdmin,
   deleteUser
 );
 userRouter.get("/getCurrentUser", limiter, authenticationMiddleware, getCurrentUser);

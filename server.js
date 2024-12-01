@@ -10,7 +10,7 @@ var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
 const helmet = require("helmet");
-
+const {authenticationMiddleware} = require("./middlewares/authen/token");
 const {
   csrfProtection,
   parseForm,
@@ -229,7 +229,7 @@ app.get("/coupons", csrfProtection, (req, res) => {
 app.get(
   "/dashboard",
   csrfProtection,
-  authenticateToken,
+  authenticationMiddleware,
   requireAdmin,
   (req, res) => {
     res.render("Admin/dashboard", { csrfToken: req.csrfToken() });

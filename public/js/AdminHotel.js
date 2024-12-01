@@ -101,7 +101,7 @@ $(document).ready(function () {
 
     // Gửi yêu cầu xóa người dùng
     $.ajax({
-      url: `/api/v1/users/deleteUser/${id}`,
+      url: `http://localhost:3030/api/v1/users/deleteUser/${id}`,
       method: "DELETE",
       credentials: "include",
       headers: {
@@ -334,8 +334,9 @@ $(document).ready(function () {
     $(".popup-overlay-update").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `/api/v1/users/getDetailUser/${id}`,
+      url: `http://localhost:3030/api/v1/users/getDetailingUser/${id}`,
       method: "GET",
+      credentials: "include",
       success: function (data) {
         console.log("2");
         console.log(data);
@@ -385,7 +386,7 @@ $(document).ready(function () {
           };
 
           $.ajax({
-            url: `/api/v1/users/editUser/${id}`,
+            url: `/api/v1/users/editUserAdmin/${id}`,
             method: "PUT",
             credentials: "include",
             headers: {

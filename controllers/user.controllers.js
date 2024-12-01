@@ -219,25 +219,28 @@ const getCurrentUser = async (req, res) => {
 };
 
 const getAllUser = async (req, res) => {
+  // Check if the user is an admin
+  if (!req.user || req.user.type !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Admins only.' });
+  }
+
   const { name } = req.query;
-  // console.log(data);
+
   try {
+    let UserList;
     if (name) {
-      const UserList = await User.findAll({
+      UserList = await User.findAll({
         where: {
-          name: {
-            numberPhone,
-            email,
-          },
+          name: name,
         },
       });
-      res.status(200).send(UserList);
     } else {
-      const UserList = await User.findAll();
-      res.status(200).send(UserList);
+      UserList = await User.findAll();
     }
+    res.status(200).send(UserList);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error fetching users:", error);
+    res.status(500).send("Internal server error");
   }
 };
 
@@ -252,6 +255,29 @@ const displayUser = async (req, res) => {
     }
   }
 };
+
+
+const getDetailingUser = async (req, res) => {
+  console.log("3");
+  try {
+    const { id } = req.params; // Extract the id from req.params
+    console.log("id", id);
+    const detailUser = await User.findOne({
+      where: {
+        id: id,
+      },
+    });
+    console.log("detailUser", detailUser);
+    if (!detailUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).send(detailUser);
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 const editUser = async (req, res) => {
   console.log("10");
   try {
@@ -300,6 +326,43 @@ const editUser = async (req, res) => {
   }
 };
 
+const editUserAdmin = async (req, res) => {
+  console.log("10");
+  try {
+    const userId = req.params.id;
+    const {
+      name,
+      email,
+      numberPhone,
+      type,
+    } = req.body;
+    const detailUser = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!detailUser) {
+      res.status(400).send({
+        status: `error`,
+        message: `User with id ${id}  not found`,
+      });
+    }
+    if (name) detailUser.name = name;
+    if (email) detailUser.email = email;
+    if (numberPhone) detailUser.numberPhone = numberPhone;
+    if (type) detailUser.type = type;
+
+    const updateUser = await detailUser.save();
+    if (!updateUser)
+      res.status(400).send({
+        error: `error`,
+        message: `Data fail to ${id} update`,
+      });
+    res.status(200).send({ updateUser }); // Gửi lại detailUser sau khi đã cập nhật thành công
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const {userId} = req.user;
@@ -340,7 +403,8 @@ const updatePassword = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
+  console.log("id", id);
   try {
     const deletedUsers = await User.findOne({
       where: {
@@ -447,11 +511,13 @@ const Logout = async (req, res) => {
 };
 module.exports = {
   register,
+  getDetailingUser,
   Logout,
   login,
   getAllUser,
   displayUser,
   editUser,
+  editUserAdmin,
   deleteUser,
   updateImage,
   getDetailUser,
