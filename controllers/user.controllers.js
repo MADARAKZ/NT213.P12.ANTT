@@ -10,7 +10,7 @@ const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
-    sanitizeObject(req.body, ["name", "email", "password", "numberPhone"]);
+    sanitizeObject(req.body, ["name", "password", "numberPhone"]);
     next();
   },
 
@@ -220,8 +220,8 @@ const getCurrentUser = async (req, res) => {
 
 const getAllUser = async (req, res) => {
   // Check if the user is an admin
-  if (!req.user || req.user.type !== 'admin') {
-    return res.status(403).json({ message: 'Access denied. Admins only.' });
+  if (!req.user || req.user.type !== "admin") {
+    return res.status(403).json({ message: "Access denied. Admins only." });
   }
 
   const { name } = req.query;
@@ -255,7 +255,6 @@ const displayUser = async (req, res) => {
     }
   }
 };
-
 
 const getDetailingUser = async (req, res) => {
   console.log("3");
@@ -330,12 +329,7 @@ const editUserAdmin = async (req, res) => {
   console.log("10");
   try {
     const userId = req.params.id;
-    const {
-      name,
-      email,
-      numberPhone,
-      type,
-    } = req.body;
+    const { name, email, numberPhone, type } = req.body;
     const detailUser = await User.findOne({
       where: {
         id: userId,
@@ -365,7 +359,7 @@ const editUserAdmin = async (req, res) => {
 };
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const {userId} = req.user;
+  const { userId } = req.user;
   try {
     const user = await User.findByPk(userId);
     if (!user) {

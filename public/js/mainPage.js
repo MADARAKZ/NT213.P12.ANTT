@@ -6,7 +6,32 @@ $(document).ready(function () {
   function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  // Hàm toggle collapse
+  function toggleCollapse(index) {
+    const collapse1 = document.getElementById("noi-dung-collapse1");
+    const collapse2 = document.getElementById("noi-dung-collapse2");
+
+    if (index === 1) {
+      collapse1.classList.add("show");
+      collapse2.classList.remove("show");
+    } else if (index === 2) {
+      collapse1.classList.remove("show");
+      collapse2.classList.add("show");
+    }
+  }
+
+  // Lắng nghe sự kiện click
+  document.getElementById("doiv").addEventListener("click", function () {
+    toggleCollapse(1);
+  });
+
+  document.getElementById("chiuuu").addEventListener("click", function () {
+    toggleCollapse(2);
+  });
+
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
 
   // Bắt sự kiện click trên các thẻ <a>
   document.querySelectorAll(".HotelLocate a").forEach(function (link) {
@@ -98,11 +123,11 @@ $(document).ready(function () {
       $.ajax({
         url: "/api/v1/hotels/getIdByHotelName",
         method: "POST",
-        
-      credentials: "include",
-      headers: {
-      'CSRF-Token': token // <-- is the csrf token as a header
-      },
+
+        credentials: "include",
+        headers: {
+          "CSRF-Token": token, // <-- is the csrf token as a header
+        },
         data: { hotelName: hotelName },
         success: function (response) {
           // Xử lý dữ liệu phản hồi (response) từ máy chủ
