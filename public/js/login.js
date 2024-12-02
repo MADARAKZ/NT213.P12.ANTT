@@ -5,6 +5,15 @@ const passwordInput = document.getElementById("password");
 const errorMessageModal = document.getElementById("errorMessageModal");
 const emailError = document.getElementById("email-error");
 const passwordError = document.getElementById("password-error");
+const otpModal = document.getElementById("otpModal");
+const otpForm = document.getElementById("otpForm");
+const otpInput = document.getElementById("otpInput");
+const otpError = document.getElementById("otpError");
+const resendOTPLink = document.getElementById("resendOTP");
+const closeOTPModalBtn = document.querySelector('.close-btn');
+
+let currentUserId = null
+let currentUserEmail = null
 
 // Kiểm tra email hợp lệ
 function validateEmail(email) {
@@ -22,6 +31,14 @@ let timeoutId = setTimeout(() => {
   localStorage.removeItem("type");
   console.log("Type removed from localStorage due to inactivity.");
 }, 120000);
+
+// Close OTP modal
+function closeOTPModal(){
+  $('#otpModal').css('display', 'none');
+}
+
+// Click event close otpmodal
+closeOTPModalBtn.addEventListener('click', closeOTPModal);
 
 // Sự kiện kiểm tra email trong thời gian thực
 emailInput.addEventListener("input", () => {
@@ -83,43 +100,41 @@ form.addEventListener("submit", (e) => {
   };
   const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   console.log('CSRF Token:', token);
+
+
   // Gửi yêu cầu POST đến URL xử lý dữ liệu đăng nhập
   $.ajax({
-    url: "/api/v1/users/login",
+    url: "http://localhost:3030/api/v1/users/login",
     type: "POST",
     credentials: 'same-origin', // <-- includes cookies in the request
     headers: {
     'CSRF-Token': token // <-- is the csrf token as a header
-  },
+    },
     contentType: "application/json",
     data: JSON.stringify(data),
     success: function (result) {
       grecaptcha.reset(); // Reset CAPTCHA sau khi submit thành công
 
-      if (result.message === "successful") {
-        document.cookie = `accessToken=${result.accessToken}; HttpOnly`;
-        if (result.type === "admin") {
-          window.location.href = "/dashboard";
-        } else if (result.type === "owner") {
-          window.location.href = "/agentInfo";
-        } else {
-          window.location.href = "/";
-        }
-      } else if (result.message === "email_not_found") {
-        errorMessageModal.textContent =
-          "Email không tồn tại. Vui lòng kiểm tra lại.";
-        $("#errorModal").modal("show");
-        grecaptcha.reset();
-      } else if (result.message === "incorrect_password") {
-        errorMessageModal.textContent =
-          "Mật khẩu không chính xác. Vui lòng thử lại.";
-        $("#errorModal").modal("show");
-        grecaptcha.reset();
-      } else {
-        errorMessageModal.textContent =
-          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.";
-        $("#errorModal").modal("show");
-        grecaptcha.reset();
+      // Store currentuser email
+      currentUserEmail = email;
+      currentUserId = result.userId;
+
+      //Show otpmodal
+      $('#otpModal').css('display', 'flex');
+
+      //handle different login scenario
+      switch(result.message){
+        case "successfull":
+          console.log("Sent OTP");
+          break;
+        case "email_not_found":
+          errorMessageModal.textContent = "Email is invalid. Please Recheck!"
+          break;
+        case "incorrect_password":
+          errorMessageModal.textContent = "Password is invalid. Please Recheck";
+          break;
+        default:
+          errorMessageModal.textContent = "Login is Failed. Please Recheck your information";
       }
     },
     error: function (xhr, status, error) {
@@ -129,5 +144,82 @@ form.addEventListener("submit", (e) => {
       $("#errorModal").modal("show");
       grecaptcha.reset();
     },
+  });
+});
+
+//OTP form Submit Event
+otpForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const otp = otpInput.value;
+  console.log("Da submit otp")
+  // Validate OTP length
+  if (otp.length !== 6) {
+    otpError.textContent = "OTP phải có 6 chữ số";
+    otpError.style.color = "red";
+    return;
+  }
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  console.log('CSRF Token:', token);
+  $.ajax({
+    url: "http://localhost:3030/api/v1/users/verifyotp",
+    type: "POST",
+    credentials: 'same-origin', // <-- includes cookies in the request
+    headers: {
+    'CSRF-Token': token // <-- is the csrf token as a header
+    },
+    contentType: "application/json",
+    data: JSON.stringify({
+      userId: currentUserId,
+      email: currentUserEmail,
+      otp: otp
+    }),
+    success: function (result) {
+      // Redirect based on user type
+      const user = result.user;
+      console.log(">>>Da verity otp tu backend<<<<")
+      switch(user.type) {
+        case "admin":
+          window.location.href = "/dashboard";
+          break;
+        case "owner":
+          window.location.href = "/agentInfo";
+          break;
+        default:
+          window.location.href = "/";
+      }
+    },
+    error: function (xhr, status, error) {
+      otpError.textContent = xhr.responseJSON.message || "Xác thực OTP thất bại";
+      otpError.style.color = "red";
+    }
+  });
+});
+
+// Resend OTP Event
+resendOTPLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  console.log('CSRF Token:', token);
+
+  $.ajax({
+    url: "http://localhost:3030/api/v1/users/resend-otp",
+    type: "POST",
+    credentials: 'same-origin', // <-- includes cookies in the request
+    headers: {
+    'CSRF-Token': token // <-- is the csrf token as a header
+    },
+    contentType: "application/json",
+    data: JSON.stringify({
+      userId: currentUserId,
+      email: currentUserEmail
+    }),
+    success: function (result) {
+      otpError.textContent = "OTP mới đã được gửi";
+      otpError.style.color = "green";
+    },
+    error: function (xhr, status, error) {
+      otpError.textContent = xhr.responseJSON.message || "Gửi lại OTP thất bại";
+      otpError.style.color = "red";
+    }
   });
 });

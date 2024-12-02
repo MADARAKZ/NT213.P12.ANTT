@@ -1,11 +1,29 @@
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 require("dotenv").config();
 const { validationResult } = require("express-validator"); // Import validationResult
 const { body } = require("express-validator");
 const { sanitizeObject } = require("../middlewares/validations/sanitize");
+const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
+
+let otpcode=null
+
+//Cấu hình nodemailer
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+//Generate OTP
+function generateOTP() {
+  return Math.floor(100000 + Math.random() *900000).toString();
+}
 
 const register = [
   // Làm sạch dữ liệu đầu vào
@@ -133,25 +151,24 @@ const login = async (req, res) => {
 
     const isAuthen = bcrypt.compareSync(password, user.password);
     if (isAuthen) {
-      const accessToken = jwt.sign(
-        { userId: user.id, type: user.type },
-        process.env.ACCESS_TOKEN,
-        { expiresIn: "15m" }
-      );
-      const refreshToken = jwt.sign(
-        { userId: user.id, type: user.type },
-        process.env.REFRESH_TOKEN,
-        { expiresIn: "7d" }
-      );
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 1000, // 15 phút
-      });
-      console.log("refreshToken", refreshToken);
-      console.log("<<<<<check USER>>>>>>", user);
-      await user.update({ token: refreshToken }, { where: { id: user.id } });
+      const otp = generateOTP();
+      otpcode = otp;
+      console.log("<<<<OTP>>>>", otpcode);
+
+       // 4. Gửi email OTP
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Mã OTP Đăng Nhập',
+        html: `
+            <h2>Mã OTP Của Bạn</h2>
+            <p>Mã OTP của bạn là: <strong>${otp}</strong></p>
+            <p>Mã này sẽ hết hạn sau 10 phút</p>
+        `
+      };
+      await transporter.sendMail(mailOptions);
+      console.log("OTP da duoc gưi");
+      
 
       res.status(200).send({
         message: "successful",
@@ -172,6 +189,110 @@ const login = async (req, res) => {
   }
 };
 
+//Xác thực OTP
+async function verifyOTP(req, res) {
+  try{
+    const {userId,email, otp} = req.body;
+
+    //kiểm tra otp từ redis
+    //const otpkey = `otp:${userId}`;
+    //const storedotp = await redisClient.get(otpkey);
+    console.log("<<<OTP nhan duoc>>",otp)
+    if(!otp || otp !== otpcode)
+    {
+      return res.status(400).json({message: 'OTP không hợp lệ'})
+      console.log("otp sai");
+    }
+
+    //Xóa OTP sau khi xác thực 
+    //await redisClient.del(otpkey);
+    console.log(">>>>Da xasc thuc otp>>>>")
+    //Xử lí khi xác thực thành công
+    const user = await User.findOne({ where: { email } });
+    const accessToken = jwt.sign(
+      { userId: user.id, type: user.type },
+      process.env.ACCESS_TOKEN,
+      { expiresIn: "15m" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.REFRESH_TOKEN,
+      { expiresIn: "7d" }
+    );
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000 // 15 phút
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1440 * 60 * 1000 // 15 phút
+    });
+    console.log("refreshToken", refreshToken);
+    console.log("<<<<<check USER>>>>>>",user)
+    await user.update(
+      { token: refreshToken },
+      { where: { id: user.id } }
+    );
+    res.status(200).json({ 
+      user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+      }
+    });
+
+  }catch (error){
+    console.error("Lỗi xác thực OTP:", error);
+    res.status(500).json({message: "Lỗi hệ thống"});
+  }
+}
+
+//Gửi lại OTP
+async function resendOTP(req, res) {
+  try {
+      const { userId, email } = req.body;
+
+      // 1. Tìm người dùng
+      const user = await User.findOne({ where: { email } });
+      if (!user) {
+          return res.status(400).json({ message: 'Người dùng không tồn tại' });
+      }
+
+      // 2. Sinh OTP mới
+      const otp = generateOTP();
+      otpcode=otp
+      //const otpKey = `otp:${userId}`;
+
+      // 3. Lưu OTP mới vào Redis
+      //await redisClient.set(otpKey, otp, 'EX', 600);
+
+      // 4. Gửi email OTP mới
+      const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: 'OTP Mới - Đăng Nhập',
+          html: `
+              <h2>Mã OTP Mới Của Bạn</h2>
+              <p>Mã OTP mới là: <strong>${otp}</strong></p>
+              <p>Mã này sẽ hết hạn sau 10 phút</p>
+          `
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      res.status(200).json({ message: 'OTP mới đã được gửi' });
+
+  } catch (error) {
+      console.error('Lỗi gửi lại OTP:', error);
+      res.status(500).json({ message: 'Lỗi hệ thống' });
+  }
+}
+
+
 const getCurrentUser = async (req, res) => {
   console.log("Headers:", req.headers); // In ra headers
   console.log("Query Params:", req.query); // In ra query parameters
@@ -179,11 +300,24 @@ const getCurrentUser = async (req, res) => {
   console.log("Cookies:", req.cookies); // In ra cookies, nếu có
 
   const token = req.cookies.accessToken; // Lấy token từ cookie
+  const refreshToken = req.cookies.Token;
   //console.log("accessToken", token);
 
   if (!token) {
-    console.log("fail");
-    return res.status(401).send("No token found in cookies"); // Không tìm thấy token
+    if(!refreshToken){
+      console.log("fail");
+      return res.status(401).send("No token found in cookies"); // Không tìm thấy token
+    }
+    const decodeRefreshtoken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+    const newAccessToken = await RefreshToken(decodeRefreshtoken.userId);
+    console.log("Token moi", newAccessToken);
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000 // 15 phút
+    });
+    token = newAccessToken;
   }
 
   try {
@@ -217,6 +351,24 @@ const getCurrentUser = async (req, res) => {
     res.status(500).send("Internal server error"); // Server error
   }
 };
+
+//Hàm refresh token thông qua id
+async function RefreshToken(userId) {
+  const user = await User.findOne({ where: { id: userId } });
+  console.log("Useerr token",user)
+  if(!user)
+  {
+    throw new Error("Người dùng không tồn tại");
+  }
+
+  const newAccessToken = jwt.sign(
+    { userId: user.id, type: user.type},
+    process.env.ACCESS_TOKEN,
+    { expiresIn: "15m" }
+  )
+  console.log("Token moi,", newAccessToken)
+  return newAccessToken;
+}
 
 const getAllUser = async (req, res) => {
   // Check if the user is an admin
@@ -491,6 +643,7 @@ const Logout = async (req, res) => {
 
     // Xóa access token trong cookie
     res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
 
     // Trả về phản hồi thành công
     res.status(200).json({ message: "Đăng xuất thành công" });
@@ -525,4 +678,6 @@ module.exports = {
   updatePassword,
   loginGG,
   getCurrentUser,
+  verifyOTP,
+  resendOTP
 };
