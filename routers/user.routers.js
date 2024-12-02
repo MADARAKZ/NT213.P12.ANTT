@@ -10,6 +10,7 @@ const {authenticateToken, requireAdmin, requireCustomer, requireOwner} = require
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
 const { uploadImage } = require("../middlewares/upload/upload-image");
 const express = require("express");
+const { User } = require("../models");
 const {
   register,
   login,
@@ -26,6 +27,8 @@ const {
   updatePassword,
   getCurrentUser,
   Logout,
+  verifyOTP,
+  resendOTP
 } = require("../controllers/user.controllers");
 
 var {
@@ -48,6 +51,8 @@ userRouter.post("/register", limiter, parseForm, csrfProtection, register);
 
 userRouter.post("/login", limiter, parseForm, csrfProtection, login);
 userRouter.post("/loginGG", limiter, loginGG);
+userRouter.post("/resend-otp", limiter, parseForm,csrfProtection, resendOTP);
+userRouter.post("/verifyotp", limiter, parseForm, csrfProtection, verifyOTP);
 userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
 userRouter.get("/getAllUser",limiter,authenticationMiddleware, requireAdmin, getAllUser);
 userRouter.get("/getDetailUser",limiter,authenticationMiddleware, getDetailUser);
@@ -140,6 +145,13 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 1000, // 15 phút
       });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1440 * 60 * 1000 // 15 phút
+      });
       // Gọi API login để lưu refresh token vào database
       const response = await fetch(
         `http://localhost:3030/api/v1/users/loginGG`,
@@ -180,6 +192,38 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
     }
   })(req, res, next);
 });
+
+
+// Middleware to refresh access token
+userRouter.post("/token", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) return res.status(401).json({message: "Không có Refreshtoken"});
+
+  const refreshTokendecode = jwt.verify(refreshToken,process.env.REFRESH_TOKEN);
+
+  const user = await User.findById(refreshTokendecode.userId);
+  if(!user)
+  {
+    return res.status(401).json({message: 'User không hợp lệ'});
+  }
+  const newAccessToken = jwt.sign(
+    { userId: user.id, type: user.type},
+    process.env.ACCESS_TOKEN,
+    { expiresIn: "15m" }
+  )
+
+
+  res.cookie('accessToken', newAccessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000 // 15 phút
+  });
+  console.log("Da refresh token")
+  req.user = jwt.verify(newAccessToken, JWT_SECRET);
+  return res.status(200).json({message: 'Da refresh token'})
+});
+
 
 module.exports = {
   userRouter,
