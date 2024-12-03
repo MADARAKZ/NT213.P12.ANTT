@@ -1,0 +1,88 @@
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Register</title>
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/register.css" />
+
+  </head>
+
+  <body>
+    <div class="container-register">
+      <div class="wrapper">
+        <form action="" id="registerForm">
+          <h1>Sign Up</h1>
+          <input type="hidden" name="type" value="{{type}}" />
+
+          <!-- Email -->
+          <div class="input-box">
+            <input type="text" placeholder="Email" required id="email" />
+            <i class="bx bxl-gmail"></i>
+            <span id="email-error" class="error-message"></span>
+          </div>
+
+          <!-- Username -->
+          <div class="input-box">
+            <input type="text" placeholder="Username" required id="name" />
+            <i class="bx bxs-user"></i>
+            <span id="name-error" class="error-message"></span>
+          </div>
+
+          <!-- Password -->
+          <div class="input-box">
+            <input
+              type="password"
+              placeholder="Password"
+              required
+              id="password"
+            />
+            <i class="bx bxs-lock-alt"></i>
+            <span id="password-error" class="error-message"></span>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="input-box">
+            <input
+              type="password"
+              placeholder="Confirm password"
+              required
+              id="re-password"
+            />
+            <i class="bx bxs-lock-alt"></i>
+            <span id="re-password-error" class="error-message"></span>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="input-box">
+            <input
+              type="tel"
+              placeholder="Phone number"
+              required
+              id="numberPhone"
+            />
+            <i class="bx bxs-phone-call"></i>
+            <span id="phone-error" class="error-message"></span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn" id="registerButton">Sign Up</button>
+
+          <!-- Sign In Link -->
+          <div class="sign_in">
+            <a href="/signin"> Sign In </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/register.js"></script>
+  </body>
+
+</html>

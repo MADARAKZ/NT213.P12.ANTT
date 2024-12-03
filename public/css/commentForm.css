@@ -1,0 +1,19 @@
+#xuila td{
+    padding: 5px 10px;
+}
+
+#xuila{
+    border-collapse: collapse;
+}
+
+#docla{
+    width: auto; background: red; color: #fff; border: none; padding: 5px 20px;
+}
+
+#preview{
+    max-width: 200px; display: none;
+}
+
+#dmmmmm{
+    border: solid 1px #ddd; padding: 5px 20px; width: 80%;
+}

@@ -1,0 +1,314 @@
+* {
+  margin     : 0;
+  padding    : 0;
+  box-sizing : border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  position: relative;
+}
+
+.container-login {
+  display            : flex;
+  justify-content    : center;
+  align-items        : center;
+  background         : url(../image/sign_in.jpg) no-repeat;
+  background-size    : cover;
+  background-position: center;
+  position           : absolute;
+  top                : 0;
+  right              : 0;
+  bottom             : 0;
+  left               : 0;
+}
+
+.wrapper {
+  width          : 420px;
+  background     : transparent;
+  border         : 2px solid rgba(255, 255, 255, .2);
+  backdrop-filter: blur(9px);
+  color          : #fff;
+  border-radius  : 12px;
+  padding        : 30px 40px;
+  margin         : 0 10px;
+}
+
+.wrapper h1 {
+  font-size : 36px;
+  text-align: center;
+}
+
+.wrapper .input-box {
+  position: relative;
+  width   : 100%;
+  height  : 50px;
+
+  margin: 30px 0;
+}
+
+.input-box input {
+  width        : 100%;
+  height       : 100%;
+  background   : transparent;
+  border       : none;
+  outline      : none;
+  border       : 2px solid rgba(255, 255, 255, .2);
+  border-radius: 40px;
+  font-size    : 16px;
+  color        : #fff;
+  padding      : 20px 45px 20px 20px;
+}
+
+.input-box input::placeholder {
+  color: #fff;
+}
+
+.input-box {
+  position: relative;
+}
+
+.input-box i {
+  position : absolute;
+  right    : 5px;
+  top      : 30%;
+  transform: translate(-50%);
+  font-size: 20px;
+
+}
+
+.wrapper .remember-forgot {
+  display        : flex;
+  justify-content: space-between;
+  font-size      : 14.5px;
+  margin         : -15px 0 15px;
+}
+
+.remember-forgot label input {
+  accent-color: #fff;
+  margin-right: 3px;
+
+}
+
+.remember-forgot a {
+  color          : #fff;
+  text-decoration: none;
+
+}
+
+.remember-forgot a:hover {
+  text-decoration: underline;
+}
+
+.wrapper .btn {
+  width        : 100%;
+  height       : 45px;
+  background   : #fff;
+  border       : none;
+  outline      : none;
+  border-radius: 40px;
+  box-shadow   : 0 0 10px rgba(0, 0, 0, .1);
+  cursor       : pointer;
+  font-size    : 16px;
+  color        : #333;
+  font-weight  : 600;
+}
+
+.wrapper .register-link {
+  font-size : 14.5px;
+  text-align: center;
+  margin    : 20px 0 15px;
+
+}
+
+.register-link p a {
+  color          : #fff;
+  text-decoration: none;
+  font-weight    : 600;
+}
+
+.register-link p a:hover {
+  text-decoration: underline;
+}
+
+#error-message {
+  display: none;
+  color  : red;
+  cursor : pointer;
+}
+
+.google-login-btn {
+  width           : 90%;
+  margin-left     : 15px;
+  display         : flex;
+  align-items     : center;
+  background-color: white;
+  color           : #555;
+  border          : 1px solid #ddd;
+  border-radius   : 25px;
+  padding         : 10px 15px;
+  font-size       : 16px;
+  cursor          : pointer;
+  font-family     : Arial, sans-serif;
+  transition      : background-color 0.3s, box-shadow 0.3s;
+}
+
+.google-login-btn img {
+  width       : 20px;
+  height      : 20px;
+  margin-right: 10px;
+}
+
+.google-login-btn:hover {
+  background-color: #f7f7f7;
+  box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.gg {
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  outline        : none;
+  width          : 100%;
+}
+
+@media only screen and (max-width:46.1875em) {
+  .wrapper h1 {
+    font-size: 30px;
+  }
+
+  .wrapper .input-box input {
+    font-size: 14px;
+    padding  : 15px 40px 15px 15px;
+    /* Thay đổi padding để phù hợp với font size */
+  }
+
+  .wrapper .remember-forgot {
+    font-size: 12px;
+  }
+
+  .wrapper .btn {
+    height   : 40px;
+    font-size: 14px;
+  }
+
+  .register-link {
+    font-size: 12px;
+  }
+
+}
+
+@media only screen and (min-width:46.25em) and(max-width:63.9375em) {}
+
+#errorMessageModal{
+  margin-bottom:16px; margin-top:-20px
+}
+
+.recaptcha-container{
+  margin: 15px 0; display: flex; justify-content: center;
+}
+
+#hh{
+  margin-left: 60px;
+}
+
+#xl{
+  text-decoration: none;
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 30;
+  top: 30;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  border-radius: 10px;
+  padding: 20px;
+  width: 200px; /* Giảm kích thước width */
+  max-width: 90%; /* Đảm bảo responsive */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  text-align: center;
+  position: relative;
+  animation: popupAnimation 0.3s ease-out; /* Hiệu ứng popup */
+}
+
+@keyframes popupAnimation {
+  from {
+      transform: scale(0.7);
+      opacity: 0;
+  }
+  to {
+      transform: scale(1);
+      opacity: 1;
+  }
+}
+
+.close-btn {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+#otpForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+#otpInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.btn {
+  background-color: #007bff;
+  color: white;
+  border:#333;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+#otpError {
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+#resendOTP {
+  color: #007bff;
+  text-decoration: none;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+#resendOTP:hover {
+  text-decoration: underline;
+} 

@@ -1,0 +1,34 @@
+<link rel="stylesheet" href="/css/commentForm.css">
+<form name="reviewForm" id="reviewForm" method="post" action="">
+  <table id="xuila">
+    <tr >
+      <td >Đánh giá số sao</td>
+      <td >
+         {{>starRating}} 
+      </td>
+    </tr>
+    <tr>
+      <td >Nội dung</td>
+      <td >
+        <textarea id="dmmmmm" cols="30" rows="10" name="content"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <td >Tệp tin</td>
+      <td >
+        <input  type="file" name="file" id="fileInput" onchange="previewImage()" />
+        <br>
+        <img id="preview" src="#" alt="Hình ảnh xem trước" >
+      </td>
+    </tr>
+    <tr>
+      <td ></td>
+      <td >
+        <input id="docla" type="submit"  value="Gửi feedback" onclick="resetPreview()" />
+      </td>
+    </tr>
+  </table>
+</form>
+
+
+<script src="/js/comment.js"></script>
