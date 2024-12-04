@@ -52,7 +52,7 @@ function isOTPvalid(storedotp, userProvidedOTP){
   }
   //check maximum attempts
   if(storedotp.attempts > MAX_ATTEMPTS){
-    return {valid: false, message: 'Too many verifycation attemps'}
+    return {valid: false, message: 'Too many verifycation attemps. OTP đã bị vô hiệu hóa'}
   }
   const isCorrect = storedotp.code === userProvidedOTP
   storedotp.attempts++;
@@ -279,8 +279,7 @@ const loginGG = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     console.log("check userrrrrrrrrrrrr", user);
-    // Nếu user đã tồn tại, update thông tin
-    await user.update({ token: refreshToken }, { where: { id: user.id } });
+
     console.log(created ? "New user created" : "User updated", user);
 
     res.status(200).send({

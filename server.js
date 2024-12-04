@@ -10,7 +10,7 @@ var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
 const helmet = require("helmet");
-const { authenticationMiddleware } = require("./middlewares/authen/token");
+const { authenticationMiddleware, blockLogin } = require("./middlewares/authen/token");
 const {
   csrfProtection,
   parseForm,
@@ -26,6 +26,7 @@ const {
   authenticateToken,
   requireAdmin,
   requireCustomer,
+  
 } = require("./middlewares/authen/auth.middleware");
 const c = require("config");
 const { constants } = require("buffer");
@@ -186,7 +187,7 @@ app.get("/supplier", csrfProtection, (req, res) => {
   res.render("User/supplier", { csrfToken: req.csrfToken() });
 });
 
-app.get("/register", csrfProtection, (req, res) => {
+app.get("/register", blockLogin, csrfProtection, (req, res) => {
   // Render trang đăng ký với CSRF token
   res.render("User/register", { csrfToken: req.csrfToken() });
 });
@@ -196,15 +197,15 @@ app.get("/aboutUs", csrfProtection, (req, res) => {
 });
 
 app.get(
-  "/userInfo",
+  "/userInfor",
   csrfProtection,
   authenticateToken,
   requireCustomer,
   (req, res) => {
-    res.render("User/userInfo", { csrfToken: req.csrfToken() });
+    res.render("User/userInfor", { csrfToken: req.csrfToken() });
   }
 );
-app.get("/signin", limiter, csrfProtection, (req, res) => {
+app.get("/signin", blockLogin, limiter, csrfProtection, (req, res) => {
   res.render("User/signin", { csrfToken: req.csrfToken() });
 });
 
@@ -347,9 +348,9 @@ app.get("/hotel/:slug/:id", csrfProtection, (req, res) => {
 //   res.render("User/userInfor", { id: id });
 // });
 
-app.get("/userInfor", csrfProtection, (req, res) => {
-  res.render("User/userInfor", { csrfToken: req.csrfToken() });
-});
+// app.get("/userInfor", csrfProtection, (req, res) => {
+//   res.render("User/userInfor", { csrfToken: req.csrfToken() });
+// });
 
 // app.get("/admin", (req, res) => {
 //   res.render("Admin/partials/createHotel");
