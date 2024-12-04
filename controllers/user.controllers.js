@@ -31,7 +31,7 @@ function generateOTP() {
 const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
-    sanitizeObject(req.body, ["name", "password", "numberPhone"]);
+    sanitizeObject(req.body, ["name", "numberPhone"]);
     next();
   },
 
@@ -254,7 +254,7 @@ async function verifyOTP(req, res) {
       maxAge: 1440 * 60 * 1000, // 15 phút
     });
     console.log("refreshToken", refreshToken);
-    console.log("<<<<<check USER>>>>>>", user);
+
     await user.update({ token: refreshToken }, { where: { id: user.id } });
     res.status(200).json({
       user: {

@@ -1,14 +1,18 @@
 const sqlstring = require("sqlstring");
-const sanitizeHtml = require("sanitize-html");
-// Cấu hình để loại bỏ mọi thẻ HTML và thuộc tính
-const sanitizeHtmlConfig = {
-  allowedTags: [], // Không cho phép bất kỳ thẻ HTML nào
-  allowedAttributes: {}, // Không cho phép thuộc tính nào
-  disallowedTagsMode: "discard", // Loại bỏ thẻ không được phép
+
+// Loại bỏ toàn bộ thẻ HTML và thuộc tính không hợp lệ
+const removeHtmlTags = (input) => {
+  if (typeof input !== "string") {
+    return input; // Không xử lý nếu không phải chuỗi
+  }
+  return input.replace(/<\/?[^>]+(>|$)/g, ""); // Xóa thẻ HTML
 };
 
-// Thoát các ký tự đặc biệt trong HTML
+// Thoát ký tự HTML để ngăn chặn XSS
 const encodeHtmlEntities = (str) => {
+  if (typeof str !== "string") {
+    return str; // Không xử lý nếu không phải chuỗi
+  }
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -16,68 +20,36 @@ const encodeHtmlEntities = (str) => {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 };
-// Thoát ký tự SQL injection
+
+// Thoát ký tự SQL để ngăn chặn SQL Injection
 const escapeSqlInjection = (str) => {
-  let sanitized = sqlstring.escape(str);
-  if (sanitized.startsWith("'") && sanitized.endsWith("'")) {
-    sanitized = sanitized.slice(1, -1);
+  if (typeof str !== "string") {
+    return str; // Không xử lý nếu không phải chuỗi
   }
-  return sanitized;
+  return sqlstring.escape(str).slice(1, -1); // Xóa dấu nháy đơn bao quanh
 };
-// Loại bỏ ký tự đặc biệt trong regex
+
+// Thoát ký tự đặc biệt trong Regex
 const escapeRegex = (str) => {
+  if (typeof str !== "string") {
+    return str; // Không xử lý nếu không phải chuỗi
+  }
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
-// Tự làm sạch chuỗi
+
+// Làm sạch chuỗi đầu vào (tích hợp tất cả các bước)
 const sanitizeString = (str) => {
-  let sanitized = removeHtmlTags(str); // Loại bỏ toàn bộ thẻ HTML
-  sanitized = encodeHtmlEntities(sanitized); // Mã hóa các ký tự HTML còn sót
-  sanitized = escapeSqlInjection(sanitized); // Thoát ký tự SQL injection
-  sanitized = escapeRegex(sanitized); // Thoát ký tự đặc biệt trong regex
-  return sanitized;
-};
-// Làm sạch các trường cụ thể trong đối tượng
-const sanitizeObject = (obj, fieldsToSanitize) => {
-  fieldsToSanitize.forEach((field) => {
-    if (typeof obj[field] === "string") {
-      obj[field] = sanitizeString(obj[field]);
-    }
-  });
-};
-
-const sqlKeywords = [
-  "select",
-  "insert",
-  "update",
-  "delete",
-  "drop",
-  "alter",
-  "truncate",
-  "--",
-  ";",
-  "/*",
-  "*/",
-  "@@",
-  "@",
-  "'",
-  '"',
-  "or",
-  "and",
-  "=",
-  "1=1",
-  "1'='1",
-];
-
-const removeSqlInjectionChars = (input) => {
-  let sanitized = input;
-  sanitized = sanitized.replace(/[;'"\\]/g, ""); // Loại bỏ ;, ', ", và \
-  sanitized = sanitized.replace(/--/g, ""); // Loại bỏ comment SQL
-  sanitized = sanitized.replace(/\b(=\s*'.*?')\b/g, ""); // Loại bỏ các biểu thức so sánh
-
+  if (typeof str !== "string") {
+    return str; // Không xử lý nếu không phải chuỗi
+  }
+  let sanitized = removeHtmlTags(str); // Loại bỏ thẻ HTML
+  sanitized = encodeHtmlEntities(sanitized); // Thoát ký tự HTML
+  sanitized = escapeSqlInjection(sanitized); // Thoát ký tự SQL
+  sanitized = escapeRegex(sanitized); // Thoát ký tự Regex
   return sanitized;
 };
 
-// Hàm kiểm tra và làm sạch email
+// Làm sạch và kiểm tra email
 const validateAndSanitizeEmail = (email) => {
   if (typeof email !== "string") {
     throw new Error("Invalid input: Email must be a string.");
@@ -86,10 +58,7 @@ const validateAndSanitizeEmail = (email) => {
   // Loại bỏ HTML tags
   email = removeHtmlTags(email);
 
-  // Loại bỏ các từ khóa và ký tự nguy hiểm của SQL Injection
-  email = removeSqlInjectionChars(email);
-
-  // Sử dụng regex để kiểm tra định dạng email hợp lệ
+  // Kiểm tra định dạng email hợp lệ
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     throw new Error("Invalid email format.");
@@ -97,19 +66,40 @@ const validateAndSanitizeEmail = (email) => {
 
   return email;
 };
-// Hàm loại bỏ HTML tags
-const removeHtmlTags = (input) => {
-  return input.replace(/<\/?[^>]+(>|$)/g, "");
-};
-const sanitizeLoginInputs = (req, res, next) => {
-  sanitizeObject(req.body, ["password"]);
-  req.body.email = validateAndSanitizeEmail(req.body.email);
-  next();
+
+// Làm sạch các trường trong đối tượng
+const sanitizeObject = (obj, fieldsToSanitize) => {
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error("Input must be an object.");
+  }
+
+  fieldsToSanitize.forEach((field) => {
+    if (typeof obj[field] === "string") {
+      obj[field] = sanitizeString(obj[field]);
+    }
+  });
 };
 
+// Middleware làm sạch dữ liệu đầu vào cho login
+const sanitizeLoginInputs = (req, res, next) => {
+  try {
+    if (req.body.email) {
+      req.body.email = validateAndSanitizeEmail(req.body.email);
+    }
+    next();
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
+};
+
+// Export các hàm
 module.exports = {
-  sanitizeObject,
   removeHtmlTags,
+  encodeHtmlEntities,
+  escapeSqlInjection,
+  escapeRegex,
+  sanitizeString,
   validateAndSanitizeEmail,
+  sanitizeObject,
   sanitizeLoginInputs,
 };

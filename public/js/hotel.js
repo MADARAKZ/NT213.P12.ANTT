@@ -455,7 +455,8 @@ $(document).ready(async function () {
     try {
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
-        credentials: "include",
+        credentials: "include", // Trong credentials: include, nếu có cookie thì sẽ tự động gửi kèm cookie,
+        // trong đó có tồn tại Access Token
       });
 
       if (!response.ok) {
@@ -507,18 +508,17 @@ $(document).ready(async function () {
 
       var fileInput = document.querySelector("input[type='file']");
       var file = fileInput.files[0];
-
+      var formData = new FormData();
       if (file) {
         // Kiểm tra loại file (MIME type)
         if (!file.type.startsWith("image/")) {
           alert("Please upload an image file!");
         } else {
-          var formData = new FormData();
           formData.append("file", file);
           console.log("File added to FormData:", file.name);
         }
       } else {
-        alert("No file selected!");
+        console.log("No file selected!");
       }
 
       formData.append("rating", rating);

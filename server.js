@@ -105,6 +105,7 @@ app.use(
         "https://www.gstatic.com/",
         "https://ak-d.tripcdn.com/", // Cloudinary for images
         "data:", // Allow data URIs (used for inline images or icons)
+        "blob:",
       ],
 
       fontSrc: [

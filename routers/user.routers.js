@@ -98,11 +98,11 @@ userRouter.put(
   editUserAdmin
 );
 userRouter.post(
-  "/updateImage/:id",
+  "/updateImage",
   parseForm,
   csrfProtection,
+  authenticationMiddleware,
   limiter,
-
   uploadCloud.single("user"),
   updateImage
 );
@@ -168,6 +168,7 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
       }
       console.log("Profile", profile);
       // Tạo JWT tokens
+
       const accessToken = jwt.sign(
         {
           userId: profile.id,
