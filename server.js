@@ -10,7 +10,7 @@ var store = require("store");
 var LocalStorage = require("node-localstorage").LocalStorage;
 const ratelimit = require("express-rate-limit");
 const helmet = require("helmet");
-const {authenticationMiddleware} = require("./middlewares/authen/token");
+const { authenticationMiddleware } = require("./middlewares/authen/token");
 const {
   csrfProtection,
   parseForm,
@@ -43,7 +43,7 @@ app.use(
 );
 const limiter = ratelimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: "Too many API request from this IP",
 });
 
@@ -65,6 +65,8 @@ app.use(
 // use helmet
 
 // Cấu hình Helmet CSP (Content Security Policy)
+
+app.use(helmet());
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -82,7 +84,6 @@ app.use(
         "https://embed.pickaxeproject.com",
         "https://www.google.com",
         "https://www.gstatic.com/", // Allow scripts from Google APIs
-        (req, res) => `'nonce-${res.locals.nonce}'`,
       ],
       scriptSrcAttr: ["'self'", "https://www.bing.com"], // Allow inline event handlers
       styleSrc: [
@@ -92,8 +93,7 @@ app.use(
         "https://fonts.gstatic.com", // Google Fonts static resources
         "https://cdn.jsdelivr.net", // Bootstrap styles
         "https://netdna.bootstrapcdn.com",
-        "https://unpkg.com/",// Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
-        (req, res) => `'nonce-${res.locals.nonce}'`,
+        "https://unpkg.com/", // Bootstrap fonts // Allow inline styles (use this cautiously; hashes or nonces are safer)
       ],
 
       imgSrc: [
@@ -101,9 +101,9 @@ app.use(
         "https://res.cloudinary.com",
         "https://th.bing.com",
         "https://www.bing.com",
-        "https://phongreviews.com", 
+        "https://phongreviews.com",
         "https://www.gstatic.com/",
-        "https://ak-d.tripcdn.com/",// Cloudinary for images
+        "https://ak-d.tripcdn.com/", // Cloudinary for images
         "data:", // Allow data URIs (used for inline images or icons)
       ],
 
@@ -113,7 +113,7 @@ app.use(
         "https://fonts.googleapis.com", // Google Fonts stylesheets
         "https://fonts.gstatic.com", // Google Fonts static resources
         "https://netdna.bootstrapcdn.com",
-        "https://unpkg.com/" // Bootstrap fonts
+        "https://unpkg.com/", // Bootstrap fonts
       ],
 
       connectSrc: [
@@ -123,7 +123,7 @@ app.use(
         "https://teachablemachine.withgoogle.com", // Replace with your specific API endpoint if needed
       ],
 
-      objectSrc: ["'none'"], // Disallow all object, embed, or plugin-based resources for security
+      objectSrc: ["'self'"], // Disallow all object, embed, or plugin-based resources for security
 
       frameSrc: [
         "'self'", // Allow frames from the same origin (if embedding is required)
@@ -132,13 +132,14 @@ app.use(
         "https://teachablemachine.withgoogle.com",
         "https://embed.pickaxeproject.com",
         "https://www.google.com/recaptcha/",
-         // Example: embedding Google Maps
+        // Example: embedding Google Maps
       ],
 
       upgradeInsecureRequests: [], // Optionally enforce all requests to be over HTTPS (optional)
     },
   })
 );
+
 app.get("/image/classify", async (req, res) => {
   const { url } = req.query;
 

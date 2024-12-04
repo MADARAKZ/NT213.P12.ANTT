@@ -1,7 +1,7 @@
 $(document).ready(async function () {
   const tokencsrf = document
-  .querySelector('meta[name="csrf-token"]')
-  .getAttribute("content");
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   async function getCurrentUser() {
     try {
       const response = await fetch("/api/v1/users/getCurrentUser", {
@@ -174,19 +174,22 @@ $(document).ready(async function () {
         ' <button id="updateAvatarButton" class="edit-button">✎</button>';
       tableHtml1 += "</div>";
       tableHtml1 +=
-        '<input id="avt" type="file" name="user" id="avatarInput" accept="image/*" >';
+        '<input type="file" name="user" id="avatarInput" accept="image/*" >';
       tableHtml1 += '<button id="confirmAvatarButton" >Confirm</button>';
       $(".member").html(tableHtml1);
       console.log("Đang render page");
       $("#updateAvatarButton").on("click", function () {
+        console.log("Đang click vào nút chỉnh sửa ảnh đại diện");
         // Trigger the file input when the edit button is clicked
         $("#avatarInput").click();
+        console.log("Đã click vào input file");
       });
       if (user.authType == "google") {
         $("#hienpass").hide();
       }
       // Event listener for the confirmAvatarButton
       $("#avatarInput").on("change", function (e) {
+        console.log("Đang chọn file ảnh");
         var file = e.target.files[0]; // Lấy file ảnh được chọn
         console.log(file);
         if (file) {
@@ -332,7 +335,7 @@ $(document).ready(async function () {
     $(".popup-overlay-updateInfo").show();
     // Gửi yêu cầu để lấy chi tiết người dùng
     $.ajax({
-      url: `http://localhost:3030/api/v1/users/getDetailUser/`, 
+      url: `http://localhost:3030/api/v1/users/getDetailUser/`,
       method: "GET",
       credentials: "include",
       success: function (data) {

@@ -685,6 +685,10 @@ footer img {
     text-align: center;
 }
 
+#avatarInput{
+    display: none;
+}
+
 #message {
     margin-top: 10px;
     color: green;

@@ -38,7 +38,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.11.3",
     "node-localstorage": "^3.0.5",
-    "nodemailer": "^6.9.13",
+    "nodemailer": "^6.9.16",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "qs": "^6.12.1",

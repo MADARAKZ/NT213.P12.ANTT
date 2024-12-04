@@ -1968,6 +1968,11 @@ nodemailer@^6.9.13:
   resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-6.9.13.tgz"
   integrity sha512-7o38Yogx6krdoBf3jCAqnIN4oSQFx+fMa0I7dK1D+me9kBxx12D+/33wSb+fhOCtIxvYJ+4x4IMEhmhCKfAiOA==
 
+nodemailer@^6.9.16:
+  version "6.9.16"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.16.tgz#3ebdf6c6f477c571c0facb0727b33892635e0b8b"
+  integrity sha512-psAuZdTIRN08HKVd/E8ObdV6NO7NTBY3KsC30F7M4H1OnmLCUNaS56FpYxyb26zWLSyYF9Ozch9KYHhHegsiOQ==
+
 nodemon@^3.1.6:
   version "3.1.6"
   resolved "https://registry.npmjs.org/nodemon/-/nodemon-3.1.6.tgz"
@@ -2871,7 +2876,7 @@ vary@^1, vary@~1.1.2:
     sequelize "^6.37.5"
     sharp "^0.33.3"
     store "^2.0.12"
-    vexere "file:C:/Users/Admin/AppData/Local/Yarn/Cache/v6/npm-vexere-1.0.0-57a708ce-14db-400e-8224-198942744d44-1733107578295/node_modules/vexere"
+    vexere "file:C:/Users/Seipieh/AppData/Local/Yarn/Cache/v6/npm-vexere-1.0.0-bb333856-3083-41c2-a1f3-84314d96444d-1733126712049/node_modules/vexere"
     vue "^3.4.26"
     winston "^3.17.0"
 

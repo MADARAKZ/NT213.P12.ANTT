@@ -1,11 +1,17 @@
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const { sanitizeLoginInputs } = require("../middlewares/validations/sanitize");
 const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
 const ratelimit = require("express-rate-limit");
-const {authenticationMiddleware} = require("../middlewares/authen/token");
-const {authenticateToken, requireAdmin, requireCustomer, requireOwner} = require("../middlewares/authen/auth.middleware");
+const { authenticationMiddleware } = require("../middlewares/authen/token");
+const {
+  authenticateToken,
+  requireAdmin,
+  requireCustomer,
+  requireOwner,
+} = require("../middlewares/authen/auth.middleware");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
 const { uploadImage } = require("../middlewares/upload/upload-image");
@@ -28,7 +34,7 @@ const {
   getCurrentUser,
   Logout,
   verifyOTP,
-  resendOTP
+  resendOTP,
 } = require("../controllers/user.controllers");
 
 var {
@@ -49,19 +55,50 @@ userRouter.post("/register", limiter, parseForm, csrfProtection, register);
 // userRouter.put("/:id", checkExist(user), updateUser);
 // userRouter.delete("/:id", checkExist(user), deleteUser);
 
-userRouter.post("/login", limiter, parseForm, csrfProtection, login);
+userRouter.post(
+  "/login",
+  limiter,
+  parseForm,
+  csrfProtection,
+  sanitizeLoginInputs,
+  login
+);
 userRouter.post("/loginGG", limiter, loginGG);
-userRouter.post("/resend-otp", limiter, parseForm,csrfProtection, resendOTP);
+userRouter.post("/resend-otp", limiter, parseForm, csrfProtection, resendOTP);
 userRouter.post("/verifyotp", limiter, parseForm, csrfProtection, verifyOTP);
 userRouter.post("/logout", limiter, parseForm, csrfProtection, Logout);
-userRouter.get("/getAllUser",limiter,authenticationMiddleware, requireAdmin, getAllUser);
-userRouter.get("/getDetailUser",limiter,authenticationMiddleware, getDetailUser);
+userRouter.get(
+  "/getAllUser",
+  limiter,
+  authenticationMiddleware,
+  requireAdmin,
+  getAllUser
+);
+userRouter.get(
+  "/getDetailUser",
+  limiter,
+  authenticationMiddleware,
+  getDetailUser
+);
 userRouter.get("/manageUsers", displayUser);
-userRouter.get("/getDetailingUser/:id", limiter, authenticationMiddleware, requireAdmin, getDetailingUser);
-userRouter.put("/editUserAdmin/:id", limiter,parseForm, csrfProtection, authenticationMiddleware, requireAdmin, editUserAdmin);
+userRouter.get(
+  "/getDetailingUser/:id",
+  limiter,
+  authenticationMiddleware,
+  requireAdmin,
+  getDetailingUser
+);
+userRouter.put(
+  "/editUserAdmin/:id",
+  limiter,
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireAdmin,
+  editUserAdmin
+);
 userRouter.post(
   "/updateImage/:id",
-  uploadImage,
   parseForm,
   csrfProtection,
   limiter,
@@ -70,7 +107,14 @@ userRouter.post(
   updateImage
 );
 
-userRouter.put("/editUser", limiter, parseForm, csrfProtection,authenticationMiddleware, editUser);
+userRouter.put(
+  "/editUser",
+  limiter,
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  editUser
+);
 userRouter.put(
   "/updatePassword",
   limiter,
@@ -89,7 +133,12 @@ userRouter.delete(
   requireAdmin,
   deleteUser
 );
-userRouter.get("/getCurrentUser", limiter, authenticationMiddleware, getCurrentUser);
+userRouter.get(
+  "/getCurrentUser",
+  limiter,
+  authenticationMiddleware,
+  getCurrentUser
+);
 require("dotenv").config();
 userRouter.use(
   session({
@@ -148,9 +197,9 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 1440 * 60 * 1000 // 15 phút
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 1440 * 60 * 1000, // 15 phút
       });
       // Gọi API login để lưu refresh token vào database
       const response = await fetch(
@@ -193,37 +242,37 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
   })(req, res, next);
 });
 
-
 // Middleware to refresh access token
 userRouter.post("/token", async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.status(401).json({message: "Không có Refreshtoken"});
+  if (!refreshToken)
+    return res.status(401).json({ message: "Không có Refreshtoken" });
 
-  const refreshTokendecode = jwt.verify(refreshToken,process.env.REFRESH_TOKEN);
+  const refreshTokendecode = jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN
+  );
 
   const user = await User.findById(refreshTokendecode.userId);
-  if(!user)
-  {
-    return res.status(401).json({message: 'User không hợp lệ'});
+  if (!user) {
+    return res.status(401).json({ message: "User không hợp lệ" });
   }
   const newAccessToken = jwt.sign(
-    { userId: user.id, type: user.type},
+    { userId: user.id, type: user.type },
     process.env.ACCESS_TOKEN,
     { expiresIn: "15m" }
-  )
+  );
 
-
-  res.cookie('accessToken', newAccessToken, {
+  res.cookie("accessToken", newAccessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000 // 15 phút
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 phút
   });
-  console.log("Da refresh token")
+  console.log("Da refresh token");
   req.user = jwt.verify(newAccessToken, JWT_SECRET);
-  return res.status(200).json({message: 'Da refresh token'})
+  return res.status(200).json({ message: "Da refresh token" });
 });
-
 
 module.exports = {
   userRouter,

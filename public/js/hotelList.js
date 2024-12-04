@@ -11,14 +11,13 @@ function clearSelection() {
   });
 }
 
-
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
   // Make sure the button exists before adding the event listener
-  const button = document.getElementById('btnlo');
+  const button = document.getElementById("btnlo");
   if (button) {
-    button.addEventListener('click', function () {
+    button.addEventListener("click", function () {
       // Get the hotel name (you can replace this with dynamic data if needed)
-      const hotelName = 'Hotel XYZ';  // Replace this with actual dynamic value
+      const hotelName = "Hotel XYZ"; // Replace this with actual dynamic value
       redirectToMap(hotelName);
     });
   }
@@ -205,12 +204,11 @@ $(document).ready(() => {
       `;
       container.insertAdjacentHTML("beforeend", card);
     });
-    $(document).on('click', '#btnlo', function () {
-      const hotelName = $(this).data('hotel-name');
-      console.log('Hotel Name:', hotelName);
+    $(document).on("click", "#btnlo", function () {
+      const hotelName = $(this).data("hotel-name");
+      console.log("Hotel Name:", hotelName);
       redirectToMap(hotelName);
     });
-
     let thisPage = 1;
     let limit = 5;
     let list = document.querySelectorAll("#hotelList .card");
@@ -228,6 +226,7 @@ $(document).ready(() => {
       });
       listPage();
     }
+
     function listPage() {
       let count = Math.ceil(list.length / limit);
       let paginationElement = document.querySelector(".listPage");
@@ -293,8 +292,9 @@ $(document).ready(() => {
 
       paginationElement.style.display = list.length > limit ? "block" : "none";
     }
-    
+
     window.changePage = function (i) {
+      console.log(`Changing page to: ${i}`); // Debug log
       thisPage = i;
       loadItem();
     };
@@ -590,26 +590,26 @@ function showMoreFunc(elementID) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   // Lấy tất cả các item trong dropdown
-  const dropdownItems = document.querySelectorAll('.dropdown-item');
-  
+  const dropdownItems = document.querySelectorAll(".dropdown-item");
+
   // Lặp qua tất cả các item và thêm sự kiện click
-  dropdownItems.forEach(item => {
-    item.addEventListener('click', function(event) {
+  dropdownItems.forEach((item) => {
+    item.addEventListener("click", function (event) {
       // Lấy giá trị text của mục đã chọn
       const sortType = event.target.textContent.trim();
-      
+
       // Gọi hàm changeSort và truyền giá trị của mục đã chọn
       changeSort(sortType);
     });
   });
   // Lấy tất cả các nút "Xem thêm"
-  const showMoreButtons = document.querySelectorAll('.change-color');
-  
+  const showMoreButtons = document.querySelectorAll(".change-color");
+
   // Lặp qua tất cả các nút "Xem thêm" và thêm sự kiện click
-  showMoreButtons.forEach(button => {
-    button.addEventListener('click', function(event) {
+  showMoreButtons.forEach((button) => {
+    button.addEventListener("click", function (event) {
       const buttonId = event.target.id;
       // Gọi hàm showMoreFunc với ID của nút
       showMoreFunc(buttonId);
@@ -633,5 +633,3 @@ function changeSort(sortType) {
   // Gửi yêu cầu hoặc thực hiện hành động với `sortType`
   console.log("Người dùng đã chọn sắp xếp:", sortType);
 }
-
-
