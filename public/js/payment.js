@@ -1,6 +1,8 @@
 $(document).ready(async function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+
   async function getCurrentUser() {
     try {
       if (!token) {
@@ -182,7 +184,7 @@ $(document).ready(async function () {
       method: "POST",
       credentials: "include",
       headers: {
-      'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       data: JSON.stringify(data),
       contentType: "application/json",

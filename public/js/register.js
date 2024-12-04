@@ -22,16 +22,17 @@ const registerUser = (event) => {
 
   confirmPasswordInput.removeClass("error");
   confirmPasswordError.text("");
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  
- 
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+
   // Gửi yêu cầu đăng ký người dùng
   fetch("/api/v1/users/register", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      'CSRF-Token': token // <-- is the csrf token as a header
+      "CSRF-Token": token, // <-- is the csrf token as a header
     },
     body: JSON.stringify({
       name,
@@ -43,9 +44,10 @@ const registerUser = (event) => {
     }),
   })
     .then(async (response) => {
+      console.log(response);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || data.error || "Đã có lỗi xảy ra");
+        throw new Error(data.message || data.error);
       }
       return data;
     })

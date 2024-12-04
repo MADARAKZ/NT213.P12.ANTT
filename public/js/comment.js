@@ -20,3 +20,9 @@ function resetPreview() {
   preview.src = "";
   preview.style.display = "none";
 }
+
+document.getElementById("fileInput").addEventListener("change", previewImage);
+// Gán sự kiện onclick cho nút "docla"
+document.getElementById("docla").addEventListener("click", function (event) {
+  resetPreview(); // Gọi hàm resetPreview
+});

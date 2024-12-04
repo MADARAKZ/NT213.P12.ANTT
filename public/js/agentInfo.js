@@ -1,21 +1,16 @@
 $(document).ready(async function () {
-  function getToken() {
-    return localStorage.getItem("token"); // Thay 'token' bằng key lưu trữ token của bạn
-  }
-  const tokencsrf = document
+
+  const csrfToken = document
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
-  const token = getToken();
   async function getCurrentUser() {
     try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "CSRF-Token": csrfToken,
         },
       });
 
@@ -37,13 +32,7 @@ $(document).ready(async function () {
   }
 
   const user = await getCurrentUser();
-
-  if (!token) {
-    window.location.href = "/signin";
-  }
-  if (user.type != "owner") {
-    window.location.href = "/";
-  }
+  console.log(user);
   function renderPersonalInfo() {
     if (user) {
       var tableHtml = "";
@@ -184,17 +173,39 @@ $(document).ready(async function () {
       // Event listener for the confirmAvatarButton
       $("#avatarInput").on("change", function (e) {
         var file = e.target.files[0]; // Lấy file ảnh được chọn
-        if (file) {
+     
+          if (file) {
+            // Client-side validation
+            var allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+            var maxSize = 2 * 1024 * 1024; // 2MB
+            var fileExtension = file.name.split('.').pop().toLowerCase();
+            var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+            if (!allowedTypes.includes(file.type) || !allowedExtensions.includes(fileExtension)) {
+              alert("Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF.");
+              return;
+            }
+        
+            if (file.size > maxSize) {
+              alert("Kích thước ảnh không được vượt quá 2MB.");
+              return;
+            }
+        
+      
+          if (file.size > maxSize) {
+            alert("Kích thước ảnh không được vượt quá 2MB.");
+            return;
+          }
+      
           var formData = new FormData();
           formData.append("user", file);
 
           // Gửi ajax request lên server
           $.ajax({
-            url: "/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
+            url: "/api/v1/users/updateImage", // Thay YOUR_USER_ID bằng ID thực của người dùng
             type: "POST",
             credentials: "include",
             headers: {
-              "CSRF-Token": tokencsrf,
+              "CSRF-Token": csrfToken,
             },
             data: formData,
             processData: false,
@@ -393,7 +404,7 @@ $(document).ready(async function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        "CSRF-Token": tokencsrf,
+        "CSRF-Token": csrfToken,
       },
       success: function (data) {
         // Xử lý thành công
@@ -448,7 +459,7 @@ $(document).ready(async function () {
       method: "POST",
       credentials: "include",
       headers: {
-        "CSRF-Token": tokencsrf,
+        "CSRF-Token": csrfToken,
       },
       processData: false, // Prevent jQuery from processing data
       contentType: false, // Prevent jQuery from setting content type
@@ -553,7 +564,7 @@ $(document).ready(async function () {
             method: "PUT",
             credentials: "include",
             headers: {
-              "CSRF-Token": tokencsrf,
+              "CSRF-Token": csrfToken,
             },
             data: {
               name: name,
@@ -652,7 +663,7 @@ $(document).ready(async function () {
             method: "PUT",
             credentials: "include",
             headers: {
-              "CSRF-Token": tokencsrf,
+              "CSRF-Token": csrfToken,
             },
             data: {
               name: name,
@@ -813,7 +824,7 @@ $(document).ready(async function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        "CSRF-Token": tokencsrf,
+        "CSRF-Token": csrfToken,
       },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -919,7 +930,7 @@ $(document).ready(async function () {
       method: "POST",
       credentials: "include",
       headers: {
-        "CSRF-Token": tokencsrf,
+        "CSRF-Token": csrfToken,
       },
       data: formData,
       processData: false, // Không xử lý dữ liệu
@@ -978,10 +989,9 @@ $(document).ready(async function () {
           method: "PUT",
           credentials: "include",
           headers: {
-            "CSRF-Token": tokencsrf,
+            "CSRF-Token": csrfToken,
           },
           data: {
-            userId: id,
             currentPassword: oldPass,
             newPassword: newPass,
           },

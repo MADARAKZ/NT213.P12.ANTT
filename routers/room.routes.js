@@ -10,17 +10,45 @@ const {
   updateRoom,
 } = require("../controllers/room.controller");
 
-var { csrfProtection, parseForm } = require("../middlewares/authen/csrfProtection"); 
+var {
+  csrfProtection,
+  parseForm,
+} = require("../middlewares/authen/csrfProtection");
 const { authenticationMiddleware } = require("../middlewares/authen/token");
-const { requireAdmin, requireChange} = require("../middlewares/authen/auth.middleware.js");
+const {
+  requireAdmin,
+  requireChange,
+} = require("../middlewares/authen/auth.middleware.js");
 const { checkExist } = require("../middlewares/validations/checkExist");
 const roomRouter = express.Router();
-roomRouter.post("/",parseForm, csrfProtection,authenticationMiddleware, requireChange ,uploadCloud.array("room", 10), createRoom);
-roomRouter.get("/",authenticationMiddleware, requireChange , getAllRoom);
+roomRouter.post(
+  "/",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireChange,
+  uploadCloud.array("room", 10),
+  createRoom
+);
+roomRouter.get("/", getAllRoom);
 roomRouter.get("/:id", getDetailRoom);
 
-roomRouter.put("/:id", parseForm, csrfProtection,authenticationMiddleware,requireChange, updateRoom);
-roomRouter.delete("/:id",parseForm, csrfProtection, authenticationMiddleware,requireChange, deleteRoom);
+roomRouter.put(
+  "/:id",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireChange,
+  updateRoom
+);
+roomRouter.delete(
+  "/:id",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireChange,
+  deleteRoom
+);
 
 module.exports = {
   roomRouter,

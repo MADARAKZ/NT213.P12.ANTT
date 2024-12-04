@@ -1,9 +1,6 @@
 // hotel.js
 
 $(document).ready(function () {
-  const token = document
-    .querySelector('meta[name="csrf-token"]')
-    .getAttribute("content");
   // Lấy id khách sạn từ URL
   var url = window.location.pathname;
   var hotelId = url.substring(url.lastIndexOf("/") + 1);
@@ -399,10 +396,18 @@ $(document).ready(async function () {
       });
     },
   });
+
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+
   function loadReviews() {
     $.ajax({
       url: "/api/v1/reviews?hotelId=" + hotelId,
       method: "GET",
+      headers: {
+        "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
+      },
       success: (data) => {
         if (!data) {
           return;
@@ -446,8 +451,6 @@ $(document).ready(async function () {
   // Tải danh sách đánh giá khi trang được tải
   loadReviews();
 
-  $(".send-review").show();
-
   async function getCurrentUser() {
     try {
       const response = await fetch("/api/v1/users/getCurrentUser", {
@@ -472,8 +475,11 @@ $(document).ready(async function () {
     }
   }
 
+  //const token = getToken();
   const currentUser = await getCurrentUser();
   const currentId = currentUser.id;
+
+  $(".send-review").show();
 
   // $(".login-banner").hide();
   // $(".get-lower-price").hide();
@@ -502,9 +508,17 @@ $(document).ready(async function () {
       var fileInput = document.querySelector("input[type='file']");
       var file = fileInput.files[0];
 
-      var formData = new FormData();
-      if (fileInput) {
-        formData.append("file", file);
+      if (file) {
+        // Kiểm tra loại file (MIME type)
+        if (!file.type.startsWith("image/")) {
+          alert("Please upload an image file!");
+        } else {
+          var formData = new FormData();
+          formData.append("file", file);
+          console.log("File added to FormData:", file.name);
+        }
+      } else {
+        alert("No file selected!");
       }
 
       formData.append("rating", rating);
@@ -512,15 +526,16 @@ $(document).ready(async function () {
       formData.append("hotelId", hotelId);
       formData.append("guestId", guestId);
 
+      console.log(formData);
+
       try {
         const response = await fetch("/api/v1/reviews/create", {
           method: "POST",
           credentials: "include",
           headers: {
-            "CSRF-Token": token, // <-- is the csrf token as a header
+            "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
           },
           body: formData,
-          headers: {},
         });
 
         if (!response.ok) {
@@ -533,7 +548,6 @@ $(document).ready(async function () {
           }
         }
 
-        const data = await response.json();
         loadReviews();
 
         document.querySelector("input[name='rating']:checked").checked = false;
@@ -687,8 +701,6 @@ $(document).ready(async function () {
     },
   });
 });
-
-const token = localStorage.getItem("token");
 
 $(document).on("click", ".booking", function () {
   if (token) {

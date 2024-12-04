@@ -6,10 +6,7 @@ const sanitizeHtmlConfig = {
   allowedAttributes: {}, // Không cho phép thuộc tính nào
   disallowedTagsMode: "discard", // Loại bỏ thẻ không được phép
 };
-// Loại bỏ toàn bộ thẻ HTML và thuộc tính
-const removeHtmlTags = (str) => {
-  return sanitizeHtml(str, sanitizeHtmlConfig);
-};
+
 // Thoát các ký tự đặc biệt trong HTML
 const encodeHtmlEntities = (str) => {
   return str
@@ -71,18 +68,8 @@ const sqlKeywords = [
   "1'='1",
 ];
 
-// Loại bỏ các từ khóa hoặc ký tự nguy hiểm liên quan đến SQL Injection
-const removeSqlInjectionChars = (str) => {
-  // Chuyển chuỗi sang chữ thường để kiểm tra nhất quán
-  let sanitized = str.toLowerCase();
-
-  // Loại bỏ các từ khóa SQL
-  sqlKeywords.forEach((keyword) => {
-    const regex = new RegExp(`\\b${keyword}\\b`, "gi");
-    sanitized = sanitized.replace(regex, "");
-  });
-
-  // Loại bỏ các ký tự nguy hiểm khác
+const removeSqlInjectionChars = (input) => {
+  let sanitized = input;
   sanitized = sanitized.replace(/[;'"\\]/g, ""); // Loại bỏ ;, ', ", và \
   sanitized = sanitized.replace(/--/g, ""); // Loại bỏ comment SQL
   sanitized = sanitized.replace(/\b(=\s*'.*?')\b/g, ""); // Loại bỏ các biểu thức so sánh
@@ -108,12 +95,12 @@ const validateAndSanitizeEmail = (email) => {
     throw new Error("Invalid email format.");
   }
 
-  // Mã hóa ký tự HTML còn sót lại
-  email = encodeHtmlEntities(email);
-
   return email;
 };
-
+// Hàm loại bỏ HTML tags
+const removeHtmlTags = (input) => {
+  return input.replace(/<\/?[^>]+(>|$)/g, "");
+};
 const sanitizeLoginInputs = (req, res, next) => {
   sanitizeObject(req.body, ["password"]);
   req.body.email = validateAndSanitizeEmail(req.body.email);
@@ -122,6 +109,7 @@ const sanitizeLoginInputs = (req, res, next) => {
 
 module.exports = {
   sanitizeObject,
+  removeHtmlTags,
   validateAndSanitizeEmail,
   sanitizeLoginInputs,
 };

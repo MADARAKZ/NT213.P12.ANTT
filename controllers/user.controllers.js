@@ -32,7 +32,6 @@ const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
     sanitizeObject(req.body, ["name", "password", "numberPhone"]);
-    req.body.email = validateAndSanitizeEmail(req.body.email);
     next();
   },
 

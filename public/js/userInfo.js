@@ -193,25 +193,42 @@ $(document).ready(async function () {
         var file = e.target.files[0]; // Lấy file ảnh được chọn
         console.log(file);
         if (file) {
-          var formData = new FormData();
-          console.log(file);
+          // Client-side validation
+          var allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/jpg"];
+          var maxSize = 2 * 1024 * 1024; // 2MB
+          var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+          var fileExtension = file.name.split('.').pop().toLowerCase();
+          if (!allowedTypes.includes(file.type) || !allowedExtensions.includes(fileExtension)) {
+            alert("Chỉ cho phép các định dạng ảnh JPEG, JPG, PNG, GIF.");
+            return;
+          }
+      
+          if (file.size > maxSize) {
+            alert("Kích thước ảnh không được vượt quá 2MB.");
+            return;
+          }
+      
+    
+        if (file.size > maxSize) {
+          alert("Kích thước ảnh không được vượt quá 2MB.");
+          return;
+        }
+    
+        var formData = new FormData();
+        formData.append("user", file);
 
-          formData.append("user", file);
-          console.log(file);
-
-          console.log(formData, "đ có form");
-          // Gửi ajax request lên server
-          $.ajax({
-            url: "/api/v1/users/updateImage/" + user.id, // Thay YOUR_USER_ID bằng ID thực của người dùng
-            type: "POST",
-            credentials: "include",
-            headers: {
-              "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
-            },
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
+        // Gửi ajax request lên server
+        $.ajax({
+          url: "/api/v1/users/updateImage", // Thay YOUR_USER_ID bằng ID thực của người dùng
+          type: "POST",
+          credentials: "include",
+          headers: {
+            "CSRF-Token": tokencsrf,
+          },
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
               console.log("Upload thành công:", response);
               // Cập nhật ảnh mới vào avatar
               $(".avatar").attr("src", URL.createObjectURL(file));
