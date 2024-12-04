@@ -207,7 +207,6 @@ $(document).ready(function () {
   $(document).on("click", ".addRoom", function () {
     let id = $(this).val();
     console.log(id);
-    localStorage.setItem("hotelId", id);
     window.location.href = `/ManageRoom/${id}`;
   });
 

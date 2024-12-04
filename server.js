@@ -247,11 +247,10 @@ app.get(
   requireAdmin,
   (req, res) => {
     var hotelId = req.params.id;
-    res.render(
-      "Admin/partials/room",
-      { roomId: hotelId },
-      { csrfToken: req.csrfToken() }
-    );
+    res.render("Admin/partials/room", {
+      roomId: hotelId,
+      csrfToken: req.csrfToken(),
+    });
   }
 );
 app.get(
@@ -261,11 +260,10 @@ app.get(
   requireAdmin,
   (req, res) => {
     var hotelId = req.params.id;
-    res.render(
-      "Admin/partials/HotelService",
-      { id: hotelId },
-      { csrfToken: req.csrfToken() }
-    );
+    res.render("Admin/partials/HotelService", {
+      id: hotelId,
+      csrfToken: req.csrfToken(),
+    });
   }
 );
 
@@ -273,15 +271,19 @@ app.get("/myBooking", csrfProtection, (req, res) => {
   res.render("User/myBooking", { csrfToken: req.csrfToken() });
 });
 
-app.get("/ManageRoomService/:id", csrfProtection, (req, res) => {
-  var roomId = req.params.id;
-  res.render(
-    "Admin/partials/RoomService",
-    { id: roomId },
-    { csrfToken: req.csrfToken() }
-  );
-});
-
+app.get(
+  "/ManageRoomService/:id",
+  csrfProtection,
+  authenticationMiddleware,
+  requireAdmin,
+  (req, res) => {
+    var roomId = req.params.id;
+    res.render("Admin/partials/RoomService", {
+      id: roomId,
+      csrfToken: req.csrfToken(),
+    });
+  }
+);
 function ChangeToSlug(title) {
   var slug;
   slug = title.toLowerCase();

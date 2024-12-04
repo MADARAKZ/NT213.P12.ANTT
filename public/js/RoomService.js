@@ -1,13 +1,15 @@
 $(document).ready(function () {
-  
-  // var room = localStorage.getItem("roomId");
+
+  // Get the CSRF token from the meta tag
   const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  
+console.log(token);
+  // Extract roomId from the URL
   var url = window.location.pathname;
-  var room = url.substring(url.lastIndexOf("/") + 1);
+  var roomId = url.substring(url.lastIndexOf("/") + 1);
+
   function renderPage() {
     $.ajax({
-      url: "/api/v1/roomAmenities/" + room,
+      url: "/api/v1/roomAmenities/" + roomId,
       method: "GET",
       success: function (data) {
         console.log(data);
@@ -64,6 +66,7 @@ $(document).ready(function () {
   }
 
   renderPage();
+  var optionsJSON; 
   async function ServiceRoom() {
     try {
       // Make AJAX request to fetch data
@@ -73,24 +76,24 @@ $(document).ready(function () {
       });
 
       // Assuming 'response' contains the data fetched from the server
-      const options = JSON.stringify(response);
+      optionsJSON = JSON.stringify(response);
 
-      // Store the options array in localStorage with the key 'Service'
-      localStorage.setItem("Service", options);
 
-      console.log("Data successfully stored in localStorage:", options);
+      console.log("Data successfully stored in localStorage:", optionsJSON);
     } catch (error) {
       console.error("Error fetching or storing data:", error);
     }
   }
+
   ServiceRoom();
+
   $(".service-search-btn").on("click", function () {
     var selectElement = $("#service-room"); // Assuming this is the <select> element
     selectElement.empty(); // Clear existing options
 
     try {
-      const optionsJSON = localStorage.getItem("Service"); // Retrieve options as JSON string from localStorage
-      const options = JSON.parse(optionsJSON); // Parse the JSON string to convert it to an array or object
+      
+      const options = JSON.parse(optionsJSON); 
 
       if (Array.isArray(options)) {
         // If options is an array, loop through and append each option to <select>
@@ -106,7 +109,7 @@ $(document).ready(function () {
         // Event listener for selecting an option
         selectElement.on("change", function () {
           const selectedOptionId = $(this).val(); // Get the selected option's ID
-          const hotelId = localStorage.getItem("IdRoom"); // Retrieve the hotel ID from localStorage
+          const hotelId = roomId; // Use the roomId from the URL
 
           if (selectedOptionId && hotelId) {
             console.log("Selected Service ID:", selectedOptionId);
@@ -131,7 +134,7 @@ $(document).ready(function () {
     event.preventDefault(); // Prevent default form submission behavior
 
     const selectedOptionId = $("#service-room").val(); // Get the selected option's ID
-    const IdRoom = localStorage.getItem("roomId"); // Retrieve the hotel ID from localStorage
+    const IdRoom = roomId; // Use the roomId from the URL
     console.log("ID:", IdRoom);
     if (selectedOptionId && IdRoom) {
       console.log("Creating new service...");
@@ -140,19 +143,18 @@ $(document).ready(function () {
         roomId: IdRoom,
         // Add other necessary data properties for the create operation
       };
-
+      const csrfToken = document.querySelector('input[name="_csrf"]').value;
+      console.log("CSRF Token:", csrfToken);
       // Perform AJAX request to create the service
       $.ajax({
         url: "/api/v1/roomAmenities", // Adjust the URL endpoint
         method: "POST",
         credentials: "include",
         headers: {
-          'CSRF-Token': token // <-- is the csrf token as a header
+          'CSRF-Token': csrfToken,
+          "Content-Type": "application/json",// <-- is the csrf token as a header
         },
         data: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
         success: function (response) {
           console.log("Service created successfully:", response);
           renderPage();
@@ -248,7 +250,6 @@ $(document).ready(function () {
         console.log(data);
 
         // Retrieve options from localStorage
-        const optionsJSON = localStorage.getItem("Service");
         const options = JSON.parse(optionsJSON);
 
         // Find the corresponding service option based on amenityId
@@ -306,7 +307,7 @@ $(document).ready(function () {
         $(".ebutton").click(function () {
           // const id = $(this).val();
           const id = $(".updateService").val();
-          const RoomId = room;
+          const RoomId = roomId;
           const serviceId = $("#serviceDropdown").val();
 
           // Kiểm tra các giá trị cần thiết trước khi gửi yêu cầu AJAX
@@ -332,9 +333,10 @@ $(document).ready(function () {
               serviceId: serviceId,
             }),
             success: function (data) {
-              console.log(data);
-
-              alert("Chỉnh sửa dịch vụ thành công");
+              console.log("Dịch vụ đã được cập nhật:", data);
+              renderPage();
+              $(".popup-overlay").hide();
+              $(".popup").hide();
             },
             error: function (error) {
               console.error("Lỗi khi chỉnh sửa dịch vụ:", error);

@@ -1,14 +1,18 @@
 $(document).ready(function () {
-  var hotelId1 = localStorage.getItem("hotelId");
   const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  
-  console.log(hotelId1);
+  const pathArray = window.location.pathname.split('/');
+  console.log(pathArray);
+  const hotelId = pathArray[pathArray.length - 1];
+  console.log(hotelId);
   function renderPage() {
     $.ajax({
-      url: `/api/v1/rooms?hotelId=${hotelId1}`,
+      url: `/api/v1/rooms?hotelId=${hotelId}`,
       method: "GET",
-      data: { hotelId: hotelId1 },
-      success: function (data) {
+      credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
+       success: function (data) {
         console.log(data);
         var tableHtml = "";
         data.forEach(function (room, index) {
