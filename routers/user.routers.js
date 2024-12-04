@@ -5,7 +5,7 @@ const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
 const ratelimit = require("express-rate-limit");
-const { authenticationMiddleware } = require("../middlewares/authen/token");
+const { authenticationMiddleware, blockLogin } = require("../middlewares/authen/token");
 const {
   authenticateToken,
   requireAdmin,
@@ -51,7 +51,7 @@ const limiter = ratelimit({
   message: "Too many API request from this IP",
 });
 
-userRouter.post("/register", limiter, parseForm, csrfProtection, register);
+userRouter.post("/register", blockLogin, limiter, parseForm, csrfProtection, register);
 userRouter.post("/verify-register-otp", limiter, parseForm, csrfProtection, verifyRegistrationOTP);
 userRouter.post("/verify-register-resendotp", limiter, parseForm, csrfProtection, resendRegistrationOTP);
 // userRouter.get("/", getAllUser);
@@ -180,7 +180,7 @@ userRouter.get("/auth/google/callback", (req, res, next) => {
           type: profile.type,
         },
         process.env.ACCESS_TOKEN,
-        { expiresIn: "15m" }
+        { expiresIn: "40m" }
       );
 
       const refreshToken = jwt.sign(
@@ -265,7 +265,7 @@ userRouter.post("/token", async (req, res) => {
   const newAccessToken = jwt.sign(
     { userId: user.id, type: user.type },
     process.env.ACCESS_TOKEN,
-    { expiresIn: "15m" }
+    { expiresIn: "40m" }
   );
 
   res.cookie("accessToken", newAccessToken, {

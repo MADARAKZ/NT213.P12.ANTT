@@ -405,7 +405,7 @@ app.post("/token", csrfProtection, async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user.userId, type: user.type },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "40m" }
     );
     res.cookie("accessToken", accessToken, { httpOnly: true });
     res.json({ accessToken });
