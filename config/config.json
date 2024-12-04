@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "root",
-    "password": "trungthuan235@",
-    "database": "datatest",
+    "password": "0901",
+    "database": "lastingtrip",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

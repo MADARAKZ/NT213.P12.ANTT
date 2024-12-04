@@ -35,6 +35,8 @@ const {
   Logout,
   verifyOTP,
   resendOTP,
+  verifyRegistrationOTP,
+  resendRegistrationOTP
 } = require("../controllers/user.controllers");
 
 var {
@@ -50,6 +52,8 @@ const limiter = ratelimit({
 });
 
 userRouter.post("/register", limiter, parseForm, csrfProtection, register);
+userRouter.post("/verify-register-otp", limiter, parseForm, csrfProtection, verifyRegistrationOTP);
+userRouter.post("/verify-register-resendotp", limiter, parseForm, csrfProtection, resendRegistrationOTP);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);
