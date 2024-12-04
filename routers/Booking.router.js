@@ -8,6 +8,7 @@ const {
   getDetailBooking,
   deleteBooking,
   getAvailability,
+  getDetailBookingByHotelAndName
 } = require("../controllers/payment.controller");
 
 const BookingRouter = express.Router();
@@ -15,7 +16,7 @@ BookingRouter.post("/", createBooking);
 BookingRouter.get("/", getAllBooking);
 BookingRouter.get("/getDetail/:id", getDetailBooking);
 BookingRouter.get("/checkAvailability", getAvailability);
-
+BookingRouter.post("/getByHotelAndName",getDetailBookingByHotelAndName);
 BookingRouter.delete("/:id", checkExist(Booking), deleteBooking);
 
 module.exports = {

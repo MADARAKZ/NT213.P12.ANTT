@@ -103,7 +103,8 @@ app.use(
         "https://www.bing.com",
         "https://phongreviews.com", 
         "https://www.gstatic.com/",
-        "https://ak-d.tripcdn.com/",// Cloudinary for images
+        "https://ak-d.tripcdn.com/",
+        "https://sandbox.vnpayment.vn",// Cloudinary for images
         "data:", // Allow data URIs (used for inline images or icons)
       ],
 
@@ -212,7 +213,6 @@ app.get("/user", csrfProtection, (req, res) => {
 });
 app.get("/payment",authenticateToken,requireCustomer, csrfProtection, (req, res) => {
   res.render("User/payment", { csrfToken: req.csrfToken() });
-  const userId = req.user.userId;
 });
 app.get("/paymentmethod", csrfProtection, (req, res) => {
   res.render("User/paymentMethod", { csrfToken: req.csrfToken() });

@@ -1,8 +1,9 @@
 
 
 $(document).ready(async function () {
-  const SESSION_TIMEOUT = 10000 * 60 * 1000; // 15 phút (tính bằng mili giây)
+  const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 phút (tính bằng mili giây)
   let sessionTimer;
+  let hotelId;
 
   // Hàm bắt đầu đếm thời gian
   function startSessionTimer() {
@@ -92,7 +93,7 @@ console.log(urlData)
     success: function(response) {
       // Lưu hotelId vào biến toàn cục
       console.log(response)
-      const hotelId = response.hotelId;
+      hotelId = response.hotelId;
 
       // AJAX thứ hai chỉ chạy sau khi nhận được globalHotelId
       $.ajax({
@@ -224,14 +225,13 @@ console.log(urlData)
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {
-        var bookingId = response.id;
         var paymentMethod = $("input[name='dbt']:checked").val();
         console.log(response);
 
         if (paymentMethod === "dbt") {
-          window.location.href = `http://localhost:3030/paymentmethod?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/paymentmethod?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else if (paymentMethod === "cd") {
-          window.location.href = `http://localhost:3030/resultTT?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/resultTT?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else {
           alert("Vui lòng chọn phương thức thanh toán!");
         }
