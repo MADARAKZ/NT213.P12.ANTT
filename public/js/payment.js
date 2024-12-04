@@ -1,17 +1,121 @@
+
+
 $(document).ready(async function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+  const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 phút (tính bằng mili giây)
+  let sessionTimer;
+  let hotelId;
+
+  // Hàm bắt đầu đếm thời gian
+  function startSessionTimer() {
+    // Nếu đã có timer cũ, xóa nó
+    if (sessionTimer) {
+      clearTimeout(sessionTimer);
+    }
+
+    // Đặt timer mới
+    sessionTimer = setTimeout(() => {
+      alert("Bạn đã không thực hiện thao tác nào trong 15 phút. Bạn sẽ được chuyển về trang chủ.");
+      window.location.href = "http://localhost:3030/"; // URL của trang chủ
+    }, SESSION_TIMEOUT);
+  }
+
+  // ======================= LẮNG NGHE SỰ KIỆN =======================
+  // Reset bộ đếm khi người dùng thay đổi trang
+  $(window).on("beforeunload", function () {
+    clearTimeout(sessionTimer); // Xóa timer khi người dùng thay đổi trang
+  });
+
+  // Khởi động bộ đếm thời gian khi tải trang
+  startSessionTimer();
+  function getHotelAndRoom(url = window.location.href) {
+    // Tìm toàn bộ query string sau dấu ?
+    const queryStringIndex = url.indexOf("?");
+    if (queryStringIndex === -1) return null; // Không có query string
+  
+    const queryString = url.substring(queryStringIndex + 1); // Lấy phần sau dấu ?
+    const value = decodeURIComponent(queryString.replace(/\+/g, " ")); // Giải mã chuỗi
+  
+    // Tách chuỗi trước và sau dấu gạch dưới "_"
+    const parts = value.split("_");
+    if (parts.length !== 2) return null; // Nếu không đúng định dạng, trả về null
+  
+    const hotelName = parts[0];
+    const roomID = parseInt(parts[1], 10);
+  
+    // Trả về kết quả là một đối tượng chứa hotelName và roomID
+    return {
+      hotelName,
+      roomID: isNaN(roomID) ? null : roomID
+    };
+  }
+  
+
+  function getNumberOfNights(checkIn, checkOut) {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const millisecondsPerDay = 1000 * 60 * 60 * 24;
+    const diffInTime = checkOutDate.getTime() - checkInDate.getTime();
+    const diffInDays = Math.round(diffInTime / millisecondsPerDay);
+    return diffInDays + 1;
+  }
+
+  const data = localStorage.getItem("searchData");
+  let numberOfNights = 1;
+  let numberOfRooms = 1;
+  let numberOfChildren;
+  let totalPrice = 0;
+  let newTotalPrice = 0;
+  
+const urlData = getHotelAndRoom();
+var roomId = urlData.roomID;
+var hotelName = urlData.hotelName;
+console.log(urlData)
+  if (data) {
+    var hotelData = JSON.parse(data);
+    $("#checkIn").text("Từ: " + hotelData.checkInDate);
+    $("#checkOut").text("Đến: " + hotelData.checkOutDate);
+    $("#manyRooms").text(hotelData.numberOfRooms);
+    numberOfNights = getNumberOfNights(
+      hotelData.checkInDate,
+      hotelData.checkOutDate
+    );
+    numberOfRooms = hotelData.numberOfRooms;
+    numberOfChildren = hotelData.numberOfChildren || 0;
+  } else {
+    console.log("No data found in Local Storage");
+  }
+  let all = numberOfNights * numberOfRooms;
+  $.ajax({
+    url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ hotelName: hotelName }),
+    success: function(response) {
+      // Lưu hotelId vào biến toàn cục
+      console.log(response)
+      hotelId = response.hotelId;
+
+      // AJAX thứ hai chỉ chạy sau khi nhận được globalHotelId
+      $.ajax({
+        url: "http://localhost:3030/api/v1/hotels/" + hotelId,
+        method: "GET",
+        success: function(data) {
+          $("#hotelName").text(data.name);
+        },
+        error: function(err) {
+          console.error("Failed to fetch hotel details:", err);
+        }
+      });
+    },
+    error: function(err) {
+      console.error("Failed to fetch hotel ID:", err);
+    }
+  });
   async function getCurrentUser() {
     try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -30,65 +134,11 @@ $(document).ready(async function () {
       return null; // Return null to indicate an error occurred
     }
   }
-
   const currentUser = await getCurrentUser();
-  // Helper function to extract a query parameter
-  function getParameterByName(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-      results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return "";
-    var value = decodeURIComponent(results[2].replace(/\+/g, " "));
-    var intValue = parseInt(value, 10);
-    return isNaN(intValue) ? value : intValue;
-  }
-
-  function getNumberOfNights(checkIn, checkOut) {
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const diffInTime = checkOutDate.getTime() - checkInDate.getTime();
-    const diffInDays = Math.round(diffInTime / millisecondsPerDay);
-    return diffInDays + 1;
-  }
-
-  const data = localStorage.getItem("searchData");
-  let numberOfNights = 1;
-  let numberOfRooms = 1;
-  let numberOfChildren;
-  let totalPrice = 0;
-  let newTotalPrice = 0;
-
-  if (data) {
-    var hotelData = JSON.parse(data);
-    $("#checkIn").text("Từ: " + hotelData.checkInDate);
-    $("#checkOut").text("Đến: " + hotelData.checkOutDate);
-    $("#manyRooms").text(hotelData.numberOfRooms);
-    numberOfNights = getNumberOfNights(
-      hotelData.checkInDate,
-      hotelData.checkOutDate
-    );
-    numberOfRooms = hotelData.numberOfRooms;
-    numberOfChildren = hotelData.numberOfChildren || 0;
-  } else {
-    console.log("No data found in Local Storage");
-  }
-  let all = numberOfNights * numberOfRooms;
-  var hotelId = getParameterByName("hotelId");
-  var roomId = getParameterByName("roomId");
-
-  $.ajax({
-    url: "/api/v1/hotels/" + hotelId,
-    method: "GET",
-    success: (data) => {
-      $("#hotelName").text(data.name);
-    },
-  });
-
+  console.log(currentUser);
   // AJAX call to fetch hotel and room data
   $.ajax({
-    url: "/api/v1/rooms/" + roomId,
+    url: "http://localhost:3030/api/v1/rooms/" + roomId,
     method: "GET",
     success: (data) => {
       const discountRate = 0.1 * numberOfChildren;
@@ -111,7 +161,7 @@ $(document).ready(async function () {
     const couponCode = $("#Coupon").val();
     if (couponCode) {
       $.ajax({
-        url: "/api/v1/coupon/getByCode/" + couponCode,
+        url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
         success: function (coupon) {
           if (coupon && coupon.percent) {
@@ -129,18 +179,10 @@ $(document).ready(async function () {
     }
   });
 
-  const userID = currentUser.id;
-  $.ajax({
-    url: "/api/v1/users/getDetailUser/" + userID, // Endpoint to fetch user data
-    method: "GET",
-    success: (data) => {
-      if (data) {
-        $("#phoneNumber").val(data.numberPhone); // Phone number in placeholder if empty
-        $("#emailAddress").val(data.email); // Adjusted the name attribute in HTML to `email`
-      }
-    },
-  });
 
+
+  $("#phoneNumber").val(currentUser.numberPhone); // Phone number in placeholder if empty
+  $("#emailAddress").val(currentUser.email); // Adjusted the name attribute in HTML to `email`
   function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
@@ -154,7 +196,7 @@ $(document).ready(async function () {
       $("#cccd").val() === "" ||
       $("#address").val() === "" ||
       !roomId ||
-      !userID ||
+      !currentUser.id ||
       !hotelData.checkInDate ||
       !hotelData.checkOutDate ||
       !newTotalPrice
@@ -165,7 +207,7 @@ $(document).ready(async function () {
 
     var data = {
       room_id: roomId,
-      user_id: userID,
+      user_id: currentUser.id,
       hotel_id: hotelId,
       check_in_date: hotelData.checkInDate,
       check_out_date: hotelData.checkOutDate,
@@ -178,23 +220,18 @@ $(document).ready(async function () {
     console.log(data);
 
     $.ajax({
-      url: "/api/v1/booking/",
+      url: "http://localhost:3030/api/v1/booking/",
       method: "POST",
-      credentials: "include",
-      headers: {
-      'CSRF-Token': token // <-- is the csrf token as a header
-      },
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {
-        var bookingId = response.id;
         var paymentMethod = $("input[name='dbt']:checked").val();
         console.log(response);
 
         if (paymentMethod === "dbt") {
-          window.location.href = `/paymentmethod?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/paymentmethod?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else if (paymentMethod === "cd") {
-          window.location.href = `/resultTT?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/resultTT?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else {
           alert("Vui lòng chọn phương thức thanh toán!");
         }
@@ -209,7 +246,7 @@ $(document).ready(async function () {
   $("#Order").click(validateAndSendBookingRequest);
 
   $(".return").click(function () {
-    window.location.href = "/";
+    window.location.href = "http://localhost:3030/";
   });
   $(".confirm").click(function () {
     console.log(200);

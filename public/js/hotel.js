@@ -5,158 +5,181 @@ $(document).ready(function () {
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
   // Lấy id khách sạn từ URL
+  // Lấy id khách sạn từ URL
   var url = window.location.pathname;
-  var hotelId = url.substring(url.lastIndexOf("/") + 1);
-
+  var hotelSlug = url.substring(url.lastIndexOf("/") + 1);
+  var hotelName = hotelSlug.replace(/-/g, " ");
+  console.log(hotelName);
   function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
-
+  console.log(hotelName);
   $.ajax({
-    url: "/api/v1/hotels/" + hotelId,
-    method: "GET",
-
-    success: function (data) {
-      $("title").text(data.name);
-
-      // Cập nhật nội dung trang khách sạn
-      const formattedCost = numberWithCommas(data.cost);
-      const beforeCost = numberWithCommas((data.cost * 120) / 100);
-
-      const amenities = data.HotelAmenities.map((item) => {
-        return {
-          name: item.Amenity.name,
-          class: item.Amenity.class,
-        };
-      });
-
-      // Tạo HTML cho từng cặp tiện nghi từ dữ liệu khách sạn
-      let amenitiesHTML = "";
-      for (let i = 0; i < amenities.length; i += 2) {
-        const amenity1 = amenities[i];
-        const amenity2 = amenities[i + 1];
-
-        let rowHTML = `
-          <tr>
-            <td><i class="${amenity1.class}"></i><span>${amenity1.name}</span></td>
-            <td><i class="${amenity2.class}"></i><span>${amenity2.name}</span></td>
-          </tr>
-        `;
-
-        amenitiesHTML += rowHTML;
+    url: "/api/v1/hotels/getIdByHotelName/",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ hotelName: hotelName }),
+  
+    success: function (response) {
+      const hotelId = response.hotelId;  // Lấy hotelId từ response
+      
+      // Kiểm tra hotelId hợp lệ
+      if (!hotelId) {
+        console.error("Không tìm thấy ID khách sạn.");
+        return;
       }
-
-      // Chèn HTML vào trong bảng tiện nghi trong phần của trang web
-      $(".col-6.amenties table").append(amenitiesHTML);
-
-      $(".amen table").append(amenitiesHTML);
-      $(".row#hotel-details-container").html(`
-      <div class="col-7 left-sry">
-      <h2>${data.name} </h2>
-      <p><i class="fa-solid fa-location-dot"></i> ${data.map}
-        <button id="btnlolo" class="btn" data-bs-toggle="modal" onclick="redirectToMap('${data.name}')" >Xem bản đồ</button>
-      </p>
-      <p class="intro"><i class="bi bi-buildings-fill"></i>Hãy để chuyến đi của quý khách có một khởi đầu tuyệt vời khi ở lại
-        khách sạn này, nơi có Wi-Fi miễn phí trong tất cả các phòng.
-        <button id="btnlolo" class="btn" data-bs-toggle="modal" data-bs-target="#introductionModal" >Xem thêm</button>
-      </p>
-
-      <!-- Map Modal -->
-      <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="mapModalLabel">Bản đồ</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Introduction modal -->
-      <div class="modal fade" id="introductionModal" tabindex="-1" aria-labelledby="introductionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="introductionModalLabel">Giới thiệu về khách sạn</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              Hãy để chuyến đi của quý khách có một khởi đầu tuyệt vời khi ở lại khách sạn này, nơi có Wi-Fi miễn
-              phí trong tất cả các phòng. Nằm ở vị trí trung tâm tại Quận 7 của Hồ Chí Minh, chỗ nghỉ này đặt quý
-              khách ở gần các điểm thu hút và tùy chọn ăn uống thú vị. Đừng rời đi trước khi ghé thăm Bảo tàng
-              Chứng tích chiến tranh nổi tiếng. Được xếp hạng 4 sao, chỗ nghỉ chất lượng cao này cho phép khách
-              nghỉ sử dụng bể bơi ngoài trời và spa ngay trong khuôn viên. </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-5 right-sumary">
-      <div class="row">
-        <div class="col-3 deleted-price">
-          ${beforeCost} VND
-        </div>
-        <div class="col-4 real-price">
-          ${formattedCost} VND
-        </div>
-        <div class="col-5 select-rooms">
-        <button class="btn room" onclick="scrollToElement(event, 'room-id')">Chọn phòng</button>
-        </div>
-      </div>
-    </div>
-    <a  data-bs-toggle="modal" data-bs-target="#imgModal" onclick="showContent('hotel-upload')">
-    <div id="detailed-img" class="row detailed-img">
-      <table id="img-carousel">
-
-      </table>
-    </div>
-  </a>
-
-  <div class="modal fade" id="imgModal" tabindex="-1" aria-labelledby="imgModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="imgModalLabel">
-          </h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="hotel-upload" class="content">
-            <div class="row">
-              <div class="col-4">
-                <div id="list-hotel-upload" class="list-group">
-                  <a class="list-group-item list-group-item-action"  onclick="scrollToElement(event, 'feature')">Nổi bật</a>
-                  <a class="list-group-item list-group-item-action" onclick="scrollToElement(event, 'room')">Phòng</a>
+  
+      // Tiến hành yêu cầu AJAX thứ hai để lấy dữ liệu khách sạn
+      $.ajax({
+        url: "/api/v1/hotels/" + hotelId,
+        method: "GET",
+  
+        success: function (data) {
+          $("title").text(data.name);
+  
+          // Cập nhật nội dung trang khách sạn
+          const formattedCost = numberWithCommas(data.cost);
+          const beforeCost = numberWithCommas((data.cost * 120) / 100);
+  
+          const amenities = data.HotelAmenities.map((item) => {
+            return {
+              name: item.Amenity.name,
+              class: item.Amenity.class,
+            };
+          });
+  
+          // Tạo HTML cho từng cặp tiện nghi từ dữ liệu khách sạn
+          let amenitiesHTML = "";
+          for (let i = 0; i < amenities.length; i += 2) {
+            const amenity1 = amenities[i];
+            const amenity2 = amenities[i + 1];
+  
+            let rowHTML = `
+              <tr>
+                <td><i class="${amenity1.class}"></i><span>${amenity1.name}</span></td>
+                <td><i class="${amenity2.class}"></i><span>${amenity2.name}</span></td>
+              </tr>
+            `;
+  
+            amenitiesHTML += rowHTML;
+          }
+  
+          // Chèn HTML vào trong bảng tiện nghi trong phần của trang web
+          $(".col-6.amenties table").append(amenitiesHTML);
+          $(".amen table").append(amenitiesHTML);
+  
+          $(".row#hotel-details-container").html(`
+          <div class="col-7 left-sry">
+          <h2>${data.name} </h2>
+          <p><i class="fa-solid fa-location-dot"></i> ${data.map}
+            <button class="btn" data-bs-toggle="modal" onclick="redirectToMap('${data.name}')" style="color: blue">Xem bản đồ</button>
+          </p>
+          <p class="intro"><i class="bi bi-buildings-fill"></i>Hãy để chuyến đi của quý khách có một khởi đầu tuyệt vời khi ở lại
+            khách sạn này, nơi có Wi-Fi miễn phí trong tất cả các phòng.
+            <button class="btn" data-bs-toggle="modal" data-bs-target="#introductionModal" style="color: blue">Xem thêm</button>
+          </p>
+  
+          <!-- Map Modal -->
+          <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="mapModalLabel">Bản đồ</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
                 </div>
               </div>
-              <div class="col-8">
-                <div id="locl" data-bs-spy="scroll" data-bs-target="#list-hotel-upload" data-bs-smooth-scroll="true"
-                  class="scrollspy-example" tabindex="0" >
-                  <p id="feature">Nổi bật</p>
-                  <div class="row" id="clickHotel">
-                    
-                  </div>
-                    <p id="room">Phòng</p>
-                      <div class="row" id="clickRoom">
-
-                  </div>
+            </div>
+          </div>
+  
+          <!-- Introduction modal -->
+          <div class="modal fade" id="introductionModal" tabindex="-1" aria-labelledby="introductionModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="introductionModalLabel">Giới thiệu về khách sạn</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  Hãy để chuyến đi của quý khách có một khởi đầu tuyệt vời khi ở lại khách sạn này, nơi có Wi-Fi miễn
+                  phí trong tất cả các phòng. Nằm ở vị trí trung tâm tại Quận 7 của Hồ Chí Minh, chỗ nghỉ này đặt quý
+                  khách ở gần các điểm thu hút và tùy chọn ăn uống thú vị. Đừng rời đi trước khi ghé thăm Bảo tàng
+                  Chứng tích chiến tranh nổi tiếng. Được xếp hạng 4 sao, chỗ nghỉ chất lượng cao này cho phép khách
+                  nghỉ sử dụng bể bơi ngoài trời và spa ngay trong khuôn viên. </div>
               </div>
             </div>
-
+          </div>
+        </div>
+        <div class="col-5 right-sumary">
+          <div class="row">
+            <div class="col-3 deleted-price">
+              ${beforeCost} VND
+            </div>
+            <div class="col-4 real-price">
+              ${formattedCost} VND
+            </div>
+            <div class="col-5 select-rooms">
+            <button class="btn room" onclick="scrollToElement(event, 'room-id')">Chọn phòng</button>
+            </div>
+          </div>
+        </div>
+        <a  data-bs-toggle="modal" data-bs-target="#imgModal" onclick="showContent('hotel-upload')">
+        <div id="detailed-img" class="row detailed-img">
+          <table id="img-carousel">
+          </table>
+        </div>
+      </a>
+  
+      <div class="modal fade" id="imgModal" tabindex="-1" aria-labelledby="imgModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="imgModalLabel">
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="hotel-upload" class="content">
+                <div class="row">
+                  <div class="col-4">
+                    <div id="list-hotel-upload" class="list-group">
+                      <a class="list-group-item list-group-item-action"  onclick="scrollToElement(event, 'feature')">Nổi bật</a>
+                      <a class="list-group-item list-group-item-action" onclick="scrollToElement(event, 'room')">Phòng</a>
+                    </div>
+                  </div>
+                  <div class="col-8">
+                    <div data-bs-spy="scroll" data-bs-target="#list-hotel-upload" data-bs-smooth-scroll="true"
+                      class="scrollspy-example" tabindex="0" style="overflow-x: hidden;">
+                      <p id="feature">Nổi bật</p>
+                      <div class="row" id="clickHotel">
+                        
+                      </div>
+                        <p id="room">Phòng</p>
+                          <div class="row" id="clickRoom">
+  
+                    </div>
+                </div>
+              </div>
+  
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>`);
+    `);
+        },
+        error: function (error) {
+          console.error("Error:", error);
+        }
+      });
     },
     error: function (error) {
       console.error("Error:", error);
-    },
+    }
   });
-});
+}); 
 
 $(document).ready(async function () {
   var url = window.location.pathname;
@@ -688,38 +711,68 @@ $(document).ready(async function () {
   });
 });
 
-const token = localStorage.getItem("token");
 
 $(document).on("click", ".booking", function () {
-  if (token) {
-    var roomId = $(this).data("room-id");
-    var url = window.location.pathname;
-    var hotelId = url.substring(url.lastIndexOf("/") + 1);
-    const Sdata = localStorage.getItem("searchData");
-    var hotelData = JSON.parse(Sdata);
-    console.log(hotelData.checkInDate);
-    //Send AJAX request to check availability
-    $.ajax({
-      url: `/api/v1/booking/checkAvailability?checkInDate=${hotelData.checkInDate}&checkOutDate=${hotelData.checkOutDate}&roomId=${roomId}&quantity=${hotelData.numberOfRooms}`,
-      type: "GET",
-      success: (data) => {
-        console.log(data);
-        if (data) {
-          // If available rooms exist, redirect to payment page
-          window.location.href = `/payment?hotelId=${hotelId}&roomId=${roomId}`;
-        } else {
-          // If no available rooms, show a message
-          alert("Không có phòng trống cho ngày đã chọn");
-        }
-      },
-      error: function (jqXHR, textStatus, errorThrown) {
-        console.error("Error checking availability:", errorThrown);
-        alert("Có lỗi xảy ra khi kiểm tra phòng trống. Vui lòng thử lại sau.");
-      },
-    });
-  } else {
-    alert("Bạn cần đăng nhập để thực hiện đặt phòng");
+  // Retrieve the room ID from the clicked element
+  var roomId = $(this).data("room-id");
+
+  // Parse the URL to extract the hotel name (slush)
+  var url = window.location.pathname;
+  var slush = url.split("/").pop(); // Extract the hotel name from the URL
+  
+  if (!slush) {
+    alert("Không tìm thấy tên khách sạn. Vui lòng thử lại.");
+    return;
   }
+
+  // Replace hyphens with spaces in the hotel name
+  var hotelName = slush.replace(/-/g, " ");
+  console.log("Hotel Name:", hotelName);
+
+  // Retrieve search data from localStorage
+  const Sdata = localStorage.getItem("searchData");
+  if (!Sdata) {
+    alert("Không tìm thấy thông tin tìm kiếm. Vui lòng thử lại.");
+    return;
+  }
+
+  var hotelData;
+  try {
+    hotelData = JSON.parse(Sdata);
+  } catch (error) {
+    console.error("Error parsing searchData:", error);
+    alert("Thông tin tìm kiếm không hợp lệ. Vui lòng thử lại.");
+    return;
+  }
+
+  // Validate necessary fields in searchData
+  if (!hotelData.checkInDate || !hotelData.checkOutDate || !hotelData.numberOfRooms) {
+    alert("Dữ liệu tìm kiếm không đầy đủ. Vui lòng kiểm tra và thử lại.");
+    return;
+  }
+
+  console.log("Check-in Date:", hotelData.checkInDate);
+  console.log("Check-out Date:", hotelData.checkOutDate);
+
+  // Send AJAX request to check room availability
+  $.ajax({
+    url: `/api/v1/booking/checkAvailability?checkInDate=${hotelData.checkInDate}&checkOutDate=${hotelData.checkOutDate}&roomId=${roomId}&quantity=${hotelData.numberOfRooms}`,
+    type: "GET",
+    success: (data) => {
+      console.log(data);
+      if (data) {
+        // If available rooms exist, redirect to payment page
+        window.location.href = `/payment?${hotelName}_${roomId}`;
+      } else {
+        // If no available rooms, show a message
+        alert("Không có phòng trống cho ngày đã chọn");
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.error("Error checking availability:", errorThrown);
+      alert("Có lỗi xảy ra khi kiểm tra phòng trống. Vui lòng thử lại sau.");
+    },
+  });
 });
 
 const findhotel = () => {
