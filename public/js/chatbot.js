@@ -5,7 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendChatBtn = document.getElementById("send-btn");
   const fileInput = document.querySelector('.chat-input input[type="file"]');
   const sendBtn = document.getElementById("send-btn");
-
+  let checkIn = document.getElementById("checkIn").value;
+  let checkOut = document.getElementById("checkOut").value;
+  let roomCount = document.getElementById("room-count").textContent;
+  let adultsCount = document.getElementById("adults-count").textContent;
+  let childrenCount = document.getElementById("children-count").textContent;
+  // Tạo URL với query parameters
+  
   const tokencsrf = document
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
@@ -50,10 +56,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
               const layTinhThanh = (tenDiaDiem) =>
                 diaDiemToTinhThanh[tenDiaDiem] || tenDiaDiem;
+          
               const tinh = layTinhThanh(locationName);
-
+              const searchData = {
+                location: tinh,
+                checkInDate: checkIn,
+                checkOutDate: checkOut,
+                numberOfRooms: roomCount,
+                numberOfAdults: adultsCount,
+                numberOfChildren: childrenCount,
+              };
+              
+              // Store searchData in localStorage
+              localStorage.setItem("searchData", JSON.stringify(searchData));
+              let queryParams = new URLSearchParams({
+                destination: tinh,
+                checkIn: checkIn,
+                checkOut: checkOut,
+                rooms: roomCount,
+                adults: adultsCount,
+                children: childrenCount,
+              }).toString();
               setTimeout(() => {
-                window.location.href = `/hotelList?destination=${tinh}`;
+                window.location.href = `/hotelList?${queryParams}`;
               }, 1500);
             } else {
               const message =

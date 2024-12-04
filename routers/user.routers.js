@@ -98,9 +98,10 @@ userRouter.put(
   editUserAdmin
 );
 userRouter.post(
-  "/updateImage/:id",
+  "/updateImage",
   parseForm,
   csrfProtection,
+  authenticationMiddleware,
   limiter,
 
   uploadCloud.single("user"),
