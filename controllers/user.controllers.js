@@ -12,7 +12,11 @@ const {
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 
-let otpcode = null;
+let registrationOTPCode = null;
+let registrationUserData = null;
+
+const otpStoragelogin = {};
+const otpStorageregister = {};
 
 //Cấu hình nodemailer
 const transporter = nodemailer.createTransport({
@@ -25,16 +29,49 @@ const transporter = nodemailer.createTransport({
 
 //Generate OTP
 function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  return {
+    code: otp,
+    createdAt: Date.now(),
+    attempts: 0,
+  };
+}
+
+//Check OTP Valid
+function isOTPvalid(storedotp, userProvidedOTP) {
+  const OTP_EXPIRATION = 10 * 60 * 1000;
+  const MAX_ATTEMPTS = 5;
+
+  if (!storedotp) return { valid: false, message: "No OTP found" };
+
+  //check otp expired
+  if (Date.now() - storedotp.createdAt > OTP_EXPIRATION) {
+    return { valid: false, message: "OTP has expired" };
+  }
+  //check maximum attempts
+  if (storedotp.attempts > MAX_ATTEMPTS) {
+    return { valid: false, message: "Too many verifycation attemps" };
+  }
+  const isCorrect = storedotp.code === userProvidedOTP;
+  storedotp.attempts++;
+  return {
+    valid: isCorrect,
+    message: isCorrect ? "OTP verified succes" : "Incorrect OTP",
+  };
 }
 
 const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
-    sanitizeObject(req.body, ["name", "numberPhone"]);
+    sanitizeObject(req.body, [
+      "name",
+      "password",
+      "confirmpassword",
+      "numberPhone",
+      "type",
+    ]);
     next();
   },
-
   // Validate các trường
   body("name").trim().notEmpty().withMessage("Vui lòng nhập tên"),
 
@@ -84,31 +121,56 @@ const register = [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, numberPhone, type } = req.body;
+    const { name, email, password, cofirmpassword, numberPhone, type } =
+      req.body;
 
     try {
-      // Băm mật khẩu
-      const salt = await bcrypt.genSalt(10);
-      const hashPassword = await bcrypt.hash(password, salt);
-
-      // Tạo người dùng mới
-      const newUser = await User.create({
+      const otp = generateOTP();
+      otpStorageregister[email] = otp;
+      //registrationOTPCode = otp
+      registrationUserData = {
         name,
         email,
-        password: hashPassword,
+        password,
         numberPhone,
         type,
-      });
+      };
+      // Send OTP email
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Xác Nhận Đăng Ký Tài Khoản",
+        html: `
+          <h2>Mã Xác Nhận Đăng Ký</h2>
+          <p>Mã OTP của bạn là: <strong>${otp.code}</strong></p>
+          <p>Mã này sẽ hết hạn sau 10 phút</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      // Băm mật khẩu
+      // const salt = await bcrypt.genSalt(10);
+      // const hashPassword = await bcrypt.hash(password, salt);
+
+      // // Tạo người dùng mới
+      // const newUser = await User.create({
+      //   name,
+      //   email,
+      //   password: hashPassword,
+      //   numberPhone,
+      //   type,
+      // });
 
       // Trả về thông tin người dùng mới
-      return res.status(201).json({
-        message: "User registered successfully",
-        user: {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          numberPhone: newUser.numberPhone,
-        },
+      return res.status(200).json({
+        message: "OTP Da duoc gui",
+        email: email,
+        // user: {
+        //   id: newUser.id,
+        //   name: newUser.name,
+        //   email: newUser.email,
+        //   numberPhone: newUser.numberPhone,
+        // },
       });
     } catch (error) {
       console.error("Error registering user:", error);
@@ -116,6 +178,102 @@ const register = [
     }
   },
 ];
+
+// OTP Verification for Registration
+const verifyRegistrationOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    console.log("OTP phia back end", registrationOTPCode);
+    // Validate OTP
+    const storedotp = otpStorageregister[email];
+    const validationResult = isOTPvalid(storedotp, otp);
+    if (!validationResult.valid) {
+      return res.status(400).json({ message: validationResult.message });
+    }
+
+    // Check if user data exists
+    if (!registrationUserData) {
+      return res
+        .status(400)
+        .json({ message: "Không tìm thấy thông tin đăng ký" });
+    }
+
+    // Destructure user data
+    const { name, mail, password, numberPhone, type } = registrationUserData;
+    console.log("name", name);
+    console.log("pasword", password);
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashPassword,
+      numberPhone,
+      type,
+    });
+
+    // Clear registration data
+    //registrationOTPCode = null;
+    registrationUserData = null;
+    delete otpStorageregister[email];
+
+    // Return user info
+    return res.status(201).json({
+      message: "Đăng ký thành công",
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        numberPhone: newUser.numberPhone,
+      },
+    });
+  } catch (error) {
+    console.error("Error verifying registration OTP:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Resend Registration OTP
+const resendRegistrationOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log("email tu ");
+
+    // Check if registration data exists
+    if (!registrationUserData || registrationUserData.email !== email) {
+      return res
+        .status(400)
+        .json({ message: "Không tìm thấy thông tin đăng ký" });
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    otpStorageregister[email] = otp;
+
+    // Send new OTP email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Mã OTP Mới - Đăng Ký Tài Khoản",
+      html: `
+        <h2>Mã OTP Mới Của Bạn</h2>
+        <p>Mã OTP mới là: <strong>${otp.code}</strong></p>
+        <p>Mã này sẽ hết hạn sau 10 phút</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: "OTP mới đã được gửi" });
+  } catch (error) {
+    console.error("Lỗi gửi lại OTP đăng ký:", error);
+    res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
 
 const loginGG = async (req, res) => {
   try {
@@ -181,8 +339,8 @@ const login = async (req, res) => {
 
     // B5: Tạo mã OTP
     const otp = generateOTP();
-    otpcode = otp; // Không an toàn cho thực tế
-    console.log("<<<<OTP>>>>", otpcode);
+    otpStoragelogin[email] = otp;
+    console.log("<<<<OTP>>>>", otp.code);
 
     // Gửi OTP qua email
     const mailOptions = {
@@ -191,7 +349,7 @@ const login = async (req, res) => {
       subject: "Mã OTP Đăng Nhập",
       html: `
         <h2>Mã OTP Của Bạn</h2>
-        <p>Mã OTP của bạn là: <strong>${otp}</strong></p>
+        <p>Mã OTP của bạn là: <strong>${otp.code}</strong></p>
         <p>Mã này sẽ hết hạn sau 10 phút</p>
       `,
     };
@@ -221,12 +379,16 @@ async function verifyOTP(req, res) {
     //const otpkey = `otp:${userId}`;
     //const storedotp = await redisClient.get(otpkey);
     console.log("<<<OTP nhan duoc>>", otp);
-    if (!otp || otp !== otpcode) {
-      return res.status(400).json({ message: "OTP không hợp lệ" });
-      console.log("otp sai");
+    const storedotp = otpStoragelogin[email];
+
+    const validationResult = isOTPvalid(storedotp, otp);
+
+    if (!validationResult.valid) {
+      return res.status(400).json({ message: validationResult.message });
     }
 
-    //Xóa OTP sau khi xác thực
+    // Reset OTP after successful verification
+    delete otpStoragelogin[email];
     //await redisClient.del(otpkey);
     console.log(">>>>Da xasc thuc otp>>>>");
     //Xử lí khi xác thực thành công
@@ -282,7 +444,7 @@ async function resendOTP(req, res) {
 
     // 2. Sinh OTP mới
     const otp = generateOTP();
-    otpcode = otp;
+    otpStoragelogin[email] = otp;
     //const otpKey = `otp:${userId}`;
 
     // 3. Lưu OTP mới vào Redis
@@ -295,7 +457,7 @@ async function resendOTP(req, res) {
       subject: "OTP Mới - Đăng Nhập",
       html: `
               <h2>Mã OTP Mới Của Bạn</h2>
-              <p>Mã OTP mới là: <strong>${otp}</strong></p>
+              <p>Mã OTP mới là: <strong>${otp.code}</strong></p>
               <p>Mã này sẽ hết hạn sau 10 phút</p>
           `,
     };
@@ -692,4 +854,6 @@ module.exports = {
   getCurrentUser,
   verifyOTP,
   resendOTP,
+  verifyRegistrationOTP,
+  resendRegistrationOTP,
 };

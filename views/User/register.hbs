@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="/css/register.css" />
 
   </head>
-
   <body>
     <div class="container-register">
       <div class="wrapper">
@@ -79,6 +78,19 @@
           </div>
         </form>
       </div>
+    </div>
+     <!-- OTP Modal -->
+     <div id="otpModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Verify OTP</h2>
+            <form id="otpForm">
+                <input id="otpInput" type="text" placeholder="Enter 6-digit OTP" maxlength="6" required />
+                <button type="submit" class="btn">Verify</button>
+                <p id="otpError"></p>
+                <a href="#" id="resendOTP">Resend OTP</a>
+            </form>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

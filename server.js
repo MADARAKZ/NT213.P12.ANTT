@@ -104,8 +104,8 @@ app.use(
         "https://phongreviews.com",
         "https://www.gstatic.com/",
         "https://ak-d.tripcdn.com/", // Cloudinary for images
-        "data:", // Allow data URIs (used for inline images or icons)
-        "blob:",
+        "data:",
+        "blob:", // Allow data URIs (used for inline images or icons)
       ],
 
       fontSrc: [
