@@ -7,6 +7,7 @@ const {
   getDetailBooking,
   deleteBooking,
   getAvailability,
+  getDetailBookingByHotelAndName
 } = require("../controllers/payment.controller");
 var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 const BookingRouter = express.Router();
@@ -14,6 +15,7 @@ BookingRouter.post("/", parseForm, csrfProtection, createBooking);
 BookingRouter.get("/", getAllBooking);
 BookingRouter.get("/getDetail/:id", getDetailBooking);
 BookingRouter.get("/checkAvailability", getAvailability);
+BookingRouter.post("/getByHotelAndName",getDetailBookingByHotelAndName);
 
 BookingRouter.delete("/:id", parseForm, csrfProtection, checkExist(Booking), deleteBooking);
 

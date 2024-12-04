@@ -20,7 +20,6 @@ $(document).ready(function () {
     
       return { name, hotel }; // Trả về kết quả dưới dạng đối tượng
     }
-  let hotelId;
   let url = window.location.href;
   const result = parseQueryParams(url);
   console.log(result);
@@ -34,6 +33,9 @@ $(document).ready(function () {
     $.ajax({
       url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
       method: "POST",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+        },
       contentType: "application/json",
       data: JSON.stringify({ hotelName: result.hotel }),
       success: function(response) {

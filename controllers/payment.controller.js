@@ -313,4 +313,5 @@ module.exports = {
   getDetailBooking,
   deleteBooking,
   getAvailability,
+  getDetailBookingByHotelAndName
 };

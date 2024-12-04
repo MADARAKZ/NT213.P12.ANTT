@@ -16,13 +16,17 @@ $(document).ready(function () {
   console.log(hotelName);
   $.ajax({
     url: "/api/v1/hotels/getIdByHotelName/",
+    credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify({ hotelName: hotelName }),
   
     success: function (response) {
       const hotelId = response.hotelId;  // Lấy hotelId từ response
-      
+      console.log(hotelId);
       // Kiểm tra hotelId hợp lệ
       if (!hotelId) {
         console.error("Không tìm thấy ID khách sạn.");
@@ -33,7 +37,10 @@ $(document).ready(function () {
       $.ajax({
         url: "/api/v1/hotels/" + hotelId,
         method: "GET",
-  
+        credentials: "include",
+      headers: {
+        'CSRF-Token': token // <-- is the csrf token as a header
+      },
         success: function (data) {
           $("title").text(data.name);
   
@@ -182,6 +189,7 @@ $(document).ready(function () {
 }); 
 
 $(document).ready(async function () {
+  
   var url = window.location.pathname;
   let slug = url.split("/")[2];
   function ChangeToSlug(title) {
@@ -287,7 +295,6 @@ $(document).ready(async function () {
   $.ajax({
     url: "/api/v1/rooms?hotelId=" + hotelId,
     method: "GET",
-
     success: (data) => {
       arrayRoom = data.map((room) => room.id);
       data.forEach((item) => {

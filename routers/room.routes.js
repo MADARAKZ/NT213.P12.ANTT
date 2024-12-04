@@ -16,7 +16,7 @@ const { requireAdmin, requireChange} = require("../middlewares/authen/auth.middl
 const { checkExist } = require("../middlewares/validations/checkExist");
 const roomRouter = express.Router();
 roomRouter.post("/",parseForm, csrfProtection,authenticationMiddleware, requireChange ,uploadCloud.array("room", 10), createRoom);
-roomRouter.get("/",authenticationMiddleware, requireChange , getAllRoom);
+roomRouter.get("/", getAllRoom);
 roomRouter.get("/:id", getDetailRoom);
 
 roomRouter.put("/:id", parseForm, csrfProtection,authenticationMiddleware,requireChange, updateRoom);

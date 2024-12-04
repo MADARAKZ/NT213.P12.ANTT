@@ -1,6 +1,8 @@
 
-
 $(document).ready(async function () {
+  const token = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute("content");
   const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 phút (tính bằng mili giây)
   let sessionTimer;
   let hotelId;
@@ -89,6 +91,9 @@ console.log(urlData)
     url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
     method: "POST",
     contentType: "application/json",
+    headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+    },
     data: JSON.stringify({ hotelName: hotelName }),
     success: function(response) {
       // Lưu hotelId vào biến toàn cục
@@ -222,6 +227,10 @@ console.log(urlData)
     $.ajax({
       url: "http://localhost:3030/api/v1/booking/",
       method: "POST",
+      credentials: "include",
+      headers: {
+      'CSRF-Token': token // <-- is the csrf token as a header
+      },
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {
@@ -253,4 +262,15 @@ console.log(urlData)
     $(".Yorder").hide();
     $("form").show();
   });
+});
+$("#fname").on("input", function () {
+  let value = $(this).val();
+  // Loại bỏ tất cả các ký tự có dấu
+  let sanitizedValue = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // Kiểm tra nếu giá trị nhập vào vẫn còn ký tự có dấu
+  if (sanitizedValue !== value) {
+    alert("Tên chỉ được phép chứa các ký tự không dấu.");
+    $(this).val(sanitizedValue); // Cập nhật lại giá trị không dấu
+  }
 });
