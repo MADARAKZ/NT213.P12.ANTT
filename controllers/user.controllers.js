@@ -28,7 +28,7 @@ function generateOTP() {
 const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
-    sanitizeObject(req.body, ["name", "email", "password", "numberPhone"]);
+    sanitizeObject(req.body, ["name", "password", "numberPhone"]);
     next();
   },
 

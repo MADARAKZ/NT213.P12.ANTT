@@ -283,6 +283,17 @@ const getAllHotel = async (req, res) => {
   }
 };
 
+const getAllHotelsAdmin = async (req, res) => {
+  try {
+    // Fetch all hotels without any conditions
+    const hotels = await Hotels.findAll();
+
+    res.status(200).json(hotels);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching hotels' });
+  }
+}
 const getDetailHotel = async (req, res) => {
   const { id } = req.params;
   try {
@@ -470,6 +481,7 @@ const getAllMaps = async (req, res) => {
 module.exports = {
   createHotel,
   getAllHotel,
+  getAllHotelsAdmin,
   getDetailHotel,
   updateHotel,
   deleteHotel,

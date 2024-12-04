@@ -71,6 +71,12 @@ function requireCustomer(req, res, next) {
   }
   next();
 }
+function requireChange(req, res, next) {
+  if (req.user.type == 'admin' || req.user.type == 'owner') {
+    return next();
+  }
+  return res.status(403).json({ message: 'Tài khoản không có đủ thẩm quyền' });
+}
 
 function requireOwner(req, res, next) {
   if (req.user.type !== 'owner') {
@@ -79,4 +85,4 @@ function requireOwner(req, res, next) {
   next();
 }
 
-module.exports = { authenticateToken, requireAdmin, requireCustomer, requireOwner };
+module.exports = { authenticateToken, requireAdmin, requireCustomer, requireOwner,requireChange };

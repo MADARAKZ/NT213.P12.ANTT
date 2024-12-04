@@ -206,25 +206,6 @@ const deleteRoom = async (req, res) => {
       return res.status(404).send("Không tìm thấy khách sạn");
     }
 
-    // Tìm tất cả các hình ảnh liên quan đến khách sạn này
-    const imagesToDelete = await UrlImageRoom.findAll({
-      where: {
-        IdRoom: id,
-      },
-    });
-
-    // Xóa các hình ảnh từ Cloudinary và cơ sở dữ liệu
-    const deleteImagePromises = imagesToDelete.map(async (image) => {
-      // Xóa hình ảnh từ Cloudinary bằng public_id hoặc
-      console.log(image.file_name);
-      const results = await cloudinary.uploader.destroy(image.file_name);
-      console.log(results);
-      // Xóa bản ghi hình ảnh từ cơ sở dữ liệu
-      await image.destroy();
-    });
-
-    // Chờ cho tất cả các hành động xóa hình ảnh hoàn tất
-    await Promise.all(deleteImagePromises);
 
     // Sau khi đã xóa hết các hình ảnh liên quan, tiến hành xóa khách sạn
     await deletedRoom.destroy({ cascade: true });
