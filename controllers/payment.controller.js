@@ -163,6 +163,63 @@ const getAllBooking = async (req, res) => {
     res.status(500).send(error);
   }
 };
+const getDetailBookingByHotelAndName = async (req, res) => {
+  let { hotel_id, full_name } = req.body; // Lấy dữ liệu từ query string
+
+  // Kiểm tra và chuẩn hóa giá trị full_name
+  if (typeof full_name !== 'string') {
+    return res.status(400).send({ message: "Invalid full name provided" });
+  }
+
+  // Loại bỏ các ký tự đặc biệt có thể gây lỗi trong truy vấn
+  full_name = full_name.replace(/[^\w\s]/gi, ''); // Loại bỏ các ký tự đặc biệt
+
+  // Kiểm tra nếu hotel_id không hợp lệ
+  if (!hotel_id || isNaN(hotel_id)) {
+    return res.status(400).send({ message: "Invalid hotel ID" });
+  }
+
+  hotel_id = parseInt(hotel_id); // Chuyển hotel_id thành số
+
+  try {
+    // Tìm kiếm booking dựa trên id_hotel và tên khách hàng
+    const bookings = await Booking.findAll({
+      where: {
+        full_name: full_name, // Lọc theo tên khách hàng
+      },
+      include: [
+        {
+          model: Room,
+          attributes: ["id", "name", "price", "hotelId"], // Chỉ lấy các thuộc tính cần thiết từ bảng Room
+          where: {
+            hotelId: hotel_id, // Lọc theo ID của khách sạn
+          },
+          include: [
+            {
+              model: Hotels,
+              attributes: ["name", "star", "userRating", "map", "TypeHotel", "cost", "payment"], // Thông tin về khách sạn
+            }
+          ]
+        },
+        {
+          model: User,
+          attributes: ["id", "name", "email", "numberPhone", "cccd", "address"], // Thông tin về người dùng
+        }
+      ]
+    });
+
+    // Kiểm tra nếu không tìm thấy booking nào
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).send({ message: "No bookings found for the specified hotel and customer name" });
+    }
+
+    // Trả về danh sách booking chi tiết
+    res.status(200).send(bookings);
+  } catch (error) {
+    console.error("Error fetching booking details by hotel ID and customer name:", error);
+    res.status(500).send(error);
+  }
+};
 
 const getDetailBooking = async (req, res) => {
   const { id } = req.params;
@@ -256,4 +313,5 @@ module.exports = {
   getDetailBooking,
   deleteBooking,
   getAvailability,
+  getDetailBookingByHotelAndName
 };

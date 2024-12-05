@@ -106,9 +106,10 @@ app.use(
         "https://www.bing.com",
         "https://phongreviews.com",
         "https://www.gstatic.com/",
-        "https://ak-d.tripcdn.com/", // Cloudinary for images
-        "data:",
-        "blob:", // Allow data URIs (used for inline images or icons)
+        "https://ak-d.tripcdn.com/",
+        "https://sandbox.vnpayment.vn", // Cloudinary for images
+        "data:", // Allow data URIs (used for inline images or icons)
+        "blob:",
       ],
 
       fontSrc: [
@@ -215,9 +216,15 @@ app.get("/user", csrfProtection, (req, res) => {
   // Render the sidebar template directly (no need for separate route)
   res.render("User/user", { csrfToken: req.csrfToken() });
 });
-app.get("/payment", csrfProtection, (req, res) => {
-  res.render("User/payment", { csrfToken: req.csrfToken() });
-});
+app.get(
+  "/payment",
+  authenticateToken,
+  requireCustomer,
+  csrfProtection,
+  (req, res) => {
+    res.render("User/payment", { csrfToken: req.csrfToken() });
+  }
+);
 app.get("/paymentmethod", csrfProtection, (req, res) => {
   res.render("User/paymentMethod", { csrfToken: req.csrfToken() });
 });
@@ -332,7 +339,7 @@ function findHotelBySlug(slug) {
     });
 }
 
-app.get("/hotel/:slug/:id", csrfProtection, (req, res) => {
+app.get("/hotel/:slug", csrfProtection, (req, res) => {
   var slug = req.params.slug;
   var hotel = findHotelBySlug(slug);
 

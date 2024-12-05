@@ -2,48 +2,54 @@ $(document).ready(async function () {
   const token = document
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
+  const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 phút (tính bằng mili giây)
+  let sessionTimer;
+  let hotelId;
 
-  async function getCurrentUser() {
-    try {
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
-      const response = await fetch("/api/v1/users/getCurrentUser", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch current user: ${errorText}`);
-      }
-
-      const currentUser = await response.json();
-      if (!currentUser) {
-        throw new Error("Current user data is not available");
-      }
-
-      return currentUser;
-    } catch (error) {
-      console.error("Error fetching current user:", error.message);
-      return null; // Return null to indicate an error occurred
+  // Hàm bắt đầu đếm thời gian
+  function startSessionTimer() {
+    // Nếu đã có timer cũ, xóa nó
+    if (sessionTimer) {
+      clearTimeout(sessionTimer);
     }
+
+    // Đặt timer mới
+    sessionTimer = setTimeout(() => {
+      alert(
+        "Bạn đã không thực hiện thao tác nào trong 15 phút. Bạn sẽ được chuyển về trang chủ."
+      );
+      window.location.href = "http://localhost:3030/"; // URL của trang chủ
+    }, SESSION_TIMEOUT);
   }
 
-  const currentUser = await getCurrentUser();
-  // Helper function to extract a query parameter
-  function getParameterByName(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-      results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return "";
-    var value = decodeURIComponent(results[2].replace(/\+/g, " "));
-    var intValue = parseInt(value, 10);
-    return isNaN(intValue) ? value : intValue;
+  // ======================= LẮNG NGHE SỰ KIỆN =======================
+  // Reset bộ đếm khi người dùng thay đổi trang
+  $(window).on("beforeunload", function () {
+    clearTimeout(sessionTimer); // Xóa timer khi người dùng thay đổi trang
+  });
+
+  // Khởi động bộ đếm thời gian khi tải trang
+  startSessionTimer();
+  function getHotelAndRoom(url = window.location.href) {
+    // Tìm toàn bộ query string sau dấu ?
+    const queryStringIndex = url.indexOf("?");
+    if (queryStringIndex === -1) return null; // Không có query string
+
+    const queryString = url.substring(queryStringIndex + 1); // Lấy phần sau dấu ?
+    const value = decodeURIComponent(queryString.replace(/\+/g, " ")); // Giải mã chuỗi
+
+    // Tách chuỗi trước và sau dấu gạch dưới "_"
+    const parts = value.split("_");
+    if (parts.length !== 2) return null; // Nếu không đúng định dạng, trả về null
+
+    const hotelName = parts[0];
+    const roomID = parseInt(parts[1], 10);
+
+    // Trả về kết quả là một đối tượng chứa hotelName và roomID
+    return {
+      hotelName,
+      roomID: isNaN(roomID) ? null : roomID,
+    };
   }
 
   function getNumberOfNights(checkIn, checkOut) {
@@ -62,6 +68,10 @@ $(document).ready(async function () {
   let totalPrice = 0;
   let newTotalPrice = 0;
 
+  const urlData = getHotelAndRoom();
+  var roomId = urlData.roomID;
+  var hotelName = urlData.hotelName;
+  console.log(urlData);
   if (data) {
     var hotelData = JSON.parse(data);
     $("#checkIn").text("Từ: " + hotelData.checkInDate);
@@ -77,20 +87,63 @@ $(document).ready(async function () {
     console.log("No data found in Local Storage");
   }
   let all = numberOfNights * numberOfRooms;
-  var hotelId = getParameterByName("hotelId");
-  var roomId = getParameterByName("roomId");
-
   $.ajax({
-    url: "/api/v1/hotels/" + hotelId,
-    method: "GET",
-    success: (data) => {
-      $("#hotelName").text(data.name);
+    url: "http://localhost:3030/api/v1/hotels/getIdByHotelName",
+    method: "POST",
+    contentType: "application/json",
+    headers: {
+      "CSRF-Token": token, // <-- is the csrf token as a header
+    },
+    data: JSON.stringify({ hotelName: hotelName }),
+    success: function (response) {
+      // Lưu hotelId vào biến toàn cục
+      console.log(response);
+      hotelId = response.hotelId;
+
+      // AJAX thứ hai chỉ chạy sau khi nhận được globalHotelId
+      $.ajax({
+        url: "http://localhost:3030/api/v1/hotels/" + hotelId,
+        method: "GET",
+        success: function (data) {
+          $("#hotelName").text(data.name);
+        },
+        error: function (err) {
+          console.error("Failed to fetch hotel details:", err);
+        },
+      });
+    },
+    error: function (err) {
+      console.error("Failed to fetch hotel ID:", err);
     },
   });
+  async function getCurrentUser() {
+    try {
+      const response = await fetch("/api/v1/users/getCurrentUser", {
+        method: "GET",
+        credentials: "include",
+      });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch current user: ${errorText}`);
+      }
+
+      const currentUser = await response.json();
+      if (!currentUser) {
+        throw new Error("Current user data is not available");
+      }
+
+      return currentUser;
+    } catch (error) {
+      console.error("Error fetching current user:", error.message);
+      return null; // Return null to indicate an error occurred
+    }
+  }
+  const currentUser = await getCurrentUser();
+  console.log(currentUser);
   // AJAX call to fetch hotel and room data
   $.ajax({
-    url: "/api/v1/rooms/" + roomId,
+    url: "http://localhost:3030/api/v1/rooms/" + roomId,
     method: "GET",
     success: (data) => {
       const discountRate = 0.1 * numberOfChildren;
@@ -113,7 +166,7 @@ $(document).ready(async function () {
     const couponCode = $("#Coupon").val();
     if (couponCode) {
       $.ajax({
-        url: "/api/v1/coupon/getByCode/" + couponCode,
+        url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
         success: function (coupon) {
           if (coupon && coupon.percent) {
@@ -131,18 +184,8 @@ $(document).ready(async function () {
     }
   });
 
-  const userID = currentUser.id;
-  $.ajax({
-    url: "/api/v1/users/getDetailUser/" + userID, // Endpoint to fetch user data
-    method: "GET",
-    success: (data) => {
-      if (data) {
-        $("#phoneNumber").val(data.numberPhone); // Phone number in placeholder if empty
-        $("#emailAddress").val(data.email); // Adjusted the name attribute in HTML to `email`
-      }
-    },
-  });
-
+  $("#phoneNumber").val(currentUser.numberPhone); // Phone number in placeholder if empty
+  $("#emailAddress").val(currentUser.email); // Adjusted the name attribute in HTML to `email`
   function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
@@ -156,7 +199,7 @@ $(document).ready(async function () {
       $("#cccd").val() === "" ||
       $("#address").val() === "" ||
       !roomId ||
-      !userID ||
+      !currentUser.id ||
       !hotelData.checkInDate ||
       !hotelData.checkOutDate ||
       !newTotalPrice
@@ -167,7 +210,7 @@ $(document).ready(async function () {
 
     var data = {
       room_id: roomId,
-      user_id: userID,
+      user_id: currentUser.id,
       hotel_id: hotelId,
       check_in_date: hotelData.checkInDate,
       check_out_date: hotelData.checkOutDate,
@@ -180,7 +223,7 @@ $(document).ready(async function () {
     console.log(data);
 
     $.ajax({
-      url: "/api/v1/booking/",
+      url: "http://localhost:3030/api/v1/booking/",
       method: "POST",
       credentials: "include",
       headers: {
@@ -189,14 +232,13 @@ $(document).ready(async function () {
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {
-        var bookingId = response.id;
         var paymentMethod = $("input[name='dbt']:checked").val();
         console.log(response);
 
         if (paymentMethod === "dbt") {
-          window.location.href = `/paymentmethod?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/paymentmethod?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else if (paymentMethod === "cd") {
-          window.location.href = `/resultTT?bookingId=${bookingId}`;
+          window.location.href = `http://localhost:3030/resultTT?name=${response.full_name}&hotel=${urlData.hotelName}`;
         } else {
           alert("Vui lòng chọn phương thức thanh toán!");
         }
@@ -211,11 +253,22 @@ $(document).ready(async function () {
   $("#Order").click(validateAndSendBookingRequest);
 
   $(".return").click(function () {
-    window.location.href = "/";
+    window.location.href = "http://localhost:3030/";
   });
   $(".confirm").click(function () {
     console.log(200);
     $(".Yorder").hide();
     $("form").show();
   });
+});
+$("#fname").on("input", function () {
+  let value = $(this).val();
+  // Loại bỏ tất cả các ký tự có dấu
+  let sanitizedValue = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  // Kiểm tra nếu giá trị nhập vào vẫn còn ký tự có dấu
+  if (sanitizedValue !== value) {
+    alert("Tên chỉ được phép chứa các ký tự không dấu.");
+    $(this).val(sanitizedValue); // Cập nhật lại giá trị không dấu
+  }
 });

@@ -1,7 +1,7 @@
 const express = require("express");
-const { Room } = require("../models");
+
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
-const { uploadImage } = require("../middlewares/upload/upload-image");
+
 const {
   createRoom,
   deleteRoom,
@@ -15,11 +15,8 @@ var {
   parseForm,
 } = require("../middlewares/authen/csrfProtection");
 const { authenticationMiddleware } = require("../middlewares/authen/token");
-const {
-  requireAdmin,
-  requireChange,
-} = require("../middlewares/authen/auth.middleware.js");
-const { checkExist } = require("../middlewares/validations/checkExist");
+const { requireChange } = require("../middlewares/authen/auth.middleware.js");
+
 const roomRouter = express.Router();
 roomRouter.post(
   "/",
