@@ -5,6 +5,7 @@ $(document).ready(async function () {
   const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 phút (tính bằng mili giây)
   let sessionTimer;
   let hotelId;
+  let roomId;
 
   // Hàm bắt đầu đếm thời gian
   function startSessionTimer() {
@@ -30,27 +31,34 @@ $(document).ready(async function () {
 
   // Khởi động bộ đếm thời gian khi tải trang
   startSessionTimer();
-  function getHotelAndRoom(url = window.location.href) {
-    // Tìm toàn bộ query string sau dấu ?
-    const queryStringIndex = url.indexOf("?");
-    if (queryStringIndex === -1) return null; // Không có query string
 
-    const queryString = url.substring(queryStringIndex + 1); // Lấy phần sau dấu ?
-    const value = decodeURIComponent(queryString.replace(/\+/g, " ")); // Giải mã chuỗi
+  function extractHotelAndRoomNames(url) {
+    // Tách phần sau dấu `?` (query string)
+    const queryString = url.split("?")[1];
 
-    // Tách chuỗi trước và sau dấu gạch dưới "_"
-    const parts = value.split("_");
-    if (parts.length !== 2) return null; // Nếu không đúng định dạng, trả về null
+    if (!queryString) {
+      throw new Error("Invalid URL: No query string found.");
+    }
 
-    const hotelName = parts[0];
-    const roomID = parseInt(parts[1], 10);
+    // Thay thế `%20` bằng khoảng trắng để giải mã chuỗi
+    const decodedString = decodeURIComponent(queryString);
 
-    // Trả về kết quả là một đối tượng chứa hotelName và roomID
-    return {
-      hotelName,
-      roomID: isNaN(roomID) ? null : roomID,
-    };
+    // Tách hotelName và roomName bằng dấu `_`
+    const [hotelName, roomName] = decodedString.split("_");
+
+    if (!hotelName || !roomName) {
+      throw new Error("Invalid query string: Missing hotelName or roomName.");
+    }
+
+    return { hotelName, roomName };
   }
+
+  // Sử dụng hàm
+  const { hotelName, roomName } = extractHotelAndRoomNames(
+    window.location.href
+  );
+  console.log("Hotel Name:", hotelName);
+  console.log("Room Name:", roomName);
 
   function getNumberOfNights(checkIn, checkOut) {
     const checkInDate = new Date(checkIn);
@@ -68,10 +76,6 @@ $(document).ready(async function () {
   let totalPrice = 0;
   let newTotalPrice = 0;
 
-  const urlData = getHotelAndRoom();
-  var roomId = urlData.roomID;
-  var hotelName = urlData.hotelName;
-  console.log(urlData);
   if (data) {
     var hotelData = JSON.parse(data);
     $("#checkIn").text("Từ: " + hotelData.checkInDate);
@@ -92,20 +96,47 @@ $(document).ready(async function () {
     method: "POST",
     contentType: "application/json",
     headers: {
-      "CSRF-Token": token, // <-- is the csrf token as a header
+      "CSRF-Token": token, // <-- là token CSRF
     },
     data: JSON.stringify({ hotelName: hotelName }),
     success: function (response) {
-      // Lưu hotelId vào biến toàn cục
+      // Lưu hotelId từ response
       console.log(response);
       hotelId = response.hotelId;
 
-      // AJAX thứ hai chỉ chạy sau khi nhận được globalHotelId
+      // AJAX tiếp theo để lấy thông tin khách sạn
       $.ajax({
         url: "http://localhost:3030/api/v1/hotels/" + hotelId,
         method: "GET",
-        success: function (data) {
-          $("#hotelName").text(data.name);
+        success: function (hotelData) {
+          console.log(hotelData);
+          $("#hotelName").text(hotelData.name);
+
+          // AJAX cuối cùng để lấy thông tin phòng và giá
+          $.ajax({
+            url: "/api/v1/rooms/getByRoomAndHotel/",
+            data: {
+              roomName: roomName, // Tên phòng
+              hotelId: hotelId,
+            },
+            method: "POST",
+            success: (roomData) => {
+              console.log(roomData);
+              roomId = roomData.id;
+              const discountRate = 0.1 * numberOfChildren;
+              const discountedPrice = Math.ceil(
+                roomData.price * (1 - discountRate)
+              );
+              console.log(roomData.price);
+              const totalPrice = discountedPrice * all;
+              newTotalPrice = totalPrice;
+              $("#totalPrice").text(numberWithCommas(totalPrice) + " VND");
+              $("#Price").text(numberWithCommas(roomData.price) + " VND");
+            },
+            error: function (err) {
+              console.error("Failed to fetch room details:", err);
+            },
+          });
         },
         error: function (err) {
           console.error("Failed to fetch hotel details:", err);
@@ -142,18 +173,6 @@ $(document).ready(async function () {
   const currentUser = await getCurrentUser();
   console.log(currentUser);
   // AJAX call to fetch hotel and room data
-  $.ajax({
-    url: "http://localhost:3030/api/v1/rooms/" + roomId,
-    method: "GET",
-    success: (data) => {
-      const discountRate = 0.1 * numberOfChildren;
-      const discountedPrice = Math.ceil(data.price * (1 - discountRate));
-      totalPrice = discountedPrice * all;
-      newTotalPrice = totalPrice;
-      $("#totalPrice").text(numberWithCommas(totalPrice) + " VND");
-      $("#Price").text(numberWithCommas(data.price) + " VND");
-    },
-  });
 
   function updateTotalPrice(discountPercent) {
     const discountAmount = totalPrice * (discountPercent / 100);
@@ -207,7 +226,8 @@ $(document).ready(async function () {
       alert("Vui lòng điền đầy đủ thông tin.");
       return;
     }
-
+    var fullName = $("#fname").val();
+    var fullNameURL = removeVietnameseAccents(fullName);
     var data = {
       room_id: roomId,
       user_id: currentUser.id,
@@ -215,7 +235,7 @@ $(document).ready(async function () {
       check_in_date: hotelData.checkInDate,
       check_out_date: hotelData.checkOutDate,
       total_price: newTotalPrice, // Use newTotalPrice here
-      full_name: $("#fname").val(),
+      full_name: fullName,
       special_requests: $("#specialRequest").val(),
       quantity: numberOfRooms,
       status: false,
@@ -236,9 +256,9 @@ $(document).ready(async function () {
         console.log(response);
 
         if (paymentMethod === "dbt") {
-          window.location.href = `http://localhost:3030/paymentmethod?name=${response.full_name}&hotel=${urlData.hotelName}`;
+          window.location.href = `http://localhost:3030/paymentmethod?name=${fullNameURL}&hotel=${hotelName}`;
         } else if (paymentMethod === "cd") {
-          window.location.href = `http://localhost:3030/resultTT?name=${response.full_name}&hotel=${urlData.hotelName}`;
+          window.location.href = `http://localhost:3030/resultTT?name=${fullNameURL}&hotel=${hotelName}`;
         } else {
           alert("Vui lòng chọn phương thức thanh toán!");
         }
@@ -261,14 +281,11 @@ $(document).ready(async function () {
     $("form").show();
   });
 });
-$("#fname").on("input", function () {
-  let value = $(this).val();
-  // Loại bỏ tất cả các ký tự có dấu
-  let sanitizedValue = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-  // Kiểm tra nếu giá trị nhập vào vẫn còn ký tự có dấu
-  if (sanitizedValue !== value) {
-    alert("Tên chỉ được phép chứa các ký tự không dấu.");
-    $(this).val(sanitizedValue); // Cập nhật lại giá trị không dấu
-  }
-});
+function removeVietnameseAccents(str) {
+  return str
+    .normalize("NFD") // Chuẩn hóa chuỗi thành dạng Unicode chuẩn
+    .replace(/[\u0300-\u036f]/g, "") // Loại bỏ các ký tự dấu
+    .replace(/đ/g, "d") // Thay đ thành d
+    .replace(/Đ/g, "D"); // Thay Đ thành D
+}

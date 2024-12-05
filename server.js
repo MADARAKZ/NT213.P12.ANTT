@@ -335,6 +335,7 @@ function findHotelBySlug(slug) {
 
 app.get("/hotel/:slug", csrfProtection, (req, res) => {
   var slug = req.params.slug;
+  console.log("slug", slug);
   var hotel = findHotelBySlug(slug);
 
   if (hotel) {

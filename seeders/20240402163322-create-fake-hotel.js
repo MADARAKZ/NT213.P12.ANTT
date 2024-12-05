@@ -17,7 +17,7 @@ module.exports = {
       "hotels",
       [
         {
-          name: "Cozrum Homes - Sonata Residence",
+          name: "Cozrum Homes Sonata Residence",
           star: 4,
           map: "Đường Nguyễn Thị Thập, Phường Tân Phú, Quận 7, TP.HCM | Cách trung tâm thành phố 5.2 km",
           TypeHotel: "Hotel",
@@ -28,7 +28,7 @@ module.exports = {
           updatedAt: "2024-04-01 04:26:18",
         },
         {
-          name: "Holiday Inn & Suites Saigon Airport",
+          name: "Holiday Inn Suites Saigon Airport",
           star: 5,
           map: "Đường Cộng Hòa, Quận Tân Bình, TP.HCM | Cách trung tâm thành phố 4.7 km",
           TypeHotel: "Hotel",
@@ -193,7 +193,7 @@ module.exports = {
           updatedAt: "2024-04-01 04:26:18",
         },
         {
-          name: "Vinpearl Resort & Spa Phú Quốc",
+          name: "Vinpearl Resort Spa Phú Quốc",
           star: 5,
           map: "Bai Dai, Gach Dau, Gành Dầu, Đảo Phú Quốc, Kiên Giang",
           TypeHotel: "resort",
@@ -237,7 +237,7 @@ module.exports = {
           updatedAt: "2024-04-01 04:26:18",
         },
         {
-          name: "Xoài Homestay Vũng Tàu - The Sóng Apartment",
+          name: "Xoài Homestay Vũng Tàu The Sóng Apartment",
           star: 4,
           map: "28 Đường Thi Sách, Vũng Tàu, Bà Rịa-Vũng Tàu",
           TypeHotel: "homestay",
@@ -314,7 +314,7 @@ module.exports = {
           updatedAt: "2024-04-01 04:26:18",
         },
         {
-          name: "InterContinental Nha Trang, an IHG Hotel",
+          name: "InterContinental Nha Trang an IHG Hotel",
           star: 5,
           payment: "offline",
           map: "32-34 Trần Phú, Lộc Thọ, Nha Trang, Khánh Hòa",

@@ -529,7 +529,7 @@ const getCurrentUser = async (req, res) => {
   console.log("Body:", req.body); // In ra body của request
   console.log("Cookies:", req.cookies); // In ra cookies, nếu có
 
-  const token = req.cookies.accessToken; // Lấy token từ cookie
+  var token = req.cookies.accessToken; // Lấy token từ cookie
   const refreshToken = req.cookies.Token;
   //console.log("accessToken", token);
 

@@ -27,14 +27,13 @@ module.exports = (sequelize, DataTypes) => {
       cccd: DataTypes.STRING,
       address: DataTypes.TEXT,
       url: DataTypes.STRING,
-      token: DataTypes.STRING,
       authGgId: {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
       },
       authType: {
-        type: DataTypes.ENUM("local", "google", "facebook"),
+        type: DataTypes.ENUM("local", "google"),
         defaultValue: "local",
       },
     },
