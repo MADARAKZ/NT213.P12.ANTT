@@ -195,15 +195,6 @@ app.get("/aboutUs", csrfProtection, (req, res) => {
   res.render("User/aboutUs", { csrfToken: req.csrfToken() });
 });
 
-app.get(
-  "/userInfo",
-  csrfProtection,
-  authenticateToken,
-  requireCustomer,
-  (req, res) => {
-    res.render("User/userInfo", { csrfToken: req.csrfToken() });
-  }
-);
 app.get("/signin", limiter, csrfProtection, (req, res) => {
   res.render("User/signin", { csrfToken: req.csrfToken() });
 });
@@ -347,9 +338,15 @@ app.get("/hotel/:slug/:id", csrfProtection, (req, res) => {
 //   res.render("User/userInfor", { id: id });
 // });
 
-app.get("/userInfor", csrfProtection, (req, res) => {
-  res.render("User/userInfor", { csrfToken: req.csrfToken() });
-});
+app.get(
+  "/userInfor",
+  csrfProtection,
+  authenticateToken,
+  requireCustomer,
+  (req, res) => {
+    res.render("User/userInfor", { csrfToken: req.csrfToken() });
+  }
+);
 
 // app.get("/admin", (req, res) => {
 //   res.render("Admin/partials/createHotel");
