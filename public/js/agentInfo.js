@@ -1,5 +1,4 @@
 $(document).ready(async function () {
-
   const csrfToken = document
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
@@ -173,29 +172,31 @@ $(document).ready(async function () {
       // Event listener for the confirmAvatarButton
       $("#avatarInput").on("change", function (e) {
         var file = e.target.files[0]; // Lấy file ảnh được chọn
-     
-          if (file) {
-            // Client-side validation
-            var allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-            var maxSize = 2 * 1024 * 1024; // 2MB
-            var fileExtension = file.name.split('.').pop().toLowerCase();
-            var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
-            if (!allowedTypes.includes(file.type) || !allowedExtensions.includes(fileExtension)) {
-              alert("Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF.");
-              return;
-            }
-        
-            if (file.size > maxSize) {
-              alert("Kích thước ảnh không được vượt quá 2MB.");
-              return;
-            }
-        
-      
+
+        if (file) {
+          // Client-side validation
+          var allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+          var maxSize = 2 * 1024 * 1024; // 2MB
+          var fileExtension = file.name.split(".").pop().toLowerCase();
+          var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+          if (
+            !allowedTypes.includes(file.type) ||
+            !allowedExtensions.includes(fileExtension)
+          ) {
+            alert("Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF.");
+            return;
+          }
+
           if (file.size > maxSize) {
             alert("Kích thước ảnh không được vượt quá 2MB.");
             return;
           }
-      
+
+          if (file.size > maxSize) {
+            alert("Kích thước ảnh không được vượt quá 2MB.");
+            return;
+          }
+
           var formData = new FormData();
           formData.append("user", file);
 
@@ -595,6 +596,23 @@ $(document).ready(async function () {
 
   // Sự kiện click cho nút "Confirm"
 
+  function formatDateForInput(isoDate) {
+    if (!isoDate) return ""; // Return an empty string if no date is provided
+
+    const date = new Date(isoDate);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based, so add 1
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`; // Format as YYYY-MM-DD
+  }
+
+  function getMaxDate() {
+    const today = new Date();
+    today.setDate(today.getDate() - 1); // Giảm 1 ngày để chỉ cho phép chọn ngày nhỏ hơn hôm nay
+    return today.toISOString().split("T")[0]; // Chuyển đổi sang định dạng YYYY-MM-DD
+  }
+
   $(document).on("click", ".updateInfo", function () {
     var id = $(this).val();
     $(".popup-overlay-updateInfo").show();
@@ -609,28 +627,40 @@ $(document).ready(async function () {
           <h2>Chỉnh sửa thông tin người dùng</h2> 
           <form id="updateForm"> 
           <label>Tên người dùng</label>    
-          <input type="text" id="name-user" name="name" placeholder="Tên người dùng *" value="${data.name}" required />
+          <input type="text" id="name-user" name="name" placeholder="Tên người dùng *" value="${
+            data.name
+          }" required />
           <label>Ngày sinh</label>
-          <input type="date" id="birthDate-user" name="birthDate" placeholder="Ngày sinh *" value="${data.birthDate}"required />
+          <input type="date" id="birthDate-user" name="birthDate" placeholder="Ngày sinh *" value="${formatDateForInput(
+            data.birthDate
+          )}" required max="${getMaxDate()}"/>
           <div class="row">
           <div class="col-6">
           <label>Số điện thoại</label>
-          <input type="text" id="numberPhone-user" name="numberPhone" placeholder="Số điện thoại *" value="${data.numberPhone}"required />
+          <input type="text" id="numberPhone-user" name="numberPhone" placeholder="Số điện thoại *" value="${
+            data.numberPhone
+          }"required />
           </div>
           <div class="col-6">
           <label>Email</label><br>
-          <input type="text" id="email-user" name="email" placeholder="Email *" value="${data.email}"required />
+          <input type="text" id="email-user" name="email" placeholder="Email *" value="${
+            data.email
+          }"required />
           </div>
           </div>
           
           <div class="row">
           <div class="col-6">
           <label>CCCD</label><br>
-          <input type="text" id="cccd-user" name="CCCD" placeholder="CCCD *" value="${data.cccd}"required />
+          <input type="text" id="cccd-user" name="CCCD" placeholder="CCCD *" value="${
+            data.cccd
+          }"required />
           </div>
           <div class="col-6">
           <label>Địa chỉ</label><br>
-          <input type="text" id="address-user" name="address" placeholder="address *" value="${data.address}"required />
+          <input type="text" id="address-user" name="address" placeholder="address *" value="${
+            data.address
+          }"required />
           </div>
           </div>
 
@@ -963,7 +993,7 @@ $(document).ready(async function () {
         <form id="updateForm"> 
           <label>Mật khẩu cũ</label>    
           <input type="password" id="old-pass" name="" placeholder="Nhập mật khẩu cũ" required />
-          <p class="wrong-pass1" >* Mật khẩu không đúng</p>
+          <p class="wrong-pass1" ></p>
           <label>Mật khẩu mới</label>    
           <input type="password" id="new-pass" name="" placeholder="Nhập mật khẩu mới" required /> 
           <label>Nhập lại mật khẩu mới</label>    
@@ -992,6 +1022,7 @@ $(document).ready(async function () {
             "CSRF-Token": csrfToken,
           },
           data: {
+            userId: id,
             currentPassword: oldPass,
             newPassword: newPass,
           },

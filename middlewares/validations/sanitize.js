@@ -34,7 +34,7 @@ const escapeRegex = (str) => {
   if (typeof str !== "string") {
     return str; // Không xử lý nếu không phải chuỗi
   }
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return str.replace(/[*+^${}()|[\]\\]/g, "\\$&");
 };
 
 // Làm sạch chuỗi đầu vào (tích hợp tất cả các bước)

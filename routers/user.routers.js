@@ -5,7 +5,10 @@ const session = require("express-session");
 // const { checkExist } = require("../middlewares/validations/checkExist");
 require("../passport");
 const ratelimit = require("express-rate-limit");
-const { authenticationMiddleware, blockLogin } = require("../middlewares/authen/token");
+const {
+  authenticationMiddleware,
+  blockLogin,
+} = require("../middlewares/authen/token");
 const {
   authenticateToken,
   requireAdmin,
@@ -36,7 +39,7 @@ const {
   verifyOTP,
   resendOTP,
   verifyRegistrationOTP,
-  resendRegistrationOTP
+  resendRegistrationOTP,
 } = require("../controllers/user.controllers");
 
 var {
@@ -51,9 +54,28 @@ const limiter = ratelimit({
   message: "Too many API request from this IP",
 });
 
-userRouter.post("/register", blockLogin, limiter, parseForm, csrfProtection, register);
-userRouter.post("/verify-register-otp", limiter, parseForm, csrfProtection, verifyRegistrationOTP);
-userRouter.post("/verify-register-resendotp", limiter, parseForm, csrfProtection, resendRegistrationOTP);
+userRouter.post(
+  "/register",
+  blockLogin,
+  limiter,
+  parseForm,
+  csrfProtection,
+  register
+);
+userRouter.post(
+  "/verify-register-otp",
+  limiter,
+  parseForm,
+  csrfProtection,
+  verifyRegistrationOTP
+);
+userRouter.post(
+  "/verify-register-resendotp",
+  limiter,
+  parseForm,
+  csrfProtection,
+  resendRegistrationOTP
+);
 // userRouter.get("/", getAllUser);
 // userRouter.get("/:id", getDetailUser);
 // userRouter.put("/:id", checkExist(user), updateUser);

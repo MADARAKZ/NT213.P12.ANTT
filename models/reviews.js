@@ -15,14 +15,58 @@ module.exports = (sequelize, DataTypes) => {
   }
   Reviews.init(
     {
-      rating: DataTypes.INTEGER,
-      description: DataTypes.TEXT,
-      file: DataTypes.TEXT,
+      rating: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          isInt: {
+            msg: "Đánh giá phải là số nguyên.",
+          },
+          min: {
+            args: 1,
+            msg: "Đánh giá phải từ 1 trở lên.",
+          },
+          max: {
+            args: 5,
+            msg: "Đánh giá phải nhỏ hơn hoặc bằng 5.",
+          },
+        },
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true, // Có thể null nếu không cần thiết
+        validate: {
+          is: {
+            args: /^[a-zA-Z0-9À-ỹ\s.,!?]+$/i, // Chỉ cho phép ký tự chữ, số, khoảng trắng, và ., !, ?
+            msg: "Mô tả không được chứa ký tự đặc biệt.",
+          },
+          len: {
+            args: [0, 1000], // Độ dài tối đa 1000 ký tự
+            msg: "Mô tả không được dài hơn 1000 ký tự.",
+          },
+        },
+      },
+
+      file: {
+        type: DataTypes.TEXT,
+        allowNull: true, // File có thể null
+        validate: {
+          is: {
+            args: /\.(jpg|jpeg|png|gif|webp)$/i, // Chỉ cho phép các đuôi file ảnh
+            msg: "File phải là URL có đuôi ảnh hợp lệ (jpg, jpeg, png, gif, webp).",
+          },
+          isUrl: {
+            args: true,
+            msg: "File phải là một URL hợp lệ.",
+          },
+        },
+      },
     },
     {
       sequelize,
       modelName: "Reviews",
     }
   );
+
   return Reviews;
 };

@@ -575,7 +575,7 @@ $(document).ready(async function () {
         ) {
           alert("Bạn vui lòng đăng nhập để thực hiện đánh giá.");
         } else {
-          alert("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+          alert("Nhập kí tự bậy bạ à :))");
         }
       }
     });

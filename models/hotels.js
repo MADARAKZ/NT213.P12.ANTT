@@ -26,13 +26,78 @@ module.exports = (sequelize, DataTypes) => {
 
   Hotels.init(
     {
-      name: DataTypes.STRING,
-      star: DataTypes.INTEGER, // star
-      userRating: DataTypes.FLOAT,
-      map: DataTypes.STRING,
-      TypeHotel: DataTypes.STRING, // hotel, resort ...
-      payment: DataTypes.STRING, // ? can thiet k?
-      cost: DataTypes.INTEGER,
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "Tên khách sạn không được để trống.",
+          },
+          is: {
+            args: /^[a-zA-Z0-9À-ỹ\s]+$/i, // Chỉ cho phép ký tự chữ, số và khoảng trắng
+            msg: "Tên khách sạn không được chứa ký tự đặc biệt.",
+          },
+          len: {
+            args: [1, 255], // Độ dài từ 1 đến 255 ký tự
+            msg: "Tên khách sạn phải có độ dài từ 1 đến 255 ký tự.",
+          },
+        },
+      },
+      star: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          isInt: {
+            msg: "Số sao phải là số nguyên.",
+          },
+          min: {
+            args: 1,
+            msg: "Số sao phải từ 1 trở lên.",
+          },
+          max: {
+            args: 5,
+            msg: "Số sao phải nhỏ hơn hoặc bằng 5.",
+          },
+        },
+      },
+      userRating: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        validate: {
+          isFloat: {
+            msg: "Đánh giá người dùng phải là số thực.",
+          },
+          max: {
+            args: 5,
+            msg: "Đánh giá người dùng phải nhỏ hơn hoặc bằng 5.",
+          },
+        },
+      },
+      map: {
+        type: DataTypes.STRING,
+        allowNull: true, // Map có thể null nếu không cần thiết
+      },
+      TypeHotel: {
+        type: DataTypes.STRING,
+        allowNull: true, // Loại hình khách sạn có thể null nếu không cần thiết
+      },
+      payment: {
+        type: DataTypes.STRING,
+        allowNull: true, // Phương thức thanh toán có thể null
+      },
+      cost: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        validate: {
+          isInt: {
+            msg: "Giá phải là số nguyên.",
+          },
+          min: {
+            args: 0,
+            msg: "Giá không được nhỏ hơn 0.",
+          },
+        },
+      },
     },
     {
       sequelize,
@@ -40,38 +105,43 @@ module.exports = (sequelize, DataTypes) => {
       hooks: {
         beforeDestroy: async (instance) => {
           const hotelId = instance.id;
-          const roomService = sequelize.models.roomService;
-          await roomService.destroy({
-            where: {
-              roomId: {
-                [Op.in]: literal(
-                  `(SELECT id FROM Rooms WHERE hotelId = ${hotelId})`
-                ),
-              },
-            },
+
+          // Lấy danh sách IdRoom
+          const roomIds = await sequelize.models.Room.findAll({
+            where: { hotelId: hotelId },
+            attributes: ["id"],
           });
-          const imgRoom = sequelize.models.UrlImageRoom;
-          await imgRoom.destroy({
-            where: {
-              IdRoom: {
-                [Op.in]: literal(
-                  `(SELECT id FROM Rooms WHERE hotelId = ${hotelId})`
-                ),
-              },
-            },
+          const roomIdArray = roomIds.map((room) => room.id);
+
+          // Xóa dịch vụ phòng
+          await sequelize.models.roomService.destroy({
+            where: { roomId: { [Op.in]: roomIdArray } },
           });
 
-          const Room = sequelize.models.Room;
-          await Room.destroy({ where: { hotelId: hotelId } });
+          // Xóa hình ảnh phòng
+          if (roomIdArray.length > 0) {
+            await sequelize.models.UrlImageRoom.destroy({
+              where: { IdRoom: { [Op.in]: roomIdArray } },
+            });
+          }
 
-          const UrlImageHotel = sequelize.models.UrlImageHotel;
-          await UrlImageHotel.destroy({ where: { HotelId: hotelId } });
+          // Xóa các phòng
+          await sequelize.models.Room.destroy({ where: { hotelId: hotelId } });
 
-          const review = sequelize.models.Reviews;
-          await review.destroy({ where: { hotelId: hotelId } });
+          // Xóa hình ảnh khách sạn
+          await sequelize.models.UrlImageHotel.destroy({
+            where: { HotelId: hotelId },
+          });
 
-          const amenities = sequelize.models.HotelAmenities;
-          await amenities.destroy({ where: { hotelId: hotelId } });
+          // Xóa đánh giá
+          await sequelize.models.Reviews.destroy({
+            where: { hotelId: hotelId },
+          });
+
+          // Xóa tiện nghi khách sạn
+          await sequelize.models.HotelAmenities.destroy({
+            where: { hotelId: hotelId },
+          });
         },
 
         afterFind: async (hotels) => {
@@ -96,20 +166,26 @@ module.exports = (sequelize, DataTypes) => {
   Hotels.prototype.updateAverageUserRating = async function () {
     const hotelId = this.id;
 
-    const [result] = await sequelize.query(`
-      UPDATE Hotels AS h
-      SET userRating = (
-        SELECT ROUND(AVG(r.rating), 1)
-        FROM Reviews AS r
-        WHERE r.hotelId = ${hotelId}
-        HAVING COUNT(r.rating) > 0
-      )
-      WHERE h.id = ${hotelId} AND EXISTS (
-        SELECT 1
-        FROM Reviews AS r
-        WHERE r.hotelId = ${hotelId}
-      )
-    `);
+    const [result] = await sequelize.query(
+      `
+        UPDATE Hotels AS h
+        SET userRating = (
+          SELECT ROUND(AVG(r.rating), 1)
+          FROM Reviews AS r
+          WHERE r.hotelId = :hotelId
+          HAVING COUNT(r.rating) > 0
+        )
+        WHERE h.id = :hotelId AND EXISTS (
+          SELECT 1
+          FROM Reviews AS r
+          WHERE r.hotelId = :hotelId
+        )
+      `,
+      {
+        replacements: { hotelId }, // Ràng buộc tham số
+        type: sequelize.QueryTypes.UPDATE, // Xác định kiểu truy vấn
+      }
+    );
 
     return result;
   };
@@ -117,20 +193,26 @@ module.exports = (sequelize, DataTypes) => {
   Hotels.prototype.updateMinPriceHotel = async function () {
     const hotelId = this.id;
 
-    const [result] = await sequelize.query(`
-      UPDATE Hotels AS h
-      SET cost = (
-        SELECT MIN(price)
-        FROM Rooms AS r
-        WHERE r.hotelId = ${hotelId}
-        HAVING COUNT(r.price) > 0
-      )
-      WHERE h.id = ${hotelId} AND EXISTS (
-        SELECT 1
-        FROM Rooms AS r
-        WHERE r.hotelId = ${hotelId}
-      )
-    `);
+    const [result] = await sequelize.query(
+      `
+        UPDATE Hotels AS h
+        SET cost = (
+          SELECT MIN(price)
+          FROM Rooms AS r
+          WHERE r.hotelId = :hotelId
+          HAVING COUNT(r.price) > 0
+        )
+        WHERE h.id = :hotelId AND EXISTS (
+          SELECT 1
+          FROM Rooms AS r
+          WHERE r.hotelId = :hotelId
+        )
+      `,
+      {
+        replacements: { hotelId }, // Sử dụng ràng buộc tham số
+        type: sequelize.QueryTypes.UPDATE, // Xác định kiểu truy vấn là UPDATE
+      }
+    );
 
     return result;
   };

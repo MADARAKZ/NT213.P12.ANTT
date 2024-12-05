@@ -16,12 +16,71 @@ module.exports = (sequelize, DataTypes) => {
   }
   Room.init(
     {
-      name: DataTypes.STRING,
-      status: DataTypes.BOOLEAN,
-      price: DataTypes.INTEGER,
-      quantity: DataTypes.INTEGER,
-      quantity_people: DataTypes.INTEGER,
-      type_bed: DataTypes.STRING,
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "Tên phòng không được để trống.",
+          },
+          is: {
+            args: /^[a-zA-Z0-9À-ỹ\s]+$/i, // Chỉ cho phép ký tự chữ, số, và khoảng trắng
+            msg: "Tên phòng không được chứa ký tự đặc biệt.",
+          },
+        },
+      },
+      status: {
+        type: DataTypes.BOOLEAN,
+      },
+      price: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          isInt: {
+            msg: "Giá phải là số nguyên.",
+          },
+          min: {
+            args: 0,
+            msg: "Giá phải lớn hơn hoặc bằng 0.",
+          },
+        },
+      },
+      quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          isInt: {
+            msg: "Số lượng phải là số nguyên.",
+          },
+          min: {
+            args: 0,
+            msg: "Số lượng phải lớn hơn hoặc bằng 0.",
+          },
+        },
+      },
+      quantity_people: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          isInt: {
+            msg: "Số lượng người phải là số nguyên.",
+          },
+          min: {
+            args: 0,
+            msg: "Số lượng người phải lớn hơn hoặc bằng 0.",
+          },
+        },
+      },
+      type_bed: {
+        type: DataTypes.STRING,
+        allowNull: true, // Có thể null nếu không cần thiết
+        validate: {
+          is: {
+            args: /^[a-zA-Z\s]+$/i, // Chỉ cho phép chữ cái và khoảng trắng
+            msg: "Loại giường không được chứa ký tự đặc biệt.",
+          },
+        },
+      },
     },
     {
       sequelize,

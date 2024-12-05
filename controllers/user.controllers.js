@@ -1,16 +1,13 @@
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op, where } = require("sequelize");
+// const { Op } = require("sequelize");
 require("dotenv").config();
 const { validationResult } = require("express-validator"); // Import validationResult
 const { body } = require("express-validator");
-const {
-  sanitizeObject,
-  validateAndSanitizeEmail,
-} = require("../middlewares/validations/sanitize");
+const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const nodemailer = require("nodemailer");
-const { v4: uuidv4 } = require("uuid");
+
 const otpResendLimits = {};
 const otpSendLimits = {};
 
@@ -81,13 +78,7 @@ function isOTPvalid(storedotp, userProvidedOTP) {
 const register = [
   // Làm sạch dữ liệu đầu vào
   (req, res, next) => {
-    sanitizeObject(req.body, [
-      "name",
-      "password",
-      "confirmpassword",
-      "numberPhone",
-      "type",
-    ]);
+    sanitizeObject(req.body, ["name", "numberPhone", "type"]);
     next();
   },
   // Validate các trường
@@ -139,8 +130,7 @@ const register = [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, cofirmpassword, numberPhone, type } =
-      req.body;
+    const { name, email, password, numberPhone, type } = req.body;
 
     try {
       // limit send otp
@@ -175,29 +165,11 @@ const register = [
       };
 
       await transporter.sendMail(mailOptions);
-      // Băm mật khẩu
-      // const salt = await bcrypt.genSalt(10);
-      // const hashPassword = await bcrypt.hash(password, salt);
-
-      // // Tạo người dùng mới
-      // const newUser = await User.create({
-      //   name,
-      //   email,
-      //   password: hashPassword,
-      //   numberPhone,
-      //   type,
-      // });
 
       // Trả về thông tin người dùng mới
       return res.status(200).json({
         message: "OTP Da duoc gui",
         email: email,
-        // user: {
-        //   id: newUser.id,
-        //   name: newUser.name,
-        //   email: newUser.email,
-        //   numberPhone: newUser.numberPhone,
-        // },
       });
     } catch (error) {
       console.error("Error registering user:", error);
@@ -266,7 +238,6 @@ const resendRegistrationOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
-
     // Kiểm tra giới hạn gửi OTP
     if (!canSendOTP(email)) {
       return res.status(429).json({
@@ -311,11 +282,10 @@ const resendRegistrationOTP = async (req, res) => {
 
 const loginGG = async (req, res) => {
   try {
-    const { email, name, authGgId, refreshToken } = req.body;
+    const { email } = req.body;
 
     // Tìm hoặc tạo user
     const user = await User.findOne({ where: { email } });
-
 
     res.status(200).send({
       message: "Login successful",
@@ -411,7 +381,7 @@ const login = async (req, res) => {
 //Xác thực OTP
 async function verifyOTP(req, res) {
   try {
-    const { userId, email, otp } = req.body;
+    const { email, otp } = req.body;
 
     //kiểm tra otp từ redis
     //const otpkey = `otp:${userId}`;
@@ -444,13 +414,13 @@ async function verifyOTP(req, res) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 phút
+      maxAge: 40 * 60 * 1000, // 40 phút
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 1440 * 60 * 1000, // 15 phút
+      maxAge: 1440 * 60 * 1000,
     });
 
     await user.update({ token: refreshToken }, { where: { id: user.id } });
@@ -470,7 +440,7 @@ async function verifyOTP(req, res) {
 //Gửi lại OTP
 async function resendOTP(req, res) {
   try {
-    const { userId, email } = req.body;
+    const { email } = req.body;
 
     // Kiểm tra giới hạn gửi OTP
     if (!canSendOTP(email)) {
@@ -515,7 +485,6 @@ async function resendOTP(req, res) {
 }
 
 const getCurrentUser = async (req, res) => {
-
   var token = req.cookies.accessToken; // Lấy token từ cookie
   const refreshToken = req.cookies.Token;
 
@@ -727,7 +696,8 @@ const editUserAdmin = async (req, res) => {
 };
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const { userId } = req.user.userId;
+  const userId = req.user.userId;
+
   try {
     const user = await User.findByPk(userId);
     if (!user) {
@@ -802,7 +772,7 @@ const updateImage = async (req, res) => {
 
     //console.log(file);
     const imagePath = file.path;
-   // console.log(imagePath);
+    // console.log(imagePath);
 
     updateHotel.url = imagePath;
     await updateHotel.save(); // Sửa từ updateUser thành updateHotel

@@ -10,9 +10,11 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       code: {
+        allowNull: false,
         type: Sequelize.STRING,
       },
       percent: {
+        allowNull: false,
         type: Sequelize.INTEGER,
       },
       begin: {

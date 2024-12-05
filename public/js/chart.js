@@ -1,3 +1,6 @@
+const tokencsrf = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute("content");
 // Arrays to hold data
 var profit = [];
 var profitLabels = []; // Array to hold dates
