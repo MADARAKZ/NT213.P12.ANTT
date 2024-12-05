@@ -427,21 +427,6 @@ app.set("view engine", "hbs");
 
 const port = process.env.PORT || 3030; // Sử dụng port mặc định là 3030 nếu không có biến môi trường PORT
 
-// app.get("/hotel/:id", (req, res) => {
-//   const hotelId = req.params.id;
-
-//   // Call API to get hotel information
-//   fetch(`http://localhost:${port}/api/v1/hotels?id=${hotelId}`)
-//     .then((response) => response.json())
-//     .then((data) => {
-//       // Render Handlebars template and pass data into it
-//       res.render("User/hotel", { hotel: data });
-//     })
-//     .catch((error) => {
-//       console.error("Error:", error);
-//       res.status(500).send("Internal Server Error");
-//     });
-// });
 
 // Listen for connection events
 app.listen(port, async () => {

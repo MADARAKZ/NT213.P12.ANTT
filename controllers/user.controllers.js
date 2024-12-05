@@ -210,7 +210,6 @@ const register = [
 const verifyRegistrationOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    console.log("OTP phia back end", registrationOTPCode);
     // Validate OTP
     const storedotp = otpStorageregister[email];
     const validationResult = isOTPvalid(storedotp, otp);
@@ -227,8 +226,6 @@ const verifyRegistrationOTP = async (req, res) => {
 
     // Destructure user data
     const { name, mail, password, numberPhone, type } = registrationUserData;
-    console.log("name", name);
-    console.log("pasword", password);
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -268,7 +265,7 @@ const verifyRegistrationOTP = async (req, res) => {
 const resendRegistrationOTP = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("email tu ");
+
 
     // Kiểm tra giới hạn gửi OTP
     if (!canSendOTP(email)) {
@@ -315,14 +312,10 @@ const resendRegistrationOTP = async (req, res) => {
 const loginGG = async (req, res) => {
   try {
     const { email, name, authGgId, refreshToken } = req.body;
-    console.log("<<check body>>>>", req.body);
 
     // Tìm hoặc tạo user
     const user = await User.findOne({ where: { email } });
 
-    console.log("check userrrrrrrrrrrrr", user);
-
-    console.log(created ? "New user created" : "User updated", user);
 
     res.status(200).send({
       message: "Login successful",
@@ -423,7 +416,6 @@ async function verifyOTP(req, res) {
     //kiểm tra otp từ redis
     //const otpkey = `otp:${userId}`;
     //const storedotp = await redisClient.get(otpkey);
-    console.log("<<<OTP nhan duoc>>", otp);
     const storedotp = otpStoragelogin[email];
 
     const validationResult = isOTPvalid(storedotp, otp);
@@ -460,7 +452,6 @@ async function verifyOTP(req, res) {
       sameSite: "strict",
       maxAge: 1440 * 60 * 1000, // 15 phút
     });
-    console.log("refreshToken", refreshToken);
 
     await user.update({ token: refreshToken }, { where: { id: user.id } });
     res.status(200).json({
@@ -524,14 +515,9 @@ async function resendOTP(req, res) {
 }
 
 const getCurrentUser = async (req, res) => {
-  console.log("Headers:", req.headers); // In ra headers
-  console.log("Query Params:", req.query); // In ra query parameters
-  console.log("Body:", req.body); // In ra body của request
-  console.log("Cookies:", req.cookies); // In ra cookies, nếu có
 
   const token = req.cookies.accessToken; // Lấy token từ cookie
   const refreshToken = req.cookies.Token;
-  //console.log("accessToken", token);
 
   if (!token) {
     if (!refreshToken) {
@@ -543,7 +529,6 @@ const getCurrentUser = async (req, res) => {
       process.env.REFRESH_TOKEN
     );
     const newAccessToken = await RefreshToken(decodeRefreshtoken.userId);
-    console.log("Token moi", newAccessToken);
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -557,7 +542,7 @@ const getCurrentUser = async (req, res) => {
     console.log("ok");
     // Giải mã token và lấy thông tin người dùng
     const decode = jwt.verify(token, process.env.ACCESS_TOKEN); // Giải mã token
-    console.log("Decode:", decode);
+    //console.log("Decode:", decode);
     const userId = decode.userId;
 
     // Find the user in the database based on the userId
@@ -598,7 +583,6 @@ async function RefreshToken(userId) {
     process.env.ACCESS_TOKEN,
     { expiresIn: "40m" }
   );
-  console.log("Token moi,", newAccessToken);
   return newAccessToken;
 }
 
@@ -816,9 +800,9 @@ const updateImage = async (req, res) => {
       return res.status(400).send("No file uploaded");
     }
 
-    console.log(file);
+    //console.log(file);
     const imagePath = file.path;
-    console.log(imagePath);
+   // console.log(imagePath);
 
     updateHotel.url = imagePath;
     await updateHotel.save(); // Sửa từ updateUser thành updateHotel
