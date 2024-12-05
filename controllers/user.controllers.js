@@ -11,6 +11,9 @@ const {
 } = require("../middlewares/validations/sanitize");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const otpResendLimits = {};
+const otpSendLimits = {};
+
 
 let registrationOTPCode = null;
 let registrationUserData = null;
@@ -26,6 +29,19 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+// Hàm kiểm tra giới hạn gửi OTP
+function canSendOTP(email) {
+  const RESEND_COOLDOWN = 30000; // 30 giây giữa các lần gửi
+  const currentTime = Date.now();
+  
+  if (!otpResendLimits[email]) {
+    return true;
+  }
+  
+  const timeSinceLastSend = currentTime - otpResendLimits[email];
+  return timeSinceLastSend >= RESEND_COOLDOWN;
+}
 
 //Generate OTP
 function generateOTP() {
@@ -118,8 +134,15 @@ const register = [
     }
 
     const { name, email, password, cofirmpassword, numberPhone, type } = req.body;
+   
 
     try {
+      // limit send otp
+      if (!canSendOTP(email)) {
+        return res.status(429).json({ 
+          message: 'Vui lòng đợi 30s trước khi gửi lại OTP' 
+        });
+      }
       const otp = generateOTP()
       otpStorageregister[email] = otp
       //registrationOTPCode = otp
@@ -130,6 +153,9 @@ const register = [
         numberPhone, 
         type 
       };
+
+      // Cập nhật thời gian gửi OTP
+      otpResendLimits[email] = Date.now();
       // Send OTP email
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -239,6 +265,14 @@ const resendRegistrationOTP = async (req, res) => {
     const { email } = req.body;
     console.log("email tu ")
 
+
+    // Kiểm tra giới hạn gửi OTP
+    if (!canSendOTP(email)) {
+      return res.status(429).json({ 
+        message: 'Vui lòng đợi 30s trước khi gửi lại OTP' 
+      });
+    }
+
     // Check if registration data exists
     if (!registrationUserData || registrationUserData.email !== email) {
       return res.status(400).json({ message: 'Không tìm thấy thông tin đăng ký' });
@@ -247,6 +281,9 @@ const resendRegistrationOTP = async (req, res) => {
     // Generate new OTP
     const otp = generateOTP();
     otpStorageregister[email]= otp
+
+    // Cập nhật thời gian gửi OTP
+    otpResendLimits[email] = Date.now();
 
     // Send new OTP email
     const mailOptions = {
@@ -312,6 +349,13 @@ const login = async (req, res) => {
         .status(400)
         .json({ message: "Mật khẩu không hợp lệ hoặc bị thiếu" });
     }
+    
+    // Kiểm tra giới hạn gửi OTP
+    if (!canSendOTP(email)) {
+      return res.status(429).json({ 
+        message: 'Vui lòng đợi 30s trước khi gửi OTP' 
+      });
+    }
 
     // B3: Tìm user dựa trên email đã được làm sạch
     const user = await User.findOne({
@@ -334,7 +378,9 @@ const login = async (req, res) => {
     // B5: Tạo mã OTP
     const otp = generateOTP();
     otpStoragelogin[email]=otp;
-    console.log("<<<<OTP>>>>", otp.code);
+
+    // Cập nhật thời gian gửi OTP
+    otpResendLimits[email] = Date.now();
 
     // Gửi OTP qua email
     const mailOptions = {
@@ -430,6 +476,13 @@ async function resendOTP(req, res) {
   try {
     const { userId, email } = req.body;
 
+     // Kiểm tra giới hạn gửi OTP
+    if (!canSendOTP(email)) {
+      return res.status(429).json({ 
+        message: 'Vui lòng đợi 1 phút trước khi gửi lại OTP' 
+      });
+    }
+
     // 1. Tìm người dùng
     const user = await User.findOne({ where: { email } });
     if (!user) {
@@ -440,9 +493,9 @@ async function resendOTP(req, res) {
     const otp = generateOTP();
     otpStoragelogin[email] = otp
     //const otpKey = `otp:${userId}`;
-
-    // 3. Lưu OTP mới vào Redis
-    //await redisClient.set(otpKey, otp, 'EX', 600);
+    
+    // Cập nhật thời gian gửi OTP
+    otpResendLimits[email] = Date.now();
 
     // 4. Gửi email OTP mới
     const mailOptions = {
