@@ -8,6 +8,7 @@ const {
   getAllRoom,
   getDetailRoom,
   updateRoom,
+  getDetailRoomByHotelAndName
 } = require("../controllers/room.controller");
 
 var { csrfProtection, parseForm } = require("../middlewares/authen/csrfProtection"); 
@@ -18,6 +19,7 @@ const roomRouter = express.Router();
 roomRouter.post("/",parseForm, csrfProtection,authenticationMiddleware, requireChange ,uploadCloud.array("room", 10), createRoom);
 roomRouter.get("/", getAllRoom);
 roomRouter.get("/:id", getDetailRoom);
+roomRouter.post("/getByRoomAndHotel",getDetailRoomByHotelAndName);
 
 roomRouter.put("/:id", parseForm, csrfProtection,authenticationMiddleware,requireChange, updateRoom);
 roomRouter.delete("/:id",parseForm, csrfProtection, authenticationMiddleware,requireChange, deleteRoom);

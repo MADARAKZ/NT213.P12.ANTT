@@ -74,7 +74,7 @@ $(document).ready(function () {
                   // Cập nhật thông tin ngày tháng và người dùng
                   $("#checkIn").text("Từ: " + checkInDateString);
                   $("#checkOut").text("Đến: " + checkOutDateString);
-                  $("#fullName").text(booking.User.name);
+                  $("#fullName").text(booking.full_name);
                   $("#totalPrice").text(numberWithCommas(booking.total_price) + " VND");
                   $("#hotelName").text(booking.Room.Hotel.name);
                   $("#email").text(booking.User.email);

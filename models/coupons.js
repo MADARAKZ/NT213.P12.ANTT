@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     code: DataTypes.STRING,
     percent: DataTypes.INTEGER,
     begin: DataTypes.DATE,
-    end: DataTypes.DATE
+    end: DataTypes.DATE,
+    quantities: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Coupons',
