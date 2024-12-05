@@ -190,17 +190,17 @@ $(document).ready(async function () {
   }
 
   // Event listener for the apply button click event
+  let appliedCoupon;
+  // Event listener for the apply button click event
   $("#applyCoupon").click(function () {
     const couponCode = $("#Coupon").val();
     if (couponCode) {
       $.ajax({
         url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
-        credentials: "include",
-        headers: {
-          "CSRF-Token": token, // <-- is the csrf token as a header
-        },
         success: function (coupon) {
+          appliedCoupon = coupon.code;
+          console.log(appliedCoupon);
           if (coupon && coupon.percent) {
             updateTotalPrice(coupon.percent);
           } else {
@@ -215,6 +215,7 @@ $(document).ready(async function () {
       alert("Vui lòng nhập mã giảm giá.");
     }
   });
+  console.log(appliedCoupon);
 
   $("#phoneNumber").val(currentUser.numberPhone); // Phone number in placeholder if empty
   $("#emailAddress").val(currentUser.email); // Adjusted the name attribute in HTML to `email`
@@ -223,6 +224,22 @@ $(document).ready(async function () {
   }
 
   function validateAndSendBookingRequest() {
+    if (appliedCoupon) {
+      $.ajax({
+        url: "/api/v1/coupon/checkanddelete/" + appliedCoupon, // Thêm mã coupon vào URL
+        method: "POST", // Sử dụng đúng HTTP method, có thể GET hoặc DELETE nếu cần
+        success: function (response) {
+          console.log("Coupon processed successfully:", response.message);
+        },
+        error: function (xhr) {
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            alert(`Không thể xóa mã giảm giá: ${xhr.responseJSON.message}`);
+          } else {
+            alert("Đã xảy ra lỗi khi xử lý mã giảm giá.");
+          }
+        },
+      });
+    }
     if (
       $("#fname").val() === "" ||
       $("#phoneNumber").val() === "" ||

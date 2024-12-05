@@ -7,6 +7,7 @@ const {
   deleteCoupon,
   getDetailCoupon,
   getCouponByCode,
+  checkAndDeleteCouponByCode,
 } = require("../controllers/coupons.controllers");
 var {
   csrfProtection,
@@ -56,6 +57,7 @@ CouponRouter.get(
   csrfProtection,
   getCouponByCode
 );
+CouponRouter.post("/checkanddelete/:code", checkAndDeleteCouponByCode);
 module.exports = {
   CouponRouter,
 };

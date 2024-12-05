@@ -203,6 +203,7 @@ const getDetailBookingByHotelAndName = async (req, res) => {
           attributes: ["id", "name", "email", "numberPhone", "cccd", "address"], // Thông tin về người dùng
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     // Kiểm tra nếu không tìm thấy booking nào
