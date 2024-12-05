@@ -43,7 +43,7 @@ async function authenticationMiddleware  (req, res, next) {
         const refeshTokendecode = jwt.verify(refreshToken,process.env.REFRESH_TOKEN);
     
         const newAccessToken = await RefreshToken(refeshTokendecode.userId)
-        console.log("token moi trong cookie",newAccessToken)
+
     
         res.cookie('accessToken', newAccessToken, {
             httpOnly: true,
@@ -62,7 +62,6 @@ async function authenticationMiddleware  (req, res, next) {
 
 async function RefreshToken(userID){
     const user = await User.findOne({where: {id: userID}});
-    console.log("Refresh USer", user)
     if(!user)
     {
         throw new error("User is Invalid")
@@ -72,7 +71,6 @@ async function RefreshToken(userID){
         process.env.ACCESS_TOKEN,
         {expiresIn: '40m'}
     )
-    console.log("Token moi", newAccessToken);
     return newAccessToken;
 }
 
