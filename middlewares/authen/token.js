@@ -70,9 +70,21 @@ async function RefreshToken(userID){
     const newAccessToken = jwt.sign(
         {userId: user.id, type: user.type},
         process.env.ACCESS_TOKEN,
-        {expiresIn: '15m'}
+        {expiresIn: '40m'}
     )
     console.log("Token moi", newAccessToken);
     return newAccessToken;
 }
-module.exports = { authMiddleware, authenticationMiddleware };
+
+async function blockLogin(req, res, next) {
+    const token = req.cookies.accessToken; // Lấy token từ cookie
+    if (token) {
+        // Nếu token tồn tại, trả về thông báo lỗi và không cho truy cập
+        return res.status(403).json({ 
+            message: "Bạn đã đăng nhập. Không thể truy cập vào trang này." 
+        });
+    }
+    // Nếu không có token, tiếp tục xử lý router
+    next();
+}
+module.exports = { authMiddleware, authenticationMiddleware, blockLogin };

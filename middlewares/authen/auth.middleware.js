@@ -50,7 +50,7 @@ async function RefreshToken(userId) {
   const newAccessToken = jwt.sign(
     { userId: user.id, type: user.type},
     process.env.ACCESS_TOKEN,
-    { expiresIn: "15m" }
+    { expiresIn: "40m" }
   )
   console.log("Token moi,", newAccessToken)
   return newAccessToken;
