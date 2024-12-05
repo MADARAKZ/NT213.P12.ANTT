@@ -1,11 +1,17 @@
 $(document).ready(function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
 
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
       url: "/api/v1/coupon/getAllCoupon",
       method: "GET",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": token, // <-- is the csrf token as a header
+      },
       success: function (data) {
         var tableHtml = "";
         data.forEach(function (coupon, index) {
@@ -62,7 +68,7 @@ $(document).ready(function () {
       type: "POST",
       credentials: "include",
       headers: {
-      'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       data: {
         code: code,
@@ -105,6 +111,10 @@ $(document).ready(function () {
     $.ajax({
       url: `/api/v1/coupon/deleteCoupon/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": token, // <-- is the csrf token as a header
+      },
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();

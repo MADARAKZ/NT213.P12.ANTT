@@ -206,7 +206,6 @@ const deleteRoom = async (req, res) => {
       return res.status(404).send("Không tìm thấy khách sạn");
     }
 
-
     // Sau khi đã xóa hết các hình ảnh liên quan, tiến hành xóa khách sạn
     await deletedRoom.destroy({ cascade: true });
 
@@ -217,10 +216,57 @@ const deleteRoom = async (req, res) => {
     res.status(500).send("Lỗi máy chủ nội bộ");
   }
 };
+
+const getDetailRoomByHotelAndName = async (req, res) => {
+  const { hotelId, roomName } = req.body;
+
+  try {
+    // Kiểm tra sự hiện diện của hotelId và roomName
+    if (!hotelId || !roomName) {
+      return res
+        .status(400)
+        .send({ message: "Both hotelId and roomName are required." });
+    }
+
+    // Tìm phòng dựa trên hotelId và roomName
+    const detailRoom = await Room.findOne({
+      where: {
+        hotelId,
+        name: roomName, // Lọc theo tên phòng
+      },
+      include: [
+        {
+          model: Hotels, // Include thông tin của khách sạn
+          as: "Hotel", // Alias để sử dụng trong truy vấn
+          attributes: ["name", "star", "userRating", "TypeHotel"], // Chỉ lấy các thuộc tính cần thiết
+        },
+        {
+          model: UrlImageRoom, // Include thông tin hình ảnh của phòng
+        },
+      ],
+    });
+
+    // Kiểm tra nếu không tìm thấy phòng
+    if (!detailRoom) {
+      return res
+        .status(404)
+        .send({
+          message: "Room not found with the specified hotelId and roomName.",
+        });
+    }
+
+    // Trả về chi tiết phòng
+    res.status(200).send(detailRoom);
+  } catch (error) {
+    console.error("Error fetching room details:", error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+};
 module.exports = {
   createRoom,
   deleteRoom,
   updateRoom,
   getDetailRoom,
   getAllRoom,
+  getDetailRoomByHotelAndName,
 };

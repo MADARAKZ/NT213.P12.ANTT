@@ -1,5 +1,13 @@
 const { Booking } = require("../models");
 const { checkExist } = require("../middlewares/validations/checkExist.js");
+const {
+  authenticateToken,
+  requireAdmin,
+  requireCustomer,
+  requireOwner,
+} = require("../middlewares/authen/auth.middleware");
+const { authenticationMiddleware } = require("../middlewares/authen/token");
+
 const express = require("express");
 const {
   createBooking,
@@ -7,17 +15,47 @@ const {
   getDetailBooking,
   deleteBooking,
   getAvailability,
-  getDetailBookingByHotelAndName
+  getDetailBookingByHotelAndName,
 } = require("../controllers/payment.controller");
-var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
-const BookingRouter = express.Router();
-BookingRouter.post("/", parseForm, csrfProtection, createBooking);
-BookingRouter.get("/", getAllBooking);
-BookingRouter.get("/getDetail/:id", getDetailBooking);
-BookingRouter.get("/checkAvailability", getAvailability);
-BookingRouter.post("/getByHotelAndName",getDetailBookingByHotelAndName);
+var {
+  csrfProtection,
+  parseForm,
+} = require("../middlewares/authen/csrfProtection");
 
-BookingRouter.delete("/:id", parseForm, csrfProtection, checkExist(Booking), deleteBooking);
+const BookingRouter = express.Router();
+BookingRouter.post(
+  "/",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  createBooking
+);
+BookingRouter.get("/", getAllBooking);
+BookingRouter.get(
+  "/getDetail/:id",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  getDetailBooking
+);
+BookingRouter.get("/checkAvailability", getAvailability);
+BookingRouter.post(
+  "/getByHotelAndName",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  getDetailBookingByHotelAndName
+);
+
+BookingRouter.delete(
+  "/:id",
+  requireAdmin,
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  checkExist(Booking),
+  deleteBooking
+);
 
 module.exports = {
   BookingRouter,

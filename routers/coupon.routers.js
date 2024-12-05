@@ -11,14 +11,38 @@ const {
 var {
   csrfProtection,
   parseForm,
-  cookieParser,
 } = require("../middlewares/authen/csrfProtection");
+const { authenticationMiddleware } = require("../middlewares/authen/token.js");
+const {
+  requireAdmin,
+  requireChange,
+} = require("../middlewares/authen/auth.middleware.js");
 const CouponRouter = express.Router();
 
-CouponRouter.post("/create", parseForm, csrfProtection, createCoupon);
-CouponRouter.get("/getAllCoupon", getAllCoupon);
-CouponRouter.get("/getDetailCoupon/:id", getDetailCoupon);
-CouponRouter.get("/manageCoupon", displayCoupon);
+CouponRouter.post(
+  "/create",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireAdmin,
+  createCoupon
+);
+CouponRouter.get(
+  "/getAllCoupon",
+  authenticationMiddleware,
+  requireAdmin,
+  parseForm,
+  csrfProtection,
+  getAllCoupon
+);
+CouponRouter.get(
+  "/getDetailCoupon/:id",
+  parseForm,
+  csrfProtection,
+  getDetailCoupon
+);
+
+CouponRouter.get("/manageCoupon", parseForm, csrfProtection, displayCoupon);
 CouponRouter.put("/editCoupon/:id", parseForm, csrfProtection, editCoupon);
 CouponRouter.delete(
   "/deleteCoupon/:id",

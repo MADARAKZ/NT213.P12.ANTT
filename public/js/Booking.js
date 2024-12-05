@@ -1,10 +1,17 @@
 $(document).ready(function () {
-  const tokencsrf= document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
       url: "/api/v1/booking",
       method: "GET",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": tokencsrf,
+      },
+
       success: function (data) {
         console.log(data);
         var tableHtml = "";
@@ -96,6 +103,11 @@ $(document).ready(function () {
     $.ajax({
       url: `/api/v1/booking/${id}`,
       method: "DELETE",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": tokencsrf,
+      },
+
       success: function (data) {
         // Xử lý thành công
         $(".popup-overlay-delete").hide();
@@ -145,10 +157,10 @@ $(document).ready(function () {
     $.ajax({
       url: `/api/v1/hotels`,
       method: "POST",
-        credentials: "include",
-        headers: {
-        'CSRF-Token': tokencsrf,
-        },
+      credentials: "include",
+      headers: {
+        "CSRF-Token": tokencsrf,
+      },
       processData: false, // Ngăn jQuery xử lý dữ liệu
       contentType: false, // Ngăn jQuery đặt loại nội dung
       data: formData,
@@ -234,10 +246,10 @@ $(document).ready(function () {
           $.ajax({
             url: `/api/v1/booking/${id}`,
             method: "PUT",
-        credentials: "include",
-        headers: {
-        'CSRF-Token': tokencsrf,
-        },
+            credentials: "include",
+            headers: {
+              "CSRF-Token": tokencsrf,
+            },
             data: {
               room_id: roomId,
               full_name: fullName,

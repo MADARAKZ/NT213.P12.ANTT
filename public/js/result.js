@@ -1,4 +1,7 @@
 $(document).ready(function () {
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   function getParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -24,6 +27,11 @@ $(document).ready(function () {
   $.ajax({
     url: "/api/v1/booking/getDetail/" + bookingID,
     method: "GET",
+    credentials: "include",
+    headers: {
+      "CSRF-Token": tokencsrf,
+    },
+
     success: (data) => {
       $("#RoomName").html("Loại phòng" + "<br>" + data.Room.name);
       const checkInDate = new Date(data.check_in_date);

@@ -321,7 +321,6 @@ updateButtonStyles();
 const input = document.getElementById("hotel-destination");
 const autocomplete = document.getElementById("autocomplete");
 
-
 // Gắn sự kiện click cho nút có id là "search-btn"
 document.querySelector(".search-button").addEventListener("click", function () {
   // Thu thập dữ liệu từ form

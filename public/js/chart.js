@@ -9,6 +9,10 @@ var hotelLabels = []; // Array to hold hotel names
 function getDummyData(selectedYearMonth) {
   return $.ajax({
     type: "GET",
+    credentials: "include",
+    headers: {
+      "CSRF-Token": tokencsrf,
+    },
     url: `/api/v1/booking`,
     success: (data) => {
       let profitByDate = {};

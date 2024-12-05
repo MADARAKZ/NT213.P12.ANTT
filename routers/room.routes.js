@@ -8,6 +8,7 @@ const {
   getAllRoom,
   getDetailRoom,
   updateRoom,
+  getDetailRoomByHotelAndName,
 } = require("../controllers/room.controller");
 
 var {
@@ -45,6 +46,14 @@ roomRouter.delete(
   authenticationMiddleware,
   requireChange,
   deleteRoom
+);
+
+roomRouter.post(
+  "/getByRoomAndHotel",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  getDetailRoomByHotelAndName
 );
 
 module.exports = {

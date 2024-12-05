@@ -18,7 +18,9 @@ const createReview = [
   async (req, res) => {
     // Kiểm tra các lỗi xác thực
     const errors = validationResult(req);
+    console.log(errors.array());
     if (!errors.isEmpty()) {
+      console.log("ao that day");
       return res.status(400).json({ errors: errors.array() });
     }
 

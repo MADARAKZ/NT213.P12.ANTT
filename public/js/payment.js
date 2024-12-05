@@ -108,6 +108,10 @@ $(document).ready(async function () {
       $.ajax({
         url: "http://localhost:3030/api/v1/hotels/" + hotelId,
         method: "GET",
+        credentials: "include",
+        headers: {
+          "CSRF-Token": token, // <-- is the csrf token as a header
+        },
         success: function (hotelData) {
           console.log(hotelData);
           $("#hotelName").text(hotelData.name);
@@ -115,11 +119,16 @@ $(document).ready(async function () {
           // AJAX cuối cùng để lấy thông tin phòng và giá
           $.ajax({
             url: "/api/v1/rooms/getByRoomAndHotel/",
+
             data: {
               roomName: roomName, // Tên phòng
               hotelId: hotelId,
             },
             method: "POST",
+            credentials: "include",
+            headers: {
+              "CSRF-Token": token, // <-- is the csrf token as a header
+            },
             success: (roomData) => {
               console.log(roomData);
               roomId = roomData.id;
@@ -187,6 +196,10 @@ $(document).ready(async function () {
       $.ajax({
         url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
+        credentials: "include",
+        headers: {
+          "CSRF-Token": token, // <-- is the csrf token as a header
+        },
         success: function (coupon) {
           if (coupon && coupon.percent) {
             updateTotalPrice(coupon.percent);
