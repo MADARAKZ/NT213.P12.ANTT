@@ -5,6 +5,7 @@ const crypto = require("crypto");
 
 const { sanitizeObject } = require("../middlewares/validations/sanitize"); // Import sanitizeObject
 
+
 const createCoupon = [
   // Validate các trường
   body("code")
@@ -18,7 +19,11 @@ const createCoupon = [
     .withMessage("Discount percent is required")
     .isFloat({ min: 0, max: 100 })
     .withMessage("Discount percent must be between 0 and 100"),
-
+  body("quantities")
+  .notEmpty()
+  .withMessage("Quantities is required")
+  .isFloat({min: 0, max:100})
+  .withMessage("Quantities between 1 and 100"),
   body("begin")
     .notEmpty()
     .withMessage("Start date is required")
@@ -41,14 +46,14 @@ const createCoupon = [
   // Xử lý sau khi validate
   async (req, res) => {
     // Sanitize request body
-    sanitizeObject(req.body, ["code", "percent", "begin", "end"]);
+    sanitizeObject(req.body, ["code", "percent","quantities","begin", "end"]);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    let { code, percent, begin, end } = req.body;
+    let { code, percent, begin, end, quantities } = req.body;
 
     try {
       // Tạo chuỗi mã hóa ngẫu nhiên nếu code không được cung cấp
@@ -63,6 +68,7 @@ const createCoupon = [
         percent,
         begin,
         end,
+        quantities,
       });
 
       // Trả về phản hồi thành công
@@ -139,17 +145,99 @@ const deleteCoupon = (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-const getDetailCoupon = async (req, res) => {
-  console.log("3");
+const checkAndDeleteCouponByCode = async (req, res) => {
   try {
+    const couponCode = req.params.code;
+
+    // Tìm coupon theo mã code
+    const coupon = await Coupons.findOne({
+      where: {
+        code: couponCode,
+      },
+    });
+
+    // Kiểm tra nếu coupon không tồn tại
+    if (!coupon) {
+      return res.status(404).json({
+        status: "error",
+        message: `Coupon with code ${couponCode} not found`,
+      });
+    }
+
+    // Kiểm tra số lượng
+    if (coupon.quantities <= 0) {
+      // Xóa coupon nếu số lượng không còn
+      await Coupons.destroy({
+        where: {
+          code: couponCode,
+        },
+      });
+
+      return res.status(200).json({
+        status: "success",
+        message: `Coupon with code ${couponCode} has been deleted due to insufficient quantities`,
+      });
+    }
+
+    // Giảm số lượng quantities đi 1 nếu số lượng lớn hơn 0
+    coupon.quantities -= 1;
+    await coupon.save(); // Lưu thay đổi vào cơ sở dữ liệu
+
+    return res.status(200).json({
+      status: "success",
+      message: `Coupon with code ${couponCode} has been successfully updated`,
+      coupon,
+    });
+  } catch (error) {
+    console.error("Error checking and deleting coupon:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
+  }
+};
+const getDetailCoupon = async (req, res) => {
+  console.log("Fetching coupon details...");
+  try {
+    // Tìm coupon theo ID
     const detailCoupon = await Coupons.findOne({
       where: {
         id: req.params.id,
       },
     });
-    res.status(200).send(detailCoupon);
+
+    // Kiểm tra nếu coupon không tồn tại
+    if (!detailCoupon) {
+      return res.status(404).json({
+        status: "error",
+        message: `Coupon with ID ${req.params.id} not found.`,
+      });
+    }
+
+    // Kiểm tra nếu quantities đã hết
+    if (detailCoupon.quantities <= 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "Coupon is no longer available (quantities exhausted).",
+      });
+    }
+
+    // Trừ quantities đi 1
+    detailCoupon.quantities -= 1;
+    await detailCoupon.save(); // Lưu thay đổi vào cơ sở dữ liệu
+
+    // Trả về thông tin chi tiết của coupon sau khi cập nhật
+    return res.status(200).json({
+      status: "success",
+      message: "Coupon retrieved and quantities updated.",
+      data: detailCoupon,
+    });
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error fetching coupon details:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while processing your request.",
+    });
   }
 };
 
@@ -178,4 +266,5 @@ module.exports = {
   deleteCoupon,
   getDetailCoupon,
   getCouponByCode,
+  checkAndDeleteCouponByCode
 };

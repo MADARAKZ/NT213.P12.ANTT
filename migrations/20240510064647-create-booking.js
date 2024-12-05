@@ -40,7 +40,9 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 1
       },
-
+      trans_id: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

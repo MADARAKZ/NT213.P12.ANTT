@@ -19,7 +19,7 @@ const roomRouter = express.Router();
 roomRouter.post("/",parseForm, csrfProtection,authenticationMiddleware, requireChange ,uploadCloud.array("room", 10), createRoom);
 roomRouter.get("/", getAllRoom);
 roomRouter.get("/:id", getDetailRoom);
-roomRouter.post("/getByRoomAndHotel",getDetailRoomByHotelAndName);
+roomRouter.post("/getByRoomAndHotel",parseForm,csrfProtection,authenticationMiddleware,getDetailRoomByHotelAndName);
 
 roomRouter.put("/:id", parseForm, csrfProtection,authenticationMiddleware,requireChange, updateRoom);
 roomRouter.delete("/:id",parseForm, csrfProtection, authenticationMiddleware,requireChange, deleteRoom);

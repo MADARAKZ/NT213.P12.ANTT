@@ -34,6 +34,7 @@ const createBooking = [
     .withMessage("Quantity must be at least 1"),
   body("full_name").notEmpty().withMessage("Full name is required"),
 
+
   // Xử lý sau khi validate
   async (req, res) => {
     // Sanitize request body
@@ -66,6 +67,7 @@ const createBooking = [
       quantity,
       full_name,
       hotel_id,
+      trans_id
     } = req.body;
 
     try {
@@ -101,6 +103,7 @@ const createBooking = [
         quantity,
         full_name,
         hotel_id,
+        trans_id
       });
 
       res.status(201).send(newBooking);
@@ -167,12 +170,12 @@ const getDetailBookingByHotelAndName = async (req, res) => {
   let { hotel_id, full_name } = req.body; // Lấy dữ liệu từ query string
 
   // Kiểm tra và chuẩn hóa giá trị full_name
-  if (typeof full_name !== 'string') {
+  if (typeof full_name !== "string") {
     return res.status(400).send({ message: "Invalid full name provided" });
   }
 
   // Loại bỏ các ký tự đặc biệt có thể gây lỗi trong truy vấn
-  full_name = full_name.replace(/[^\w\s]/gi, ''); // Loại bỏ các ký tự đặc biệt
+  full_name = full_name.replace(/[^\w\s]/gi, ""); // Loại bỏ các ký tự đặc biệt
 
   // Kiểm tra nếu hotel_id không hợp lệ
   if (!hotel_id || isNaN(hotel_id)) {
@@ -182,7 +185,7 @@ const getDetailBookingByHotelAndName = async (req, res) => {
   hotel_id = parseInt(hotel_id); // Chuyển hotel_id thành số
 
   try {
-    // Tìm kiếm booking dựa trên id_hotel và tên khách hàng
+    // Tìm kiếm booking dựa trên id_hotel và tên khách hàng, sắp xếp theo thời gian tạo gần nhất
     const bookings = await Booking.findAll({
       where: {
         full_name: full_name, // Lọc theo tên khách hàng
@@ -198,14 +201,15 @@ const getDetailBookingByHotelAndName = async (req, res) => {
             {
               model: Hotels,
               attributes: ["name", "star", "userRating", "map", "TypeHotel", "cost", "payment"], // Thông tin về khách sạn
-            }
-          ]
+            },
+          ],
         },
         {
           model: User,
           attributes: ["id", "name", "email", "numberPhone", "cccd", "address"], // Thông tin về người dùng
-        }
-      ]
+        },
+      ],
+      order: [["createdAt", "DESC"]], // Sắp xếp theo thời gian tạo, gần nhất trước
     });
 
     // Kiểm tra nếu không tìm thấy booking nào

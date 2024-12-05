@@ -55,7 +55,7 @@ async function vnpayReturn(req, res, next) {
     const secureHash = vnp_Params["vnp_SecureHash"];
     const orderId = vnp_Params["vnp_TxnRef"];
     const responseCode = vnp_Params["vnp_ResponseCode"];
-
+    const transID = vnp_Params["vnp_TransactionNo"];
     // Loại bỏ các trường không cần thiết để xác minh chữ ký
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
@@ -85,7 +85,7 @@ async function vnpayReturn(req, res, next) {
     if (responseCode === "00") {
       // Giao dịch thành công
       res.redirect(`/result?orderId=${orderId}`);
-      await Booking.update({ status: true }, { where: { id: orderId } });
+      await Booking.update({ status: true, trans_id: transID }, { where: { id: orderId } });
       res.status(200).send({ message: "Update booking status successfully" });
     } else {
       // Giao dịch thất bại
@@ -98,14 +98,6 @@ async function vnpayReturn(req, res, next) {
   }
 }
 
-function sortObject(obj) {
-  return Object.keys(obj)
-    .sort()
-    .reduce((result, key) => {
-      result[key] = obj[key];
-      return result;
-    }, {});
-}
 
 function sortObject(obj) {
   var sorted = {};

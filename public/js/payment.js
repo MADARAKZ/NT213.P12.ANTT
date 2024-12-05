@@ -98,7 +98,7 @@ $(document).ready(async function () {
     },
     data: JSON.stringify({ hotelName: hotelName }),
     success: function(response) {
-      // Lưu hotelId từ response
+      // Lưu hotelId từ responseF
       console.log(response);
       hotelId = response.hotelId;
   
@@ -118,13 +118,16 @@ $(document).ready(async function () {
               hotelId: hotelId
             },
             method: "POST",
+            headers: {
+              'CSRF-Token': token // <-- là token CSRF
+            },
             success: (roomData) => {
               console.log(roomData);
               roomId=roomData.id;
               const discountRate = 0.1 * numberOfChildren;
               const discountedPrice = Math.ceil(roomData.price * (1 - discountRate));
               console.log(roomData.price);
-              const totalPrice = discountedPrice * all;
+              totalPrice = discountedPrice * all;
               newTotalPrice = totalPrice;
               $("#totalPrice").text(numberWithCommas(totalPrice) + " VND");
               $("#Price").text(numberWithCommas(roomData.price) + " VND");
@@ -175,7 +178,7 @@ $(document).ready(async function () {
     newTotalPrice = totalPrice - discountAmount;
     $("#totalPrice").text(numberWithCommas(newTotalPrice.toFixed(2)) + " VND");
   }
-
+let appliedCoupon;
   // Event listener for the apply button click event
   $("#applyCoupon").click(function () {
     const couponCode = $("#Coupon").val();
@@ -184,6 +187,8 @@ $(document).ready(async function () {
         url: "http://localhost:3030/api/v1/coupon/getByCode/" + couponCode,
         method: "GET",
         success: function (coupon) {
+          appliedCoupon = coupon.code;
+          console.log(appliedCoupon);
           if (coupon && coupon.percent) {
             updateTotalPrice(coupon.percent);
           } else {
@@ -198,7 +203,7 @@ $(document).ready(async function () {
       alert("Vui lòng nhập mã giảm giá.");
     }
   });
-
+console.log(appliedCoupon);
 
 
   $("#phoneNumber").val(currentUser.numberPhone); // Phone number in placeholder if empty
@@ -208,6 +213,22 @@ $(document).ready(async function () {
   }
 
   function validateAndSendBookingRequest() {
+    if(appliedCoupon) {
+    $.ajax({
+      url: "/api/v1/coupon/checkanddelete/" + appliedCoupon, // Thêm mã coupon vào URL
+      method: "POST", // Sử dụng đúng HTTP method, có thể GET hoặc DELETE nếu cần
+      success: function (response) {
+        console.log("Coupon processed successfully:", response.message);
+      },
+      error: function (xhr) {
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          alert(`Không thể xóa mã giảm giá: ${xhr.responseJSON.message}`);
+        } else {
+          alert("Đã xảy ra lỗi khi xử lý mã giảm giá.");
+        }
+      },
+    });
+    }
     if (
       $("#fname").val() === "" ||
       $("#phoneNumber").val() === "" ||
@@ -237,6 +258,7 @@ var fullNameURL =  removeVietnameseAccents(fullName);
       special_requests: $("#specialRequest").val(),
       quantity: numberOfRooms,
       status: false,
+      trans_id: randomID,
     };
     console.log(data);
 
@@ -287,3 +309,12 @@ function removeVietnameseAccents(str) {
     .replace(/đ/g, "d") // Thay đ thành d
     .replace(/Đ/g, "D"); // Thay Đ thành D
 }
+function generateRandomTransId(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+let randomID = generateRandomTransId(20);
