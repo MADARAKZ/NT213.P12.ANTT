@@ -1,6 +1,9 @@
 // hotel.js
 
 $(document).ready(function () {
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
   // Lấy id khách sạn từ URL
   var url = window.location.pathname;
   var hotelSlug = url.substring(url.lastIndexOf("/") + 1);
@@ -14,7 +17,7 @@ $(document).ready(function () {
     url: "/api/v1/hotels/getIdByHotelName/",
     credentials: "include",
     headers: {
-      "CSRF-Token": token, // <-- is the csrf token as a header
+      "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
     },
     method: "POST",
     contentType: "application/json",
@@ -35,7 +38,7 @@ $(document).ready(function () {
         method: "GET",
         credentials: "include",
         headers: {
-          "CSRF-Token": token, // <-- is the csrf token as a header
+          "CSRF-Token": tokencsrf, // <-- is the csrf token as a header
         },
         success: function (data) {
           $("title").text(data.name);

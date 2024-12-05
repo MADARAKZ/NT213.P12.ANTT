@@ -291,9 +291,9 @@ const getAllHotelsAdmin = async (req, res) => {
     res.status(200).json(hotels);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred while fetching hotels' });
+    res.status(500).json({ error: "An error occurred while fetching hotels" });
   }
-}
+};
 const getDetailHotel = async (req, res) => {
   const { id } = req.params;
   try {
@@ -437,7 +437,9 @@ const searchIdHotelByName = async (req, res) => {
     // Tìm khách sạn dựa trên tên
     const hotel = await Hotels.findOne({
       where: {
-        name: hotelName,
+        name: {
+          [Op.like]: `%${hotelName}%`, // Sử dụng SQL LIKE để tìm chuỗi tương tự
+        },
       },
     });
 

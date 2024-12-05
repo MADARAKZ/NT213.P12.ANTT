@@ -199,15 +199,9 @@ app.get("/aboutUs", csrfProtection, (req, res) => {
   res.render("User/aboutUs", { csrfToken: req.csrfToken() });
 });
 
-app.get(
-  "/userInfor",
-  csrfProtection,
-  authenticateToken,
-  requireCustomer,
-  (req, res) => {
-    res.render("User/userInfor", { csrfToken: req.csrfToken() });
-  }
-);
+app.get("/userInfor", csrfProtection, authenticateToken, (req, res) => {
+  res.render("User/userInfor", { csrfToken: req.csrfToken() });
+});
 app.get("/signin", blockLogin, limiter, csrfProtection, (req, res) => {
   res.render("User/signin", { csrfToken: req.csrfToken() });
 });
