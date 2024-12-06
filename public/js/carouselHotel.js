@@ -93,9 +93,7 @@ $(document).ready(() => {
                       <h5 class="card-title">${item.name}</h5>
                     </a>
                     <p class="card-text">${item.map || ""}</p>
-                    <a href="/hotel/${slug}/${
-              item.id
-            }" class="btn btn-primary"><span class="from">From</span> VND ${formattedCost}</a>
+                    <a href="/hotel/${slug}" class="btn btn-primary"><span class="from">From</span> VND ${formattedCost}</a>
                   </div>
                 </div>
               </a>

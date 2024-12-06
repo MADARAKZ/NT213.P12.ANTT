@@ -284,68 +284,45 @@ $(document).ready(async function () {
       success: function (data) {
         console.log(data);
         var tableHtml = "";
+  
         if (data.length == 0) {
-          //Trường hợp không có booking
+          // Trường hợp không có booking
           tableHtml += '<div class="row empty-booking">';
-          tableHtml += '<div class="col-5" >';
-          tableHtml +=
-            '    <img id="imglo" src="https://ak-d.tripcdn.com/images/05E6w12000cqchxs29CAB.gif">';
+          tableHtml += '<div class="col-5">';
+          tableHtml += '    <img id="imglo" src="https://ak-d.tripcdn.com/images/05E6w12000cqchxs29CAB.gif">';
           tableHtml += "</div>";
           tableHtml += '<div class="col-7">';
-          tableHtml +=
-            "<p>Bạn không có bất kỳ đặt chỗ nào hoặc chúng tôi không thể truy cập các đặt chỗ của bạn vào lúc này. Bạn có thể tìm kiếm các đặt phòng bạn đã thực hiện với tư cách là khách trong năm qua bằng địa chỉ email của mình.</p>";
+          tableHtml += "<p>Bạn không có bất kỳ đặt chỗ nào hoặc chúng tôi không thể truy cập các đặt chỗ của bạn vào lúc này. Bạn có thể tìm kiếm các đặt phòng bạn đã thực hiện với tư cách là khách trong năm qua bằng địa chỉ email của mình.</p>";
           tableHtml += "</div>";
-          $(".my-booking table").hide();
-          $(".my-booking").html(tableHtml);
+          $(".my-booking table").hide(); // Ẩn bảng khi không có dữ liệu
+          $(".my-booking").html(tableHtml); // Hiển thị thông báo
         } else {
-          data.forEach(async function (booking, index) {
-            // Tạo HTML cho từng hàng trong bảng
-
-            tableHtml += "<tr>";
-            tableHtml +=
-              '<td class="col1" data-title="STT">' + (index + 1) + "</td>";
-            // tableHtml += '<td class="col2">' + booking.us  er_id + "</td>";
-            tableHtml +=
-              '<td class="col1" data-title="Họ Tên">' +
-              booking.full_name +
-              "</td>";
-            const roomName = await findRoomById(booking.room_id);
-            tableHtml +=
-              '<td class="col2" data-title="Tên phòng">' + roomName + "</td>";
-            tableHtml +=
-              '<td class="col1" data-title="Check-in">' +
-              booking.check_in_date.slice(0, 10) +
-              "</td>";
-            tableHtml +=
-              '<td class="col1" data-title="Check-out">' +
-              booking.check_out_date.slice(0, 10) +
-              "</td>";
-            tableHtml +=
-              '<td class="col2" data-title="Tổng tiền">' +
-              booking.total_price +
-              "</td>";
-            if (booking.status)
-              tableHtml +=
-                '<td class="col1" data-title="Trạng thái">' +
-                "Đã thanh toán" +
-                "</td>";
-            else
-              tableHtml +=
-                '<td class="col1" data-title="Trạng thái">' +
-                "Chưa thanh toán" +
-                "</td>";
-
-            tableHtml +=
-              '<td class="col1" data-title="Yêu cầu đặc biệt">' +
-              booking.special_requests +
-              "</td>";
-
-            tableHtml += "</tr>";
-            $(".my-booking table tbody").html(tableHtml);
+          // Trường hợp có dữ liệu
+          data.forEach(function (booking, index) {
+           
+            if(booking.status ==1) {
+            // Tìm tên phòng
+            findRoomById(booking.room_id).then(function (roomName) {
+              tableHtml += "<tr>";
+              tableHtml += '<td class="col1" data-title="STT">' + (index + 1) + "</td>";
+              tableHtml += '<td class="col1" data-title="Họ Tên">' + booking.full_name + "</td>";
+              tableHtml += '<td class="col2" data-title="Tên phòng">' + roomName + "</td>";
+              tableHtml += '<td class="col1" data-title="Check-in">' + booking.check_in_date.slice(0, 10) + "</td>";
+              tableHtml += '<td class="col1" data-title="Check-out">' + booking.check_out_date.slice(0, 10) + "</td>";
+              tableHtml += '<td class="col2" data-title="Tổng tiền">' + booking.total_price + "</td>";
+              tableHtml += '<td class="col1" data-title="Trạng thái">' + (booking.status ? "Đã thanh toán" : "Chưa thanh toán") + "</td>";
+              tableHtml += '<td class="col1" data-title="Yêu cầu đặc biệt">' + booking.special_requests + "</td>";
+              tableHtml += "</tr>";
+  
+              // Cập nhật bảng sau khi thêm tất cả booking
+              $(".my-booking table tbody").html(tableHtml);
+            }).catch(function (error) {
+              console.error("Lỗi khi tìm tên phòng:", error);
+            });
+          }
           });
         }
-
-        // Render dữ liệu vào bảng
+  
         console.log("Đang render page");
       },
       error: function (xhr, status, error) {
@@ -354,7 +331,7 @@ $(document).ready(async function () {
       },
     });
   }
-
+  
   renderBookingList();
 
   function formatDateForInput(isoDate) {
