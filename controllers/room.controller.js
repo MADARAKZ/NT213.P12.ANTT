@@ -5,12 +5,22 @@ const {
   Amenities,
   UrlImageRoom,
 } = require("../models");
-const cloudinary = require("cloudinary").v2;
-const { Op } = require("sequelize");
 const { validationResult } = require("express-validator");
 const { body } = require("express-validator");
 const { sanitizeObject } = require("../middlewares/validations/sanitize");
-
+const getHotelIdByOwnerId = async (ownerId) => {
+  try {
+    const hotel = await Hotels.findOne({ where: { ownerId } }); // Chỉ lấy một khách sạn
+    if (!hotel) {
+      console.log("No hotels found for the specified owner.");
+      throw new Error("No hotels found for the specified owner.");
+    }
+    return hotel.id; // Trả về ID của khách sạn
+  } catch (error) {
+    console.error("Error fetching hotel for owner:", error);
+    throw error;
+  }
+};
 const createRoom = [
   // Validate các trường
   body("name")
@@ -21,7 +31,7 @@ const createRoom = [
   body("status")
     .notEmpty()
     .withMessage("Room status is required")
-    .isIn(["available", "unavailable", "maintenance"])
+    .isIn([(1, 0)])
     .withMessage(
       "Room status must be one of 'available', 'unavailable', or 'maintenance'"
     ),
@@ -40,11 +50,10 @@ const createRoom = [
     .withMessage("Number of people allowed is required")
     .isInt({ min: 1 })
     .withMessage("Number of people must be at least 1"),
-  body("hotelId").notEmpty().withMessage("Hotel ID is required"),
   body("type_bed")
     .notEmpty()
     .withMessage("Type of bed is required")
-    .isIn(["single", "double", "queen", "king"])
+    .isIn(["Single", "Double", "Queen", "King"])
     .withMessage(
       "Type of bed must be one of 'single', 'double', 'queen', or 'king'"
     ),
@@ -58,7 +67,6 @@ const createRoom = [
       "price",
       "quantity",
       "quantity_people",
-      "hotelId",
       "type_bed",
     ]);
 
@@ -67,16 +75,13 @@ const createRoom = [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const {
-      name,
-      status,
-      price,
-      quantity,
-      quantity_people,
-      hotelId,
-      type_bed,
-    } = req.body;
-
+    const { name, status, price, quantity, quantity_people, type_bed } =
+      req.body;
+    const ownerId = req.user.userId; // Lấy ownerId từ thông tin người dùng đã xác thực
+    const hotelId = await getHotelIdByOwnerId(ownerId);
+    if (!hotelId) {
+      return res.status(404).send("Không tìm thấy khách sạn");
+    }
     try {
       // Create a new room record in the database
       const newRoom = await Room.create({
@@ -118,6 +123,32 @@ const createRoom = [
     }
   },
 ];
+const getOwnerRoom = async (req, res) => {
+  const { hotelId } = req.query;
+
+  try {
+    console.log("Query hotelId:", hotelId);
+
+    let whereClause = {};
+    if (hotelId) {
+      whereClause.hotelId = hotelId; // Sử dụng hotelId từ req.query
+    }
+
+    console.log("Constructed whereClause:", whereClause);
+
+    // Tìm tất cả các phòng phù hợp với điều kiện từ bảng Room
+    const roomList = await Room.findAll({
+      where: whereClause,
+    });
+
+    console.log("Room list retrieved:", roomList);
+
+    res.status(200).send(roomList);
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    res.status(500).send(error);
+  }
+};
 const getAllRoom = async (req, res) => {
   const { hotelId } = req.query;
 
@@ -248,11 +279,9 @@ const getDetailRoomByHotelAndName = async (req, res) => {
 
     // Kiểm tra nếu không tìm thấy phòng
     if (!detailRoom) {
-      return res
-        .status(404)
-        .send({
-          message: "Room not found with the specified hotelId and roomName.",
-        });
+      return res.status(404).send({
+        message: "Room not found with the specified hotelId and roomName.",
+      });
     }
 
     // Trả về chi tiết phòng
@@ -266,6 +295,7 @@ module.exports = {
   createRoom,
   deleteRoom,
   updateRoom,
+  getOwnerRoom,
   getDetailRoom,
   getAllRoom,
   getDetailRoomByHotelAndName,

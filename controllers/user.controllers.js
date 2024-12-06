@@ -9,7 +9,6 @@ const { sanitizeObject } = require("../middlewares/validations/sanitize");
 const nodemailer = require("nodemailer");
 
 const otpResendLimits = {};
-const otpSendLimits = {};
 
 let registrationOTPCode = null;
 let registrationUserData = null;
@@ -122,6 +121,13 @@ const register = [
         throw new Error("Số điện thoại đã tồn tại");
       }
     }),
+
+  body("type")
+    .trim()
+    .isIn(["owner", "client"])
+    .withMessage(
+      "Loại tài khoản không hợp lệ (chỉ chấp nhận 'owner' hoặc 'client')"
+    ),
 
   // Xử lý sau khi validate
   async (req, res) => {

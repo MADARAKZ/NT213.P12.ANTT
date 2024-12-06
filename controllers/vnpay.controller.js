@@ -2,17 +2,10 @@ const config = require("config");
 const crypto = require("crypto");
 const moment = require("moment");
 const queryString = require("qs");
-const { Booking,User,Room,Hotels } = require("../models");
+const { Booking, User, Room, Hotels } = require("../models");
 const nodemailer = require("nodemailer");
 // Lấy cấu hình VNPAY từ file config/default.json
 const vnpConfig = config.get("vnpay");
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 function createPaymentUrl(req, res) {
   let ipAddr = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "";
@@ -86,9 +79,7 @@ async function vnpayReturn(req, res, next) {
 
     const booking = await Booking.findOne({
       where: { id: orderId },
-      include: [
-        { model: User },
-      ],
+      include: [{ model: User }],
     });
     if (!booking) {
       throw new Error("Order not found");
@@ -97,13 +88,15 @@ async function vnpayReturn(req, res, next) {
     const room = await Room.findOne({ where: { id: booking.room_id } });
     const hotel = await Hotels.findOne({ where: { id: booking.hotel_id } });
 
-
     // Giao dịch thành công
     if (responseCode === "00") {
-      await Booking.update({ status: true, trans_id: transID }, { where: { id: orderId } });
+      await Booking.update(
+        { status: true, trans_id: transID },
+        { where: { id: orderId } }
+      );
 
       // Gửi email thông báo
-      await sendSuccessEmail(user,booking,room,hotel,transID);
+      await sendSuccessEmail(user, booking, room, hotel, transID);
 
       // Redirect đến trang kết quả thành công
       return res.redirect("/result?status=success");
@@ -112,7 +105,7 @@ async function vnpayReturn(req, res, next) {
       await Booking.destroy({ where: { id: orderId } });
 
       // Redirect đến trang kết quả thất bại
-      return res.redirect("/result?status=failure&code="+responseCode); 
+      return res.redirect("/result?status=failure&code=" + responseCode);
     }
   } catch (error) {
     console.error(error);

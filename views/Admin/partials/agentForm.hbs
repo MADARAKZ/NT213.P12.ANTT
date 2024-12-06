@@ -4,6 +4,7 @@
   integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
   crossorigin="anonymous"
 />
+<meta name="csrf-token" content="{{csrfToken}}" />
 <link rel="stylesheet" href="/css/agent.css" />
 
 <div class="layout">
@@ -28,8 +29,6 @@
       name="name"
       placeholder="Tên khách sạn *"
       required
-      oninvalid="this.setCustomValidity('Vui lòng nhập tên khách sạn')"
-      oninput="this.setCustomValidity('')"
     />
 
     <label>Số sao</label>
@@ -42,15 +41,7 @@
 
     </select>
     <label>Địa chỉ</label>
-    <input
-      type="text"
-      id="map"
-      name="map"
-      placeholder="Địa chỉ *"
-      required
-      oninvalid="this.setCustomValidity('Vui lòng nhập địa chỉ khách sạn')"
-      oninput="this.setCustomValidity('')"
-    />
+    <input type="text" id="map" name="map" placeholder="Địa chỉ *" required />
 
     {{! <label>Giá</label>
       <input type="text" id="cost" name="cost" placeholder="Giá *" required
@@ -75,7 +66,7 @@
       <input type="file" name="hotel" multiple />
     </form>
 
-    <input type="submit" class="dkbutton" value="Đăng ký" />
+    <input type="submit" id="AddHotelNew" class="dkbutton" value="Đăng ký" />
   </form>
 </div>
 

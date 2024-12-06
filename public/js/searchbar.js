@@ -54,44 +54,60 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Lấy dữ liệu từ localStorage
   const existingData = localStorage.getItem("searchData");
 
   if (existingData) {
-    // Parse dữ liệu lưu trữ
     const savedSearchData = JSON.parse(existingData);
 
-    // Cập nhật các trường nhập liệu với dữ liệu đã lưu
-    document.getElementById("hotel-destination").value =
-      savedSearchData.location;
-    document.getElementById("checkIn").value = savedSearchData.checkInDate;
-    document.getElementById("checkOut").value = savedSearchData.checkOutDate;
-    document.getElementById("room-count").textContent =
-      savedSearchData.numberOfRooms;
-    document.getElementById("adults-count").textContent =
-      savedSearchData.numberOfAdults;
-    document.getElementById("children-count").textContent =
-      savedSearchData.numberOfChildren;
-    const dropdownItems = document.querySelectorAll(".dropdown-item");
-    dropdownItems.forEach(function (item) {
-      const dataType = item.getAttribute("data-type");
-      if (dataType === "room") {
-        item.setAttribute("data-count", savedSearchData.numberOfRooms);
-        item.querySelector(".room-item-count").textContent =
-          savedSearchData.numberOfRooms;
-      } else if (dataType === "adults") {
-        item.setAttribute("data-count", savedSearchData.numberOfAdults);
-        item.querySelector(".adults-item-count").textContent =
-          savedSearchData.numberOfAdults;
-      } else if (dataType === "children") {
-        item.setAttribute("data-count", savedSearchData.numberOfChildren);
-        item.querySelector(".children-item-count").textContent =
-          savedSearchData.numberOfChildren;
-      }
-    });
+    // Convert saved dates to Date objects for comparison
+    const savedCheckIn = new Date(savedSearchData.checkInDate);
+    const savedCheckOut = new Date(savedSearchData.checkOutDate);
+    const currentDate = new Date(todayString);
 
-    console.log("Loaded existing search data from localStorage.");
-    return; // Thoát khỏi hàm sau khi tải dữ liệu đã lưu
+    // Check if check-in or check-out dates are in the past
+    if (savedCheckIn < currentDate || savedCheckOut < currentDate) {
+      localStorage.removeItem("searchData");
+      console.log("Old search data removed from localStorage.");
+      document.getElementById("hotel-destination").value = "";
+      checkInInput.value = todayString;
+      checkOutInput.value = nextDayString;
+      document.getElementById("room-count").textContent = 1;
+      document.getElementById("adults-count").textContent = 1;
+      document.getElementById("children-count").textContent = 0;
+    } else {
+      // Load existing data into form fields
+      document.getElementById("hotel-destination").value =
+        savedSearchData.location;
+      document.getElementById("checkIn").value = savedSearchData.checkInDate;
+      document.getElementById("checkOut").value = savedSearchData.checkOutDate;
+      document.getElementById("room-count").textContent =
+        savedSearchData.numberOfRooms;
+      document.getElementById("adults-count").textContent =
+        savedSearchData.numberOfAdults;
+      document.getElementById("children-count").textContent =
+        savedSearchData.numberOfChildren;
+
+      const dropdownItems = document.querySelectorAll(".dropdown-item");
+      dropdownItems.forEach(function (item) {
+        const dataType = item.getAttribute("data-type");
+        if (dataType === "room") {
+          item.setAttribute("data-count", savedSearchData.numberOfRooms);
+          item.querySelector(".room-item-count").textContent =
+            savedSearchData.numberOfRooms;
+        } else if (dataType === "adults") {
+          item.setAttribute("data-count", savedSearchData.numberOfAdults);
+          item.querySelector(".adults-item-count").textContent =
+            savedSearchData.numberOfAdults;
+        } else if (dataType === "children") {
+          item.setAttribute("data-count", savedSearchData.numberOfChildren);
+          item.querySelector(".children-item-count").textContent =
+            savedSearchData.numberOfChildren;
+        }
+      });
+
+      console.log("Loaded existing search data from localStorage.");
+      return; // Exit the function after loading saved data
+    }
   }
 });
 function getItemCountByType(type) {

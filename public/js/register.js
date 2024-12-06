@@ -3,19 +3,19 @@ const otpForm = document.getElementById("otpForm");
 const otpInput = document.getElementById("otpInput");
 const otpError = document.getElementById("otpError");
 const resendOTPLink = document.getElementById("resendOTP");
-const closeOTPModalBtn = document.querySelector('.close-btn');
+const closeOTPModalBtn = document.querySelector(".close-btn");
 
 let currentUserEmail = null;
 
 function closeOTPModal() {
-  $('#otpModal').css('display', 'none');
+  $("#otpModal").css("display", "none");
 }
 
 // Click event close otpmodal
-closeOTPModalBtn.addEventListener('click', closeOTPModal);
+closeOTPModalBtn.addEventListener("click", closeOTPModal);
 
 const registerUser = (event) => {
-  event.preventDefault(); 
+  event.preventDefault();
 
   const name = $("#name").val().trim();
   const email = $("#email").val().trim();
@@ -27,18 +27,22 @@ const registerUser = (event) => {
   const urlParams = new URLSearchParams(window.location.search);
   let type = urlParams.get("type");
   if (type !== "owner") {
+    alert("Type không phù hợp, làm client thôi");
     type = "client";
   }
 
   // Validate trước khi gửi
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   let isValid = true;
-  
+
   // Reset error messages
-  $("#name-error, #email-error, #phone-error, #password-error, #re-password-error").text("");
+  $(
+    "#name-error, #email-error, #phone-error, #password-error, #re-password-error"
+  ).text("");
 
   // Validate name
   if (name === "") {
@@ -84,56 +88,58 @@ const registerUser = (event) => {
     password: password,
     confirmpassword: confirmpassword,
     numberPhone: numberPhone,
-    type: type
+    type: type,
   };
 
   // Lấy CSRF token
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
 
   // Gửi request đăng ký
   $.ajax({
-    url: "/api/v1/users/register", 
+    url: "/api/v1/users/register",
     type: "POST",
-    credentials: 'same-origin',
+    credentials: "same-origin",
     headers: {
-      'CSRF-TOKEN': token,
-      'Content-Type': 'application/json'
+      "CSRF-TOKEN": token,
+      "Content-Type": "application/json",
     },
     data: JSON.stringify(data),
-    success: function(result) {
+    success: function (result) {
       // Lưu email để sử dụng cho việc xác thực OTP sau này
       currentUserEmail = email;
-      
+
       // Hiển thị modal OTP
-      $('#otpModal').css('display', 'flex');
-      
+      $("#otpModal").css("display", "flex");
+
       // Hiển thị thông báo thành công
       otpError.textContent = "OTP đã được gửi tới email của bạn";
       otpError.style.color = "green";
     },
-    error: function(xhr, status, error) {
+    error: function (xhr, status, error) {
       console.error("Error:", xhr.responseJSON);
-      
+
       // Xử lý các lỗi từ backend
       if (xhr.responseJSON && xhr.responseJSON.errors) {
         const errors = xhr.responseJSON.errors;
-        
+
         // Hiển thị các lỗi chi tiết từ backend
-        errors.forEach(err => {
-          switch(err.path) {
-            case 'name':
+        errors.forEach((err) => {
+          switch (err.path) {
+            case "name":
               $("#name-error").text(err.msg);
               break;
-            case 'email':
+            case "email":
               $("#email-error").text(err.msg);
               break;
-            case 'password':
+            case "password":
               $("#password-error").text(err.msg);
               break;
-            case 'confirmpassword':
+            case "confirmpassword":
               $("#re-password-error").text(err.msg);
               break;
-            case 'numberPhone':
+            case "numberPhone":
               $("#phone-error").text(err.msg);
               break;
           }
@@ -143,7 +149,7 @@ const registerUser = (event) => {
         otpError.textContent = "Có lỗi xảy ra khi đăng ký";
         otpError.style.color = "red";
       }
-    }
+    },
   });
 };
 
@@ -151,7 +157,8 @@ const registerUser = (event) => {
 $(document).ready(function () {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   $("#name").on("blur", function () {
     if ($(this).val().trim() === "") {
@@ -205,38 +212,41 @@ $(document).ready(function () {
 otpForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const otp = otpInput.value;
-  console.log("OTP nhan duoc tu front end",otp)
+  console.log("OTP nhan duoc tu front end", otp);
   // Validate OTP length
   if (otp.length !== 6) {
     otpError.textContent = "OTP phải có 6 chữ số";
     otpError.style.color = "red";
     return;
   }
-  
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  
+
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+
   $.ajax({
     url: "/api/v1/users/verify-register-otp",
     type: "POST",
-    credentials: 'same-origin',
-    headers:{
-      'CSRF-Token': token
+    credentials: "same-origin",
+    headers: {
+      "CSRF-Token": token,
     },
     contentType: "application/json",
     data: JSON.stringify({
       email: currentUserEmail,
-      otp: otp
+      otp: otp,
     }),
     success: function (result) {
-      const user = result.user
+      const user = result.user;
       console.log("DA tao tai khoan thanh cong");
-      window.location.href = "/signin"
+      window.location.href = "/signin";
     },
     error: function (xhr, status, error) {
-      otpError.textContent = xhr.responseJSON.message || "Xác thực OTP thất bại";
+      otpError.textContent =
+        xhr.responseJSON.message || "Xác thực OTP thất bại";
       otpError.style.color = "red";
-    }
-  })
+    },
+  });
 
   // fetch("/api/v1/users/verify-register-otp", {
   //   method: "POST",
@@ -280,26 +290,28 @@ otpForm.addEventListener("submit", (e) => {
 // Resend OTP Event
 resendOTPLink.addEventListener("click", (e) => {
   e.preventDefault();
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
 
   $.ajax({
     url: "/api/v1/users/verify-register-resendotp",
     type: "POST",
     credentials: "same-origin",
     headers: {
-      'CSRF-TOKEN': token
+      "CSRF-TOKEN": token,
     },
     contentType: "application/json",
     data: JSON.stringify({
-      email: currentUserEmail
+      email: currentUserEmail,
     }),
-    success: function(result) {
+    success: function (result) {
       otpError.textContent = "OTP mới đã được gửi";
       otpError.style.color = "green";
     },
     error: function (xhr, status, error) {
       otpError.textContent = xhr.responseJSON.message || "Gửi lại OTP thất bại";
       otpError.style.color = "red";
-    }
+    },
   });
 });

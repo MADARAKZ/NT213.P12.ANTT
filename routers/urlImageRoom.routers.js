@@ -1,6 +1,5 @@
 const express = require("express");
 const urlImageRoom = express.Router();
-const { uploadImage2 } = require("../middlewares/upload/upload-mutileImage.js");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
 const {
   deleteImageMiddleware,
@@ -16,22 +15,31 @@ var {
   csrfProtection,
   parseForm,
 } = require("../middlewares/authen/csrfProtection");
+const {
+  authMiddleware,
+  authenticationMiddleware,
+} = require("../middlewares/authen/token.js");
+const { requireChange } = require("../middlewares/authen/auth.middleware.js");
 // Create a new UrlImageHotel
 urlImageRoom.post(
   "/",
   parseForm,
-  uploadImage2,
   csrfProtection,
   uploadCloud.array("room", 10),
   createUrlImageRoom
 );
-
-// Get UrlImageHotel by ID
 urlImageRoom.get("/", getUrlImageRoomById);
 
 urlImageRoom.get("/getAllUrlImageRoom", getAllUrlImageRoom);
 
-urlImageRoom.put("/:id", csrfProtection, updateUrlImageRoom);
+urlImageRoom.put(
+  "/:id",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireChange,
+  updateUrlImageRoom
+);
 
 // Delete UrlImageHotel by ID
 urlImageRoom.delete(

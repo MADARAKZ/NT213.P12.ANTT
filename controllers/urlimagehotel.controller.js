@@ -1,64 +1,78 @@
-const { UrlImageHotel } = require("../models");
-const { Op, literal } = require("express");
+const { UrlImageHotel, Hotels } = require("../models");
+
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const { body, validationResult } = require("express-validator");
-const { sanitizeObject } = require("../middlewares/validations/sanitize");
 
-const createUrlImageHotel = [
-  // Validate HotelId
-  body("HotelId").notEmpty().withMessage("Hotel ID is required"),
-
-  // Xử lý sau khi validate
-  async (req, res) => {
-    // Sanitize request body
-    sanitizeObject(req.body, ["HotelId"]);
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const { HotelId } = req.body;
-      const { files } = req;
-
-      if (!files || files.length === 0) {
-        return res.status(400).send("No files uploaded.");
-      }
-
-      console.log(files);
-      // Iterate over each file and create a corresponding UrlImageHotel record
-      for (const file of files) {
-        const imagePath = file.path;
-        const name = file.filename;
-
-        // Create UrlImageHotel record associated with the hotel
-        const imageUrlRecord = await UrlImageHotel.create({
-          url: imagePath,
-          file_name: name,
-          HotelId: HotelId,
-        });
-
-        console.log("Created UrlImageHotel record:", imageUrlRecord);
-      }
-
-      res.status(201).send("Images uploaded successfully");
-    } catch (error) {
-      console.error("Error creating UrlImageHotel:", error);
-      res.status(500).json({
-        error: "Failed to create UrlImageHotel",
-        message: error.message,
-      });
-    }
-  },
-];
-
-const getUrlImageHotelById = async (req, res) => {
-  const { HotelId } = req.query; // Lấy hotelId từ URL parameter
+const createUrlImageHotel = async (req, res) => {
   try {
+    const { HotelId } = req.body;
+    const { files } = req;
+
+    // Validate HotelId
+    if (!HotelId || isNaN(HotelId)) {
+      console.log("Invalid HotelId:", HotelId);
+      return res.status(400).send("Invalid HotelId.");
+    }
+
+    // Validate files
+    if (!files || files.length === 0) {
+      return res.status(400).send("No files uploaded.");
+    }
+
+    // Iterate over each file and create a corresponding UrlImageHotel record
+    for (const file of files) {
+      const imagePath = file.path;
+      const name = file.filename;
+
+      // Create UrlImageHotel record associated with the hotel
+      const imageUrlRecord = await UrlImageHotel.create({
+        url: imagePath,
+        file_name: name,
+        HotelId: HotelId,
+      });
+
+      console.log("Created UrlImageHotel record:", imageUrlRecord);
+    }
+
+    res.status(201).send("Images uploaded successfully");
+  } catch (error) {
+    console.error("Error creating UrlImageHotel:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+const getUrlImageHotelById = async (req, res) => {
+  const ownerId = req.user.userId; // Lấy ownerId từ thông tin người dùng đã xác thực
+  const { HotelId } = req.query; // Lấy HotelId từ URL parameter
+  try {
+    let targetHotelId;
+
+    // Nếu HotelId không được cung cấp, tìm tất cả HotelId thuộc ownerId
+    if (!HotelId) {
+      const hotels = await Hotels.findAll({ where: { ownerId: ownerId } });
+      if (!hotels || hotels.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "No hotels found for this ownerId" });
+      }
+
+      // Lấy HotelId đầu tiên (hoặc tùy theo logic của bạn)
+      targetHotelId = hotels[0].id; // Có thể tùy chỉnh để lấy nhiều HotelId nếu cần
+    } else {
+      // Nếu HotelId được cung cấp, kiểm tra xem HotelId có thuộc về ownerId không
+      const hotel = await Hotels.findOne({
+        where: { id: HotelId },
+      });
+      if (!hotel) {
+        return res
+          .status(403)
+          .json({ error: "You do not have access to this HotelId" });
+      }
+      targetHotelId = HotelId;
+    }
+
     // Tìm tất cả các đường dẫn ảnh có HotelId tương ứng
-    const urls = await UrlImageHotel.findAll({ where: { HotelId: HotelId } });
+    const urls = await UrlImageHotel.findAll({
+      where: { HotelId: targetHotelId },
+    });
     if (!urls || urls.length === 0) {
       return res
         .status(404)
@@ -67,8 +81,7 @@ const getUrlImageHotelById = async (req, res) => {
 
     // Tạo danh sách mới chứa thông tin hình ảnh bao gồm id
     const imageList = urls.map((image) => {
-      // Xử lý chuỗi URL để loại bỏ các ký tự không mong muốn
-      const processedUrl = image.url.replace(/\\/g, "/"); // Thay thế tất cả các ký tự \\ bằng /
+      const processedUrl = image.url.replace(/\\/g, "/"); // Xử lý chuỗi URL
       return {
         id: image.id, // ID của ảnh
         url: processedUrl, // Đường dẫn ảnh đã được xử lý

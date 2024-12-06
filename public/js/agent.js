@@ -1,19 +1,17 @@
 // import { getCurrentUser } from "../../utils/getCurrentUser.js";
 $(document).ready(function () {
-  const tokencsrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  
+  const tokencsrf = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+
   async function getCurrentUser() {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No token found in localStorage");
-      }
-
       const response = await fetch("/api/v1/users/getCurrentUser", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "CSRF-Token": tokencsrf,
         },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -53,6 +51,10 @@ $(document).ready(function () {
     $.ajax({
       url: "/api/v1/hotels/",
       method: "GET",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": tokencsrf,
+      },
       success: function (data) {
         var tableHtml = "";
         data.forEach(function (hotel, index) {
@@ -179,7 +181,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       success: function (data) {
         // Xử lý thành công
@@ -208,57 +210,6 @@ $(document).ready(function () {
     let id = $(this).val();
     console.log(id);
     window.location.href = `/ManageRoom/${id}`;
-  });
-
-  $(".dkbutton").on("click", async function () {
-    var name = $("#name").val();
-    var star = $("#star").val();
-    var map = $("#map").val();
-    var TypeHotel = $("#TypeHotel").val();
-    // var cost = $("#cost").val();
-    const ownerId = await getGuestId();
-    var payment = $("#payment").val();
-
-    var fileInput = document.querySelector("input[type='file']");
-    var files = fileInput.files; // Danh sách các file đã chọn
-
-    var formData = new FormData();
-    formData.append("name", name);
-    formData.append("star", star);
-    formData.append("map", map);
-    formData.append("TypeHotel", TypeHotel);
-    // formData.append("cost", cost);
-    formData.append("ownerId", ownerId);
-    formData.append("payment", payment);
-
-    // Lặp qua từng file đã chọn và thêm vào formData
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      formData.append("hotel", file); // Sử dụng '[]' để gửi dưới dạng mảng trên máy chủ
-    }
-
-    // Gửi yêu cầu thêm khách sạn với các files ảnh
-    $.ajax({
-      url: `/api/v1/hotels/`,
-      method: "POST",
-      credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
-      processData: false, // Ngăn jQuery xử lý dữ liệu
-      contentType: false, // Ngăn jQuery đặt loại nội dung
-      data: formData,
-      success: function (data) {
-        renderPage();
-        console.log("Khách sạn đã được tạo.");
-        alert("Thành công!");
-        window.location.href = `/agentInfo`;
-      },
-      error: function (error) {
-        // Xử lý lỗi
-        console.log("Đã xảy ra lỗi khi tạo khách sạn:", error);
-      },
-    });
   });
 
   // Sự kiện khi click vào nút "Sửa"
@@ -350,9 +301,9 @@ $(document).ready(function () {
             url: `/api/v1/hotels/updateHotel/${id}`,
             method: "PUT",
             credentials: "include",
-      headers: {
-        'CSRF-Token': tokencsrf,
-      },
+            headers: {
+              "CSRF-Token": tokencsrf,
+            },
             data: {
               name: name,
               star: star,
@@ -438,7 +389,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -518,46 +469,99 @@ $(document).ready(function () {
   // Sự kiện click cho nút "Confirm"
   $("#confirm1").on("click", function () {
     var fileInput = document.querySelector("input[type='file']");
-    var file = fileInput.files;
-    console.log("file", file);
-    var formData = new FormData();
-    var storedHotelId = localStorage.getItem("hotelId");
+    var files = fileInput.files; // Lấy danh sách file từ input
+    var storedHotelId = localStorage.getItem("hotelId"); // Lấy HotelId từ localStorage
 
-    // Nếu không có tệp nào được chọn, không thực hiện gì cả
-    if (file.length === 0) {
+    // Kiểm tra dữ liệu HotelId
+    if (!storedHotelId || !/^\d+$/.test(storedHotelId)) {
+      alert("Không tìm thấy ID khách sạn hợp lệ. Vui lòng thử lại.");
+      return;
+    }
+
+    // Kiểm tra có file nào được chọn không
+    if (files.length === 0) {
       alert("Vui lòng chọn ít nhất một tệp ảnh.");
       return;
     }
 
-    // Tạo FormData để chứa các tệp đã chọn
-
-    for (var i = 0; i < file.length; i++) {
-      formData.append("hotel", file[i]); // Thêm từng tệp vào FormData
+    // Tạo FormData để gửi dữ liệu
+    var formData = new FormData();
+    for (var i = 0; i < files.length; i++) {
+      formData.append("hotel", files[i]); // Thêm từng file vào FormData
     }
-    formData.append("HotelId", storedHotelId);
-    // console.log(storedHotelId);
-    // console.log(formData);
-    // Gửi yêu cầu AJAX POST lên server
+    formData.append("HotelId", storedHotelId.trim()); // Thêm HotelId vào FormData
+
+    console.log("FormData chuẩn bị gửi:", formData);
+    // Log the contents of FormData
+    for (var pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
+
+    // Gửi AJAX POST request
     $.ajax({
-      url: "/api/v1/urlImageHotel",
+      url: "/api/v1/urlImageHotel", // URL API backend
+      type: "POST",
+      credentials: "include", // Nếu cần cookies
+      headers: {
+        "CSRF-Token": tokencsrf, // Thêm token CSRF nếu cần
+      },
+      data: formData,
+      processData: false, // Không xử lý dữ liệu (vì đang dùng FormData)
+      contentType: false, // Để mặc định (dành cho FormData)
+      success: function (response) {
+        console.log("Upload thành công:", response);
+        alert("Ảnh đã được tải lên thành công!");
+      },
+      error: function (error) {
+        console.error("Lỗi khi tải lên:", error);
+        alert("Có lỗi xảy ra khi tải lên ảnh. Xem log để biết thêm thông tin.");
+      },
+    });
+  });
+
+  $("#AddHotelNew").on("click", async function () {
+    var name = $("#name").val();
+    var star = $("#star").val();
+    var map = $("#map").val();
+    var TypeHotel = $("#TypeHotel").val();
+    var payment = $("#payment").val();
+
+    var fileInput = document.querySelector("input[type='file']");
+    var files = fileInput.files; // Danh sách các file đã chọn
+
+    var formData = new FormData();
+    formData.append("name", name);
+    formData.append("star", star);
+    formData.append("map", map);
+    formData.append("TypeHotel", TypeHotel);
+    formData.append("payment", payment);
+    console.log("FormData chuẩn bị gửi:");
+    // Lặp qua từng file đã chọn và thêm vào formData
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      formData.append("hotel", file); // Sử dụng '[]' để gửi dưới dạng mảng trên máy chủ
+    }
+
+    // Gửi yêu cầu thêm khách sạn với các files ảnh
+    $.ajax({
+      url: `/api/v1/hotels/`,
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': tokencsrf,
+        "CSRF-Token": tokencsrf,
       },
+      processData: false, // Ngăn jQuery xử lý dữ liệu
+      contentType: false, // Ngăn jQuery đặt loại nội dung
       data: formData,
-      processData: false, // Không xử lý dữ liệu
-      contentType: false,
-      success: function (response) {
-        console.log("Yêu cầu thành công:", response);
-        // Xử lý kết quả thành công nếu cần thiết
-        alert("Tải ảnh lên thành công!");
-        window.location.reload();
+      success: function (data) {
+        renderPage();
+        console.log("Khách sạn đã được tạo.");
+        alert("Thành công!");
+        window.location.href = `/agentInfo`;
       },
-      error: function (xhr, status, error) {
-        console.error("Đã xảy ra lỗi:", error);
-        // Xử lý lỗi nếu có
-        alert("Đã xảy ra lỗi khi tải ảnh lên server.");
+      error: function (error) {
+        // Xử lý lỗi
+        console.log("Đã xảy ra lỗi khi tạo khách sạn:", error);
       },
     });
   });

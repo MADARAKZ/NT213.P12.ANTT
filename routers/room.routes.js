@@ -7,6 +7,7 @@ const {
   deleteRoom,
   getAllRoom,
   getDetailRoom,
+  getOwnerRoom,
   updateRoom,
   getDetailRoomByHotelAndName,
 } = require("../controllers/room.controller");
@@ -15,8 +16,14 @@ var {
   csrfProtection,
   parseForm,
 } = require("../middlewares/authen/csrfProtection");
-const { authenticationMiddleware } = require("../middlewares/authen/token");
-const { requireChange } = require("../middlewares/authen/auth.middleware.js");
+const {
+  authenticationMiddleware,
+  confirmOwnerOfRoom,
+} = require("../middlewares/authen/token");
+const {
+  requireChange,
+  requireOwner,
+} = require("../middlewares/authen/auth.middleware.js");
 
 const roomRouter = express.Router();
 roomRouter.post(
@@ -45,6 +52,7 @@ roomRouter.delete(
   csrfProtection,
   authenticationMiddleware,
   requireChange,
+  confirmOwnerOfRoom,
   deleteRoom
 );
 
@@ -55,7 +63,12 @@ roomRouter.post(
   authenticationMiddleware,
   getDetailRoomByHotelAndName
 );
-
+roomRouter.get(
+  "/roomOfOwner",
+  authenticationMiddleware,
+  requireOwner,
+  getOwnerRoom
+);
 module.exports = {
   roomRouter,
 };

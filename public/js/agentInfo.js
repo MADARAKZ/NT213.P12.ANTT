@@ -236,6 +236,7 @@ $(document).ready(async function () {
     $.ajax({
       url: "/api/v1/hotels",
       method: "GET",
+      credentials: "include",
       success: function (data) {
         const hotel = data.find(function (h) {
           return h.ownerId == user.id;
@@ -801,12 +802,12 @@ $(document).ready(async function () {
   renderBookingList();
 
   $(document).on("click", ".hotel-img-icon-cc", function () {
-    var hotelId = localStorage.getItem("hotelId");
     console.log(hotelId);
     $("#imagePopupOverlayHotel").css("display", "block");
     $.ajax({
-      url: "/api/v1/urlImageHotel/?HotelId=" + hotelId,
+      url: "/api/v1/urlImageHotel",
       method: "GET",
+      credentials: "include",
       success: function (data) {
         console.log(data);
         // Xử lý khi nhận được danh sách các ảnh từ server

@@ -1,8 +1,8 @@
-const multer = require('multer');
-const path = require('path');
-const fileType = require('file-type');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('cloudinary').v2;
+const multer = require("multer");
+const path = require("path");
+const fileType = require("file-type");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -15,7 +15,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'LastingTrip',
+    folder: "LastingTrip",
     format: async (req, file) => path.extname(file.originalname).substring(1), // Get file extension without '.'
     public_id: (req, file) => path.parse(file.originalname).name, // Use the original file name
   },
@@ -30,20 +30,26 @@ const uploadCloud = multer({
   fileFilter: async (req, file, cb) => {
     try {
       // Validate file extension
-      const allowedExtensions = ['.jpg', '.png'];
+      const allowedExtensions = [".jpg", ".png", ".gif", ".jpeg"];
       const ext = path.extname(file.originalname).toLowerCase();
       if (!allowedExtensions.includes(ext)) {
         console.log("failed 1");
-        return cb(new Error('Only .jpg and .png files are allowed'), false);
+        return cb(new Error("Only .jpg and .png files are allowed"), false);
       }
 
       // Validate MIME type using `fileType` (if file.buffer exists)
       if (file.buffer) {
         const type = await fileType.fromBuffer(file.buffer);
 
-        if (!type || (type.mime !== 'image/jpeg' && type.mime !== 'image/png')) {
+        if (
+          !type ||
+          (type.mime !== "image/jpeg" &&
+            type.mime !== "image/png" &&
+            type.mime !== "image/gif" &&
+            type.mime !== "image/jpg")
+        ) {
           console.log("failed 2");
-          return cb(new Error('Invalid file type'), false);
+          return cb(new Error("Invalid file type"), false);
         }
       }
 

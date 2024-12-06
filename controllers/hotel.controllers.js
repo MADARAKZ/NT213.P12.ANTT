@@ -9,12 +9,34 @@ const {
 const { Op, literal } = require("sequelize");
 const { sequelize } = require("../models");
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 // const amenities = require("../models/amenities");
 const { validationResult } = require("express-validator");
 const { body } = require("express-validator");
 const { sanitizeObject } = require("../middlewares/validations/sanitize"); // Import sanitizeObject
+const getHotelOfOwner = async (req, res) => {
+  try {
+    const ownerId = req.user.id; // Lấy ownerId từ thông tin người dùng đã được xác thực
 
+    // Validate ownerId
+    if (!ownerId || isNaN(ownerId)) {
+      return res.status(400).send("Invalid ownerId.");
+    }
+
+    // Query the database for hotels with the specified ownerId
+    const hotels = await Hotels.findAll({ where: { ownerId } });
+
+    // Check if any hotels were found
+    if (!hotels || hotels.length === 0) {
+      return res.status(404).send("No hotels found for the specified owner.");
+    }
+
+    // Return the list of hotels
+    res.status(200).json(hotels);
+  } catch (error) {
+    console.error("Error fetching hotels for owner:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 const createHotel = [
   // Validate các trường
   body("name").trim().notEmpty().withMessage("Hotel name is required"),
@@ -29,32 +51,19 @@ const createHotel = [
 
   body("payment").trim().notEmpty().withMessage("Payment method is required"),
 
-  body("ownerId")
-    .notEmpty()
-    .withMessage("Owner ID is required")
-    .isInt()
-    .withMessage("Owner ID must be an integer"),
-
   // Xử lý sau khi validate
   async (req, res) => {
     // Sanitize request body
-    sanitizeObject(req.body, [
-      "name",
-      "star",
-      "map",
-      "TypeHotel",
-      "payment",
-      "ownerId",
-    ]);
+    sanitizeObject(req.body, ["name", "star", "map", "TypeHotel", "payment"]);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, star, map, TypeHotel, payment, ownerId } = req.body;
+    const { name, star, map, TypeHotel, payment } = req.body;
     const { files } = req; // Giả định files đã được xử lý bởi middleware như multer
-
+    const ownerId = req.user.userId;
     try {
       // Create the hotel record
       const newHotel = await Hotels.create({
@@ -65,9 +74,7 @@ const createHotel = [
         payment,
         ownerId,
       });
-      console.log("Created hotel record:", newHotel);
 
-      // Kiểm tra nếu có tệp được tải lên
       if (files && files.length > 0) {
         // Iterate over each file and create a corresponding UrlImageHotel record
         for (const file of files) {
@@ -486,6 +493,7 @@ module.exports = {
   getAllHotelsAdmin,
   getDetailHotel,
   updateHotel,
+  getHotelOfOwner,
   deleteHotel,
   searchIdHotelByName,
   getAllMaps,

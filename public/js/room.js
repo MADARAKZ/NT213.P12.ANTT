@@ -1,6 +1,8 @@
 $(document).ready(function () {
-  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  const pathArray = window.location.pathname.split('/');
+  const token = document
+    .querySelector('meta[name="csrf-token"]')
+    .getAttribute("content");
+  const pathArray = window.location.pathname.split("/");
   console.log(pathArray);
   const hotelId = pathArray[pathArray.length - 1];
   console.log(hotelId);
@@ -10,9 +12,67 @@ $(document).ready(function () {
       method: "GET",
       credentials: "include",
       headers: {
-        'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
-       success: function (data) {
+      success: function (data) {
+        console.log(data);
+        var tableHtml = "";
+        data.forEach(function (room, index) {
+          // Tạo HTML cho từng hàng trong bảng
+          tableHtml += "<tr>";
+          tableHtml += `<td data-title="ID";>` + (index + 1) + "</td>";
+          tableHtml += `<td data-title="Tên">` + room.name + "</td>";
+          if (room.status == "1") {
+            tableHtml += '<td data-title="Trạng thái">' + "Còn phòng" + "</td>";
+          } else {
+            tableHtml += `<td data-title="Trạng thái">` + "Hết phòng" + "</td>";
+          }
+          tableHtml += `<td data-title="Giá">` + room.price + "</td>";
+          tableHtml += `<td data-title="Số lượng">` + room.quantity + "</td>";
+          tableHtml +=
+            `<td data-title="Số lượng người">` + room.quantity_people + "</td>";
+          tableHtml += `<td data-title="Loại phòng">` + room.type_bed + "</td>";
+          tableHtml += `<td data-title="Hotel_ID">` + room.hotelId + "</td>";
+
+          tableHtml += `<td data-title="Chỉnh sửa/Xóa">`;
+          tableHtml +=
+            '<button type="button" class="deleteRoom" value="' +
+            room.id +
+            '">Xóa</button>';
+          tableHtml +=
+            '<button type="button" class="ManageRoomService" value="' +
+            room.id +
+            '">Quản Lý Dịch Vụ</button>';
+          tableHtml += `<td data-title="Hình ảnh"><i class='fa-solid fa-image' data-id='${room.id}'></i></td>`; // Add icon with data-id attribute
+
+          tableHtml += "</td>";
+          tableHtml += "</tr>";
+        });
+        // Render dữ liệu vào bảng
+        $(".room-table table tbody").html(tableHtml);
+      },
+      error: function (xhr, status, error) {
+        console.error(error);
+        console.log("Lỗi khi render page room");
+      },
+    });
+  }
+  function RoomPage() {
+    const hotelIdOwner = localStorage.getItem("hotelId");
+    if (!hotelIdOwner) {
+      console.error("No hotelId found in localStorage");
+      return;
+    } else {
+      console.log("HotelId found in localStorage:", hotelIdOwner);
+    }
+    $.ajax({
+      url: `/api/v1/rooms?hotelId=${hotelIdOwner}`,
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "CSRF-Token": token, // <-- is the csrf token as a header
+      },
+      success: function (data) {
         console.log(data);
         var tableHtml = "";
         data.forEach(function (room, index) {
@@ -56,6 +116,14 @@ $(document).ready(function () {
     });
   }
 
+  const roomListItem = document.querySelector(".room-list-item");
+
+  // Add a click event listener
+  roomListItem.addEventListener("click", () => {
+    console.log("Clicked 'Danh sách phòng'");
+    RoomPage(); // Call the render function
+  });
+  RoomPage();
   renderPage();
 
   // Sự kiện khi click vào nút "Thêm"
@@ -91,17 +159,17 @@ $(document).ready(function () {
   // Sự kiện khi click vào nút "Xóa"
   $(document).on("click", ".confirm-delete", function () {
     let id = $(this).val();
-    console.log(id);
     // Gửi yêu cầu xóa người dùng
     $.ajax({
       url: `/api/v1/rooms/${id}`,
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       success: function (data) {
         renderPage();
+        RoomPage();
         $(".popup-overlay-delete").hide();
         $(".popup-delete").hide();
       },
@@ -140,7 +208,6 @@ $(document).ready(function () {
     formData.append("quantity", quantity);
     formData.append("quantity_people", quantity_people);
     formData.append("type_bed", type_bed);
-    formData.append("hotelId", hotelId);
 
     // Lặp qua từng file đã chọn và thêm vào formData
     for (var i = 0; i < files.length; i++) {
@@ -154,7 +221,7 @@ $(document).ready(function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       data: formData,
       contentType: false, // Important for FormData
@@ -289,7 +356,7 @@ $(document).ready(function () {
             method: "PUT",
             credentials: "include",
             headers: {
-              'CSRF-Token': token // <-- is the csrf token as a header
+              "CSRF-Token": token, // <-- is the csrf token as a header
             },
             contentType: "application/json",
             data: JSON.stringify({
@@ -374,7 +441,7 @@ $(document).ready(function () {
       method: "DELETE",
       credentials: "include",
       headers: {
-        'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       contentType: "application/json",
       data: JSON.stringify({ url: url }),
@@ -471,7 +538,7 @@ $(document).ready(function () {
       method: "POST",
       credentials: "include",
       headers: {
-        'CSRF-Token': token // <-- is the csrf token as a header
+        "CSRF-Token": token, // <-- is the csrf token as a header
       },
       data: formData,
       processData: false, // Không xử lý dữ liệu

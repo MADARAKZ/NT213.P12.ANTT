@@ -29,6 +29,8 @@ const {
   authenticateToken,
   requireAdmin,
   requireCustomer,
+  requireOwner,
+  requireChange,
 } = require("./middlewares/authen/auth.middleware");
 const c = require("config");
 const { constants } = require("buffer");
@@ -206,7 +208,6 @@ app.get("/signin", blockLogin, limiter, csrfProtection, (req, res) => {
   res.render("User/signin", { csrfToken: req.csrfToken() });
 });
 
-
 app.get(
   "/payment",
   authenticateToken,
@@ -216,22 +217,38 @@ app.get(
     res.render("User/payment", { csrfToken: req.csrfToken() });
   }
 );
-app.get("/result",(req,res) => {
+app.get("/result", (req, res) => {
   res.render("User/result");
 });
-app.get("/paymentmethod", csrfProtection,authenticationMiddleware, requireCustomer, (req, res) => {
-  res.render("User/paymentMethod", { csrfToken: req.csrfToken() });
-});
-app.get("/result", csrfProtection, authenticationMiddleware, requireCustomer,(req, res) => {
-  res.render("User/result", { csrfToken: req.csrfToken() });
-});
-app.get("/resultTT", csrfProtection, authenticationMiddleware, requireCustomer, (req, res) => {
-  res.render("User/resultTT", { csrfToken: req.csrfToken() });
-});
-app.get("/coupons", csrfProtection,authenticationMiddleware, requireCustomer, (req, res) => {
-  // Rendecouponsidebar template dir
-  res.render("coupons", { csrfToken: req.csrfToken() });
-});
+app.get(
+  "/paymentmethod",
+  csrfProtection,
+  authenticationMiddleware,
+  requireCustomer,
+  (req, res) => {
+    res.render("User/paymentMethod", { csrfToken: req.csrfToken() });
+  }
+);
+app.get(
+  "/result",
+  csrfProtection,
+  authenticationMiddleware,
+  requireCustomer,
+  (req, res) => {
+    res.render("User/result", { csrfToken: req.csrfToken() });
+  }
+);
+
+app.get(
+  "/coupons",
+  csrfProtection,
+  authenticationMiddleware,
+  requireCustomer,
+  (req, res) => {
+    // Rendecouponsidebar template dir
+    res.render("coupons", { csrfToken: req.csrfToken() });
+  }
+);
 app.get(
   "/dashboard",
   csrfProtection,
@@ -242,7 +259,7 @@ app.get(
   }
 );
 
-app.get("/agentInfo", csrfProtection,authenticationMiddleware,  (req, res) => {
+app.get("/agentInfo", csrfProtection, authenticationMiddleware, (req, res) => {
   res.render("User/agentInfo", { csrfToken: req.csrfToken() });
 });
 app.get(
@@ -261,8 +278,9 @@ app.get(
 app.get(
   "/ManageHotelService/:id",
   csrfProtection,
-  authenticateToken,
-  requireAdmin,
+  authenticationMiddleware,
+  requireChange,
+
   (req, res) => {
     var hotelId = req.params.id;
     res.render("Admin/partials/HotelService", {
@@ -272,15 +290,21 @@ app.get(
   }
 );
 
-app.get("/myBooking", csrfProtection,authenticationMiddleware, requireCustomer, (req, res) => {
-  res.render("User/myBooking", { csrfToken: req.csrfToken() });
-});
+app.get(
+  "/myBooking",
+  csrfProtection,
+  authenticationMiddleware,
+  requireCustomer,
+  (req, res) => {
+    res.render("User/myBooking", { csrfToken: req.csrfToken() });
+  }
+);
 
 app.get(
   "/ManageRoomService/:id",
   csrfProtection,
   authenticationMiddleware,
-  requireAdmin,
+  requireChange,
   (req, res) => {
     var roomId = req.params.id;
     res.render("Admin/partials/RoomService", {
@@ -363,12 +387,24 @@ app.get("/hotel/:slug", csrfProtection, (req, res) => {
 // app.get("/admin/hotel", (req, res) => {
 //   res.render("Admin/partials/agent");
 // });
-app.get("/admin/addHotel", csrfProtection, authenticationMiddleware, requireAdmin, (req, res) => {
-  res.render("Admin/partials/agentForm", { csrfToken: req.csrfToken() });
-});
-app.get("/agent/addHotel", csrfProtection,authenticationMiddleware, requireAdmin, (req, res) => {
-  res.render("Admin/partials/agentForm", { csrfToken: req.csrfToken() });
-});
+app.get(
+  "/admin/addHotel",
+  csrfProtection,
+  authenticationMiddleware,
+  requireAdmin,
+  (req, res) => {
+    res.render("Admin/partials/agentForm", { csrfToken: req.csrfToken() });
+  }
+);
+app.get(
+  "/agent/addHotel",
+  csrfProtection,
+  authenticationMiddleware,
+  requireOwner,
+  (req, res) => {
+    res.render("Admin/partials/agentForm", { csrfToken: req.csrfToken() });
+  }
+);
 // app.get("/admin/Hotel/Service", (req, res) => {
 //   res.render("Admin/partials/HotelService");
 // });
@@ -430,7 +466,6 @@ app.engine("hbs", hbs.engine);
 app.set("view engine", "hbs");
 
 const port = process.env.PORT || 3030; // Sử dụng port mặc định là 3030 nếu không có biến môi trường PORT
-
 
 // Listen for connection events
 app.listen(port, async () => {

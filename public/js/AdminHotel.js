@@ -251,7 +251,6 @@ $(document).ready(function () {
     });
   });
   $("#addImageButton3").on("click", function () {
-    alert("cc");
     // Khi người dùng nhấp vào nút "Add Image", kích hoạt sự kiện click cho input[type=file] ẩn
     $("#imageInput").click();
   });

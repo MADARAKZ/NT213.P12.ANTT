@@ -1,7 +1,4 @@
-const { Hotels } = require("../models");
-const { uploadImage2 } = require("../middlewares/upload/upload-mutileImage.js");
 const uploadCloud = require("../middlewares/upload/cloudinary.config");
-const { checkExist } = require("../middlewares/validations/checkExist.js");
 const express = require("express");
 const {
   createHotel,
@@ -9,6 +6,7 @@ const {
   getAllHotelsAdmin,
   getDetailHotel,
   updateHotel,
+  getHotelOfOwner,
   deleteHotel,
   searchIdHotelByName,
   getAllMaps,
@@ -16,28 +14,40 @@ const {
 var {
   csrfProtection,
   parseForm,
-  cookieParser,
 } = require("../middlewares/authen/csrfProtection");
 const { authenticationMiddleware } = require("../middlewares/authen/token.js");
-const { requireAdmin, requireChange} = require("../middlewares/authen/auth.middleware.js");
+const {
+  requireAdmin,
+  requireOwner,
+} = require("../middlewares/authen/auth.middleware.js");
 const HotelRouter = express.Router();
 HotelRouter.post(
   "/",
   parseForm,
   csrfProtection,
   authenticationMiddleware,
-  requireChange,
-  uploadImage2,
+  requireOwner,
   uploadCloud.array("hotel", 10),
   createHotel
 );
 // HotelRouter.post("/", createHotel);
 HotelRouter.get("/getAllMap", getAllMaps);
 HotelRouter.get("/", getAllHotel);
-HotelRouter.get("/getAllHotel",parseForm,
-    csrfProtection, authenticationMiddleware,requireAdmin, getAllHotelsAdmin);
+HotelRouter.get(
+  "/getAllHotel",
+  parseForm,
+  csrfProtection,
+  authenticationMiddleware,
+  requireAdmin,
+  getAllHotelsAdmin
+);
 HotelRouter.get("/:id", getDetailHotel);
-
+HotelRouter.get(
+  "/ownerHotel",
+  authenticationMiddleware,
+  requireOwner,
+  getHotelOfOwner
+);
 HotelRouter.put(
   "/updateHotel/:id",
   parseForm,
