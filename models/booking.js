@@ -50,8 +50,8 @@ module.exports = (sequelize, DataTypes) => {
           isDate: {
             msg: "Ngày check-in phải là một ngày hợp lệ.",
           },
-          isBefore: {
-            args: [sequelize.fn("NOW")],
+          isAfter: {
+            args: new Date().toISOString(), // Sử dụng giá trị hiện tại
             msg: "Ngày check-in phải lớn hơn hoặc bằng ngày hiện tại.",
           },
         },
@@ -89,7 +89,6 @@ module.exports = (sequelize, DataTypes) => {
       status: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false,
       },
       special_requests: {
         type: DataTypes.TEXT,

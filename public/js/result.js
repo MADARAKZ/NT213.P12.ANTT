@@ -1,56 +1,46 @@
-$(document).ready(function () {
-  const tokencsrf = document
-    .querySelector('meta[name="csrf-token"]')
-    .getAttribute("content");
-  function getParameterByName(name, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-      results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return "";
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
-  }
-  function formatDate(date) {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
+// Lấy thông tin từ URL
+const urlParams = new URLSearchParams(window.location.search);
+const status = urlParams.get('status');
+const responseCode = urlParams.get('responseCode');
 
-  function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  const bookingID = getParameterByName("orderId");
-  let totalP;
-  let hotelName;
-  // Helper function to extract a query parameter
-  $.ajax({
-    url: "/api/v1/booking/getDetail/" + bookingID,
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "CSRF-Token": tokencsrf,
-    },
+// Hiển thị thông báo tương ứng
+document.addEventListener("DOMContentLoaded", function () {
+  const resultSuccess = document.getElementById('resultSuccess');
+  const resultFailure = document.getElementById('resultFailure');
 
-    success: (data) => {
-      $("#RoomName").html("Loại phòng" + "<br>" + data.Room.name);
-      const checkInDate = new Date(data.check_in_date);
-      const checkInDateString = formatDate(checkInDate);
-      const checkOutDate = new Date(data.check_out_date);
-      const checkOutDateString = formatDate(checkOutDate);
-      $("#checkIn").text("Từ: " + checkInDateString);
-      $("#checkOut").text("Đến: " + checkOutDateString);
-      $("#fullName").text(data.full_name);
-      $("#totalPrice").text(numberWithCommas(data.total_price) + " VND");
-      $("#hotelName").text(data.Room.Hotel.name);
-      $("#email").text(data.User.email);
-      $("#numberphone").text(data.User.numberPhone);
-      $("#NumberRoom").text(data.quantity);
-      totalP = data.total_price;
-      hotelName = data.Room.Hotel.name;
-    },
-  });
-  $(".return").click(function () {
-    window.location.href = "/";
-  });
+  if (status === 'success') {
+    resultSuccess.innerHTML = `<p>Thanh toán thành công. Cảm ơn bạn đã sử dụng dịch vụ!
+    <br>
+    Vui lòng check mail!
+    </p>`;
+    resultSuccess.style.display = "block";
+    resultFailure.style.display = "none";
+  } else if (status === 'failure') {
+    const responseMessages = {
+      "07": "Trừ tiền thành công nhưng giao dịch bị nghi ngờ. Vui lòng liên hệ hỗ trợ.",
+      "09": "Giao dịch không thành công: Tài khoản chưa đăng ký dịch vụ InternetBanking.",
+      "10": "Giao dịch không thành công: Xác thực thông tin sai quá 3 lần.",
+      "11": "Giao dịch không thành công: Hết thời gian chờ thanh toán. Vui lòng thử lại.",
+      "12": "Giao dịch không thành công: Tài khoản của bạn đã bị khóa.",
+      "13": "Giao dịch không thành công: Sai mật khẩu OTP. Vui lòng thử lại.",
+      "24": "Giao dịch không thành công: Bạn đã hủy giao dịch.",
+      "51": "Giao dịch không thành công: Không đủ số dư trong tài khoản.",
+      "65": "Giao dịch không thành công: Tài khoản đã vượt quá hạn mức giao dịch trong ngày.",
+      "75": "Ngân hàng thanh toán đang bảo trì. Vui lòng thử lại sau.",
+      "79": "Giao dịch không thành công: Sai mật khẩu thanh toán quá số lần quy định.",
+      "99": "Giao dịch không thành công: Lỗi không xác định. Vui lòng thử lại sau."
+    };
+
+    const errorMessage = responseMessages[responseCode] || "Giao dịch thất bại: Mã lỗi không xác định.";
+    resultFailure.innerHTML = `<p>${errorMessage}</p>`;
+    resultSuccess.style.display = "none";
+    resultFailure.style.display = "block";
+  } else {
+    resultSuccess.style.display = "none";
+    resultFailure.style.display = "block";
+    resultFailure.innerHTML = `<p>Không có thông tin thanh toán.</p>`;
+  }
+  setTimeout(() => {
+    window.location.href = '/'; // URL của trang Home
+  }, 10000); // 10 giây
 });

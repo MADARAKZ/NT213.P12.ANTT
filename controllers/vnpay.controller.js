@@ -2,9 +2,17 @@ const config = require("config");
 const crypto = require("crypto");
 const moment = require("moment");
 const queryString = require("qs");
-const { Booking } = require("../models");
+const { Booking,User,Room,Hotels } = require("../models");
+const nodemailer = require("nodemailer");
 // Lấy cấu hình VNPAY từ file config/default.json
 const vnpConfig = config.get("vnpay");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 function createPaymentUrl(req, res) {
   let ipAddr = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "";
@@ -48,13 +56,13 @@ function createPaymentUrl(req, res) {
 
   res.json({ code: "00", data: { url: vnpUrl } });
 }
-
 async function vnpayReturn(req, res, next) {
   try {
     const vnp_Params = req.query;
     const secureHash = vnp_Params["vnp_SecureHash"];
     const orderId = vnp_Params["vnp_TxnRef"];
     const responseCode = vnp_Params["vnp_ResponseCode"];
+    const transID = vnp_Params["vnp_TransactionNo"];
 
     // Loại bỏ các trường không cần thiết để xác minh chữ ký
     delete vnp_Params["vnp_SecureHash"];
@@ -70,43 +78,83 @@ async function vnpayReturn(req, res, next) {
       .join("&");
 
     const hmac = crypto.createHmac("sha512", config.get("vnpay.hashSecret"));
-    const signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     if (secureHash !== signed) {
       throw new Error("Invalid signature");
     }
 
-    const booking = await Booking.findByPk(orderId);
+    const booking = await Booking.findOne({
+      where: { id: orderId },
+      include: [
+        { model: User },
+      ],
+    });
     if (!booking) {
       throw new Error("Order not found");
     }
+    const user = booking.User;
+    const room = await Room.findOne({ where: { id: booking.room_id } });
+    const hotel = await Hotels.findOne({ where: { id: booking.hotel_id } });
 
-    // Cập nhật trạng thái đơn hàng dựa trên mã phản hồi từ VNPAY
+
+    // Giao dịch thành công
     if (responseCode === "00") {
-      // Giao dịch thành công
-      res.redirect(`/result?orderId=${orderId}`);
-      await Booking.update({ status: true }, { where: { id: orderId } });
-      res.status(200).send({ message: "Update booking status successfully" });
+      await Booking.update({ status: true, trans_id: transID }, { where: { id: orderId } });
+
+      // Gửi email thông báo
+      await sendSuccessEmail(user,booking,room,hotel,transID);
+
+      // Redirect đến trang kết quả thành công
+      return res.redirect("/result?status=success");
     } else {
       // Giao dịch thất bại
       await Booking.destroy({ where: { id: orderId } });
-      res.status(200).send({ message: "Delete booking successfully" });
+
+      // Redirect đến trang kết quả thất bại
+      return res.redirect("/result?status=failure&code="+responseCode); 
     }
   } catch (error) {
     console.error(error);
-    res.status(500).render("User/error", { message: error.message });
+    return res.status(500).send({ message: "Internal server error" });
   }
 }
+async function sendSuccessEmail(user, booking, room, hotel, transid) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail", // Hoặc SMTP server của bạn
+    auth: {
+      user: process.env.EMAIL_USER, // Thay bằng email của bạn
+      pass: process.env.EMAIL_PASS, // Mật khẩu ứng dụng
+    },
+  });
 
-function sortObject(obj) {
-  return Object.keys(obj)
-    .sort()
-    .reduce((result, key) => {
-      result[key] = obj[key];
-      return result;
-    }, {});
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: user.email, // Email người dùng từ thông tin booking
+    subject: "Thông báo thanh toán thành công",
+    html: `
+      <h1>Thanh toán thành công</h1>
+      <p>Chào ${user.name},</p>
+      <p>Đơn hàng của bạn với mã số <strong>${transid}</strong> đã được thanh toán thành công.</p>
+      <p>Chi tiết:</p>
+      <ul>
+        <li><strong>Ngày đặt:</strong> ${booking.check_in_date}</li>
+        <li><strong>Tổng tiền:</strong> ${booking.total_price} VND</li>
+        <li><strong>Khách sạn:</strong> ${hotel.name}</li>
+        <li><strong>Phòng:</strong> ${room.name}</li>
+        <li><strong>Loại giường:</strong> ${room.type_bed}</li>
+      </ul>
+      <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email gửi thành công!");
+  } catch (error) {
+    console.error("Lỗi khi gửi email:", error);
+  }
 }
-
 function sortObject(obj) {
   var sorted = {};
   var str = [];

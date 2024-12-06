@@ -2,7 +2,16 @@ $(document).ready(function () {
   const token = document
     .querySelector('meta[name="csrf-token"]')
     .getAttribute("content");
-
+    function formatDateForInput(isoDate) {
+      if (!isoDate) return ""; // Return an empty string if no date is provided
+  
+      const date = new Date(isoDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based, so add 1
+      const day = String(date.getDate()).padStart(2, "0");
+  
+      return `${year}-${month}-${day}`; // Format as YYYY-MM-DD
+    }
   // Hàm để render lại trang sau khi nhận dữ liệu mới từ server
   function renderPage() {
     $.ajax({
@@ -20,6 +29,7 @@ $(document).ready(function () {
           tableHtml += "<td>" + (index + 1) + "</td>";
           tableHtml += '<td class="col2" >' + coupon.code + "</td>";
           tableHtml += '<td class="col2" >' + coupon.percent + "</td>";
+          tableHtml += '<td class="col2" >' + coupon.quantities + "</td>";
           tableHtml +=
             '<td class="col2" >' + coupon.begin.slice(0, 10) + "</td>";
           tableHtml += '<td class="col2" >' + coupon.end.slice(0, 10) + "</td>";
@@ -59,9 +69,10 @@ $(document).ready(function () {
   $(".addCouponbtn").click(function () {
     var code = $("#code").val();
     var percent = $("#percent").val();
+    var quantities = $("#quantities").val();
     var begin = $("#begin").val();
     var end = $("#end").val();
-    console.log(code, percent, begin, end);
+    console.log(code, percent,quantities, begin, end);
 
     $.ajax({
       url: "/api/v1/coupon/create",
@@ -73,6 +84,7 @@ $(document).ready(function () {
       data: {
         code: code,
         percent: percent,
+        quantities: quantities,
         begin: begin,
         end: end,
       },

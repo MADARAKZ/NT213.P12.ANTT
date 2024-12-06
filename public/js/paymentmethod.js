@@ -114,7 +114,6 @@ $(document).ready(function () {
   $.ajax({
     url: "https://sandbox.vnpayment.vn/qrpayauth/api/merchant/get_bank_list",
     type: "POST",
-    credentials: "include",
     // headers: {
     //   "CSRF-Token": token, // <-- is the csrf token as a header
     // },
@@ -177,4 +176,24 @@ $(document).ready(function () {
       },
     });
   });
+});
+$(window).on("beforeunload", function () {
+  const token = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute("content");
+  if (bookingID && !placeOrderClicked) { // Only delete booking if "Place Order" wasn't clicked
+    $.ajax({
+      url: "/api/v1/booking/statusfail/" + bookingID, // Endpoint để xóa booking
+      method: "DELETE",
+      headers: {
+        "CSRF-Token": token, // <-- CSRF token nếu cần
+      },
+      success: function () {
+        console.log("Booking deleted successfully.");
+      },
+      error: function (xhr, status, error) {
+        console.error("Failed to delete booking:", error);
+      },
+    });
+  }
 });

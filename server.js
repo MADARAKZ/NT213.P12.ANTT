@@ -216,6 +216,9 @@ app.get(
     res.render("User/payment", { csrfToken: req.csrfToken() });
   }
 );
+app.get("/result",(req,res) => {
+  res.render("User/result");
+});
 app.get("/paymentmethod", csrfProtection,authenticationMiddleware, requireCustomer, (req, res) => {
   res.render("User/paymentMethod", { csrfToken: req.csrfToken() });
 });

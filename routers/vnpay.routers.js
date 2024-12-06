@@ -4,10 +4,10 @@ const {
     createPaymentUrl,
     vnpayReturn
 } = require("../controllers/vnpay.controller");
-var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 const vnpayRouter = express.Router();
+var { csrfProtection, parseForm, cookieParser } = require("../middlewares/authen/csrfProtection"); 
 vnpayRouter.post("/create-vnpay-url", createPaymentUrl);
-vnpayRouter.get("/vnpay_return",vnpayReturn);
+vnpayRouter.get("/vnpay_return",parseForm,csrfProtection,vnpayReturn);
 
 module.exports = {
     vnpayRouter,
