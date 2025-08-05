@@ -1,59 +1,3 @@
-# name: CI Build Job with 3 Stages
-
-# on:
-#   push:
-
-# jobs:
-#   stage1:
-#     name: 🏗️ Build (30s)
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Simulate Build
-#         run: |
-#           echo "Building..."
-#           sleep 30
-
-#   stage2:
-#     name: 🧪 Test (20s)
-#     runs-on: ubuntu-latest
-#     needs: stage1  # phụ thuộc stage1
-#     steps:
-#       - name: Simulate Test
-#         run: |
-#           echo "Testing..."
-#           sleep 20
-
-#   stage3:
-#     name: 🚀 Deploy (15s)
-#     runs-on: ubuntu-latest
-#     needs: stage2  # phụ thuộc stage2
-#     steps:
-#       - name: Simulate Deploy
-#         run: |
-#           echo "Deploying..."
-#           sleep 15
-# TEST 2
-# name: Fail Example Workflow
-
-# on:
-#   push:
-#     branches:
-#       - main
-
-# jobs:
-#   fail-job:
-#     name: Intentional Fail Job
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       - name: Fail step
-#         run: |
-#           echo "This will fail now"
-#           exit 1  # Dòng này khiến job thất bại
-
 name: Deploy to Production
 
 on:
@@ -62,19 +6,16 @@ on:
       - main
 
 jobs:
-  deploy:
+  push-image:
+    name: Push image to registry
     runs-on: ubuntu-latest
-
+    environment: PRODUCTION
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3 #test
 
-      - name: Print Commit Info
-        run: |
-          echo "Deployed commit: $GITHUB_SHA"
-          echo "Repository: $GITHUB_REPOSITORY"
+      - name: Simulate build
+        run: echo "Building app..."
 
-      - name: Deploy step
-        run: |
-          # Giả sử deploy thành công
-          sleep 10
+      - name: Simulate push
+        run: echo "Pushing image to Docker registry..." #test tiep
